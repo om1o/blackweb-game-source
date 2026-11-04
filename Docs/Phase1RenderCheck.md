@@ -1,0 +1,21 @@
+# Phase 1 native render and performance check
+
+The house build was opened in Godot 4.7.2's Compatibility renderer on **Intel HD Graphics 530 through ANGLE**. Native captures show the recovered house, darker lighting, held starter flashlight, selected Minimal HUD, 50-space inventory, and the revised tutorial menu. See the [earlier entrance capture](../Evidence/phase1-perf-current_starter.png), [Minimal HUD](../Evidence/phase1-hud-minimal.png), [inventory](../Evidence/phase1-minimal-inventory.png), and [new menu](../Evidence/blackweb-main-menu.png). The menu and game window responded during the spot checks; this is not a complete traversal or combat playtest.
+
+At the stationary entrance, after 120 physics-frame warmup, the pre-residue 1280 × 720 build recorded **37.959 ms median** and **84.231 ms p95** over 180 process-frame intervals, with 277 median draw calls and the starter flashlight on. The [probe JSON](../Evidence/phase1-perf-current_starter.json) preserves the counters. A 30 FPS frame has a 33.33 ms budget, so this sample **does not meet a stable 30 FPS target**. These intervals include engine scheduling and CPU/GPU waits; they are not isolated GPU timings.
+
+The resolution comparison changed the same game process from 1280 × 720 to 960 × 540 and back. Each phase had 180 measured frames and 90–120 unmeasured warmup frames:
+
+| Window size | Median frame interval | p95 | Median draws |
+| --- | ---: | ---: | ---: |
+| 1280 × 720, before | 48.686 ms | 69.571 ms | 277 |
+| 960 × 540, trial | 28.374 ms | 75.421 ms | 277 |
+| 1280 × 720, after | 46.521 ms | 72.201 ms | 277 |
+
+The lower resolution produced a substantial **paired median** improvement at this entrance position, about 1.7× against the two surrounding 1280 × 720 samples. Its p95 still missed the 30 FPS budget. The [paired probe](../Evidence/phase1-perf-resolution-aba.json), [1280 capture](../Evidence/perf-resolution-aba-1280_before.png), and [960 capture](../Evidence/perf-resolution-aba-960_trial.png) show the timing and visible softness tradeoff. The 1280 timings in this run are slower than the earlier current-starter run, illustrating why cross-run figures should not be treated as a matched speedup. The portable folder includes [Launch Blackweb Fast.cmd](../Playable/Launch%20Blackweb%20Fast.cmd), which uses the supported `--resolution 960x540` option; the normal launcher remains at 1280 × 720. The Fast shortcut was opened as a real Windows game process on the same Intel PC and reached a responding window.
+
+After the five-style webs and blood/goo residue were added, a same-process 1280 × 720 **cabinet-view** comparison measured bare/dressed/bare medians of **30.773 / 33.517 / 31.253 ms**, and 49 / 56 / 49 draw calls. This suggests a 2.3–2.7 ms median cost for the dressing in that view; p95 varied from 51.306 to 63.922 ms and cannot establish a stable frame rate. The [paired dressing probe](../Evidence/web-residue-frame-trial.json) is a different camera location from the entrance runs above.
+
+Other same-process probes did not justify a lighting downgrade. Turning off the flashlight's shadow reduced draw calls from 277 to 211, but the [shadow A/B/A medians](../Evidence/phase1-perf-flashlight-aba.json) were 40.749, 37.727, and 35.865 ms, with large p95 variation. Reducing the flashlight range from 12.5 m to 9 m reduced draw calls from 277 to 244, but the [range A/B/A medians](../Evidence/phase1-perf-beam-range-aba.json) were 34.598, 34.650, and 41.586 ms. Neither established a consistent frame-time gain. The dim starter flashlight and the house's horror lighting remain intact.
+
+For history only, a prior content build on Radeon RX 550/550 Series measured 16.889 ms median, 24.656 ms p95, and 191 draws at the entrance ([older result](../Evidence/phase1-perf-baseline.json)). A Phase 0 Intel run measured 26.653 ms median and 43.297 ms p95. Both used different content, and the Radeon run used different hardware. They cannot establish a before/after speedup. No **100× optimization** or stable full-house 30 FPS result is claimed. Next validation should measure the spider encounter and a repeatable house route on the same Intel GPU, using the final packaged executable and both quality choices.

@@ -1,0 +1,14 @@
+{
+  "asset": "Metal Plate 02",
+  "artist": "Rob Tuytel",
+  "source": "https://polyhaven.com/a/metal_plate_02",
+  "api": "https://api.polyhaven.com/files/metal_plate_02",
+  "license": "CC0 1.0 Universal",
+  "resolution": "1K",
+  "files": {
+    "diffuse": "textures/metal_plate_02_diff_1k.jpg",
+    "normal_gl": "textures/metal_plate_02_nor_gl_1k.jpg",
+    "arm": "textures/metal_plate_02_arm_1k.jpg"
+  },
+  "use": "Animated compact-house vault-door steel facing"
+}

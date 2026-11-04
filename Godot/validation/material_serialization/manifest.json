@@ -1,0 +1,130 @@
+[
+  {
+    "name": "InstancedStaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.Actor_3.InstancedStaticMeshComponent_0_Instance_23",
+    "mesh": "StaticMesh /Game/VHExterior/Meshes/Mesh_Floor_Attic_02.Mesh_Floor_Attic_02",
+    "position": [
+      200,
+      -400,
+      320
+    ],
+    "quaternion": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ],
+    "materials": [
+      "MaterialInstanceConstant /Game/VHExterior/Materials/Instance/Tiling/Inst_Brick_01.Inst_Brick_01",
+      "MaterialInstanceConstant /Game/VHExterior/Materials/Instance/Tiling/Inst_Parquet.Inst_Parquet",
+      "MaterialInstanceConstant /Game/VHExterior/Materials/Instance/Tiling/Inst_Concrete_01.Inst_Concrete_01"
+    ]
+  },
+  {
+    "name": "InstancedStaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.Actor_4.InstancedStaticMeshComponent_0_Instance_5",
+    "mesh": "StaticMesh /Game/VHExterior/Meshes/Mesh_Floor_Attic_02.Mesh_Floor_Attic_02",
+    "position": [
+      200,
+      -400,
+      0
+    ],
+    "quaternion": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ],
+    "materials": [
+      "MaterialInstanceConstant /Game/VHExterior/Materials/Instance/Tiling/Inst_Brick_01.Inst_Brick_01",
+      "MaterialInstanceConstant /Game/VHExterior/Materials/Instance/Tiling/Inst_Parquet.Inst_Parquet",
+      "MaterialInstanceConstant /Game/VHExterior/Materials/Instance/Tiling/Inst_Concrete_01.Inst_Concrete_01"
+    ]
+  },
+  {
+    "name": "InstancedStaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.Actor_2.InstancedStaticMeshComponent_0_Instance_0",
+    "mesh": "StaticMesh /Game/VHExterior/Meshes/ModularElements/Mesh_Wall_13.Mesh_Wall_13",
+    "position": [
+      70,
+      -400,
+      40
+    ],
+    "quaternion": [
+      0,
+      0,
+      0.707106775,
+      0.707106787
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ],
+    "materials": [
+      "MaterialInstanceConstant /Game/VHExterior/Materials/Instance/Tiling/Inst_Brick_01.Inst_Brick_01",
+      "MaterialInstanceConstant /Game/VHExterior/Materials/Instance/Tiling/Inst_Concrete_01.Inst_Concrete_01",
+      "MaterialInstanceConstant /Game/VHExterior/Materials/Instance/Tiling/Inst_Brick_01.Inst_Brick_01",
+      "MaterialInstanceConstant /Game/VHExterior/Materials/Instance/Tiling/Inst_Concrete_01.Inst_Concrete_01"
+    ]
+  },
+  {
+    "name": "StaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.StaticMeshActor_1039.StaticMeshComponent0",
+    "mesh": "StaticMesh /Game/OldBrickHouse/Meshes/Props/SM_Bathtub.SM_Bathtub",
+    "position": [
+      3804.717625991,
+      2532.827219118,
+      40.000076358
+    ],
+    "quaternion": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ],
+    "materials": [
+      "MaterialInstanceConstant /Game/OldBrickHouse/Materials/Instances/MI_Bathtub.MI_Bathtub",
+      "MaterialInstanceConstant /Game/OldBrickHouse/Materials/Instances/MI_Wall_07.MI_Wall_07",
+      "MaterialInstanceConstant /Game/OldBrickHouse/Materials/Instances/MI_Handsink.MI_Handsink",
+      "MaterialInstanceConstant /Game/OldBrickHouse/Materials/Instances/MI_Bathtub.MI_Bathtub",
+      "MaterialInstanceConstant /Game/OldBrickHouse/Materials/Instances/MI_Wall_07.MI_Wall_07"
+    ]
+  },
+  {
+    "name": "StaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.BP_Lamp_2_C_10.SM_Lamp",
+    "mesh": "StaticMesh /Game/OldBrickHouse/Meshes/Props/SM_TableLamp_01.SM_TableLamp_01",
+    "position": [
+      4315.293686172,
+      -1233.482856665,
+      40.00002345
+    ],
+    "quaternion": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ],
+    "materials": [
+      "MaterialInstanceConstant /Game/OldBrickHouse/Materials/Instances/MI_TableLamps_Off.MI_TableLamps_Off",
+      "Material /Game/OldBrickHouse/Materials/Masters/M_Glass_01.M_Glass_01",
+      "MaterialInstanceConstant /Game/OldBrickHouse/Materials/Instances/MI_TableLamps_Off.MI_TableLamps_Off"
+    ]
+  }
+]

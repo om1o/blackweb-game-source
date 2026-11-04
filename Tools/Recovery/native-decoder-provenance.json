@@ -1,0 +1,8 @@
+{
+  "source": "https://github.com/4sval/FModel/releases/download/nov-2026/FModel.zip",
+  "archiveSha256": "209bef15402dd58010cdb6bad03a799471f2100d671f8d5a52c1e613549b7de1",
+  "component": "CUE4Parse-Natives.dll",
+  "bytes": 141312,
+  "sha256": "1b5ce859de181400c75e533e6d34d8935379e8f00476021507df346964e984d1",
+  "method": "Copied unchanged native resource from official .NET single-file bundle. FModel executable and blocked FMOD DLL not executed; no security policy changes."
+}

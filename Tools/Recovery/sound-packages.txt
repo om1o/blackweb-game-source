@@ -1,0 +1,6 @@
+Arachnophobia/Content/Audio/Ambient/Horror_AmbiantDark_01.uasset
+Arachnophobia/Content/Audio/Effects/Squeaking_Door.uasset
+Arachnophobia/Content/Audio/Footstep/Wood/FootstepWood_01.uasset
+Arachnophobia/Content/Audio/Footstep/Wood/FootstepWood_02.uasset
+Arachnophobia/Content/Audio/Footstep/Wood/FootstepWood_03.uasset
+Arachnophobia/Content/Audio/Footstep/Wood/FootstepWood_04.uasset

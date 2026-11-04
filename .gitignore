@@ -1,0 +1,54 @@
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+.vs/
+*.sln
+*.VC.db
+Tools/Recovery/bin/
+Tools/Recovery/obj/
+Tools/Recovery/.nuget/
+
+# Supplied game files and local portable build are not part of the source mirror.
+/RecoveredAssets/
+Playable/
+/Evidence/
+/Godot/assets/recovered/
+/Godot/assets/third_party/literock/
+/Godot/assets/third_party/grab3d/
+/Godot/assets/third_party/3dassets/
+/Godot/runtime/
+/Godot/.godot/
+/Godot/BlackwebHouseRebuild/
+
+# These generated scenes embed geometry from the supplied game. Rebuild locally
+# with the user's recovered files; do not publish the embedded meshes.
+/Godot/scenes/recovered_house.tscn*
+/Godot/scenes/spider_visual.tscn
+/Godot/tests/literock_spider_inspect.gd.uid
+/Godot/tests/tutorial_geom_probe.gd.uid
+/Godot/validation/material_serialization/house.tscn*
+
+# Recovered map captures, reports and game-specific binary mappings.
+/Godot/data/opening_components.json
+/Godot/data/recovered_components.json
+/Godot/data/recovered_lights.json
+/Godot/data/house_import_report.json
+/Godot/data/opening_audit*.json
+/Godot/data/normal_import_report.json
+/Tools/Recovery/*.usmap
+/Tools/Recovery/Mappings/
+/Tools/Recovery/opening-geometry-audit.json
+/Tools/Recovery/doorway-cutout-proposal.json
+
+# Local test output, generated imports and old Windows TTS reference.
+/Godot/data/*_test_report.json
+/Godot/data/playthrough_*.json
+/Godot/data/item_pose_capture.json
+/Godot/validation/**/report.json
+/Godot/assets/generated/luke_web_reveal_v1.wav
+*.import
+*.tmp
+*.log
+/Tools/Recovery/NoFmod/bin/
+/Tools/Recovery/NoFmod/obj/

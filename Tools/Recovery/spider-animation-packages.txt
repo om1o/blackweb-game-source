@@ -1,0 +1,3 @@
+Arachnophobia/Content/Spider/Animations/Spider_Idle.uasset
+Arachnophobia/Content/Spider/Animations/Spider_Run.uasset
+Arachnophobia/Content/Spider/Animations/Spider_Walk.uasset

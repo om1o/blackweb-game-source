@@ -1,0 +1,59 @@
+{
+  "source": "https://github.com/vgmstream/vgmstream/releases/download/r2168/vgmstream-win64.zip",
+  "release": "r2168",
+  "archiveSHA256": "692d45070852a35c1fa42726aa3c9de528e44eec925d37d99b1074256b99a229",
+  "files": [
+    {
+      "name": "avcodec-vgmstream-63.dll",
+      "bytes": 2501632
+    },
+    {
+      "name": "avformat-vgmstream-63.dll",
+      "bytes": 1515520
+    },
+    {
+      "name": "avutil-vgmstream-61.dll",
+      "bytes": 2006016
+    },
+    {
+      "name": "COPYING",
+      "bytes": 1314
+    },
+    {
+      "name": "libcelt-0061.dll",
+      "bytes": 110628
+    },
+    {
+      "name": "libcelt-0110.dll",
+      "bytes": 105132
+    },
+    {
+      "name": "libmpg123-0.dll",
+      "bytes": 429481
+    },
+    {
+      "name": "libspeex-1.dll",
+      "bytes": 129630
+    },
+    {
+      "name": "libvorbis.dll",
+      "bytes": 287232
+    },
+    {
+      "name": "README.md",
+      "bytes": 5010
+    },
+    {
+      "name": "swresample-vgmstream-7.dll",
+      "bytes": 726528
+    },
+    {
+      "name": "USAGE.md",
+      "bytes": 47901
+    },
+    {
+      "name": "vgmstream-cli.exe",
+      "bytes": 3135488
+    }
+  ]
+}

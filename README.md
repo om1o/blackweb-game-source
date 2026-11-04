@@ -1,0 +1,61 @@
+# Arachnophobia: Blackweb — house opening
+
+**GitHub source checkout:** This private repository contains the authored Godot game code, tests, tools, documentation, and redistributable third-party/generated art. It intentionally omits the supplied original game's recovered house/spider assets, generated scenes containing those meshes, the portable executable/PCK, local saves, and screenshots. A clone is therefore not a standalone playable download. The playable links and test evidence below refer to the complete local workspace; see [source checkout requirements](Docs/SourceCheckout.md).
+
+The active project is [Godot/project.godot](Godot/project.godot), running with the bundled **Godot 4.7.2** portable runtime. No Unreal Editor is required. The user's later instruction authorized rebuilding from the supplied assets without Unreal; earlier C++ scaffolding and Unreal files remain as prior work and are not the active build.
+
+The recovered house is the playable tutorial opening of the full **Arachnophobia: Blackweb** game. Later chapters and final production art are still in development. The active route is a sealed five-room section, about 13.4 × 8.5 m, with four opening interior doors and one exterior exit. The entry and record room carry two lore papers; the supply, infested and vault rooms carry the early sighting or later spiders. The vault has a hinged steel-faced door, a searchable cabinet and unmarked cash. Mara's warning, keys, backup flashlight, blackout, spider encounter and the exit route are implemented. Luke starts with a working 22% flashlight, a worn knife and a candy bar; batteries, bandages and flares are discoverable in the house and searchable storage. The user's chosen **Minimal** HUD is the default of four layouts. `I` opens a 50-space inventory with three active quick slots; found items must be equipped there before use. The flashlight drains and flickers at low charge. One common flesh-spider archetype is placed as an adult with two juveniles that join during the encounter. The flashlight has a slight slowing effect on them; escape, not killing, remains the route objective. [TutorialHousePass.md](Docs/TutorialHousePass.md) and [GameplayMilestone.md](Docs/GameplayMilestone.md) record the behavior and checks.
+
+The house pass suppresses 260 implausibly scaled or repeated non-plot props while retaining their recovered source. It adds several silk treatments including 112 aged curtain cards, 150 blood and black-goo decals, darker practical lighting, one static CC0 painted cabinet, a worn shelf and a caged fixture mesh. Luke carries a 1K CC0 Poly Haven flashlight model and a weathered CC0 knife. His drawn knife stays in hand and strikes for four base damage on a timed mouse click; crouch and jump bend and move the recovered rig's legs. These are authored prototype poses, not motion-capture clips. The juvenile spiders use an optimized 1K Literock rig in the local game package and a CC0 source-checkout fallback. A one-time Luke web-reveal line uses a locally generated neural voice with an on-screen subtitle; Mara's warning remains subtitled. [HouseDressing.md](Docs/HouseDressing.md), [LiterockSpider.md](Docs/LiterockSpider.md), [ThirdPartyAssets.md](Docs/ThirdPartyAssets.md), and [WebAndVoicePass.md](Docs/WebAndVoicePass.md) give source, count and review details.
+
+The last recorded Intel HD Graphics 530 entrance spot check, before the new residue pass, measured 37.959 ms median and 84.231 ms p95 at 1280 × 720. A paired 1280 → 960 × 540 → 1280 run measured 48.686 → 28.374 → 46.521 ms median; the 960 × 540 p95 was still 75.421 ms. A later paired cabinet-view pass measured the new webs and residue at roughly 2.3–2.7 ms median cost in that view. The separate Fast launcher uses the lower-resolution setting on slower PCs. These spot checks do not establish stable 30 FPS, let alone a 100× speedup. Route-wide performance profiling and a human combat playtest remain open. See [Phase1RenderCheck.md](Docs/Phase1RenderCheck.md) for method and limitations.
+
+**Play the current portable build:** double-click [Playable/Launch Blackweb.cmd](Playable/Launch%20Blackweb.cmd), or use [Playable/Launch Blackweb Fast.cmd](Playable/Launch%20Blackweb%20Fast.cmd) for the lower-resolution Intel performance option. Keep the Playable folder together. It includes the runtime and PCK, needs no engine installation or source-asset junction, and stores its saves/logs under Playable/UserData. The PCK is **878,467,740 bytes** (SHA-256 `5F6B60ACCF9B704A48A36B129385C98D04D41A4E7849D9467686953DAF7FCEC7`); the folder was **1,118,847,716 bytes** at build time, including preserved UserData. The latest [isolated package checks](Playable/portable-smoke.json) passed **23/23**, including imported textures, the compact house and four interior doors, the active 1K juvenile spider visual, Luke's voice clip, and the single configured exit. [Build hashes](Playable/build-report.json) identify the tested files. The build report measured the whole project at **4,074,135,247 bytes**, below the 5 GB cap.
+
+The optimized default keeps room illumination and flashlight shadows, with the two practical room shadow maps disabled. To enable the original room-shadow flags at a performance cost, run `& '.\Playable\Launch Blackweb.cmd' --room-shadows` in PowerShell from this repository. Native 1280 × 720 and 2× MSAA are retained.
+
+To run the editable source project instead, use [Godot/Launch Blackweb.cmd](Godot/Launch%20Blackweb.cmd), or run this from PowerShell in the repository:
+
+```powershell
+& '.\Tools\BuildGodot.ps1' -Action Run
+```
+
+The source project uses the RecoveredAssets directory through a junction; keep that directory available at its current project location. Source-project saves and portable saves are separate.
+
+To open the project in the bundled editor:
+
+```powershell
+& '.\Godot\runtime\Godot_v4.7.2-stable_win64.exe' --editor --path '.\Godot'
+```
+
+Controls are WASD to move, mouse to look, Shift to sprint, `C` to crouch, Space to jump, and `E` to interact. Keys `1`–`3` draw the corresponding equipped item; left click uses the drawn knife or candy bar. The starter loadout is flashlight, worn knife and candy bar. `F` toggles the flashlight while it is equipped. `I` opens the inventory: click a stored item, then one of the three quick slots to equip it. `F1`–`F4` choose a HUD, and Esc pauses or closes inventory. Opening storage follows `Open → Search → Close` with `E`. Checkpoints use separate BlackwebHouseRebuild user data; the original game's saves are not reused. Optional supply counts and taken pickups persist through an in-session fatal retry but reset after app relaunch. No microphone capture is requested.
+
+The opening follows Mara's interrupted Greyhaven warning, keys/backup-flashlight preparation, a presence beat, power loss, a physical spider encounter and an opening-door transition. The optional Project 08 drawer record hints that an unnamed company grafted prisoner tissue to spiders and drew demonic presences into them; it does not gate the route. The adult common flesh spider has 100 health and zero armor, with two juvenile spiders. Other type names in source are future parameter placeholders, not separate finished species. The current item models, procedural poses and synthesized action cues are source prototypes; native held-item and action-pose captures were reviewed. Pickup/door contact, authored hand and locomotion clips, final spider leg grounding, actor voice and material fidelity remain unfinished.
+
+Completed source checks for this milestone:
+
+- Equipment, inventory and enemy behavior: **48/48** headless checks passed in the latest source run. [Results](Godot/data/equipment_test_report.json). Timed actions are covered, with separate native captures of the held flashlight, knife stab and candy-eating poses.
+- Gameplay and HUD: **32/32** headless checks passed, including Minimal as default, movement, storage search and the clue. [Results](Godot/data/gameplay_hud_test_report.json).
+- Progression: **56/56** checks passed. [Log](Evidence/godot-progression-final.log).
+- Spider integration: **18/18** checks passed. [Log](Evidence/godot-spider-final.log).
+- Earlier controller-driven keys-first route: **26/26** checks passed through Greyhaven and restart. [Results](Godot/data/playthrough_keys-first.json). The latest compact-house run used the flashlight-first route below.
+- Voice integration: four conditions passed in the loaded house—WAV load, one proximity play, subtitle, and rejected repeat. [Details](Docs/WebAndVoicePass.md).
+- Tutorial layout: **35/35** checks passed for the five-room floor, the four opening interior doors, single exit, lore and cash placements, and distinct spider rooms. [Details](Docs/TutorialHousePass.md).
+- Juvenile spider: **19/19** visual, rig and bite checks passed, with **3/3** doorway sightline checks. [Details](Docs/LiterockSpider.md).
+- House dressing: the latest headless test covered seven corner fans, five radial webs, five hanging veils, five ceiling sheets, six furniture wraps, 112 aged silk cards, 150 blood/goo marks, and the cabinet, shelf and caged fixture mesh. The added dressing uses about 4,219 triangles across eight surfaces. [Details](Docs/HouseDressing.md).
+- Current native rendered alternate route: **32/32** checks passed with fatal retry, pause/restart, room-door interaction and the exit. [Results](Godot/data/playthrough_flashlight-first.json). The current portable package passed **23/23** isolated startup and dependency checks. [Report](Playable/portable-smoke.json). This does not replace a human playtest of the packaged route.
+- Recovery baseline: **877/877** component records, **102** mesh GLBs, **244** PNG textures, three spider clips and six WAVs. [Import report](Godot/data/house_import_report.json), [recovery status](Tools/Recovery/RECOVERY-STATUS.json). The runtime dressing suppresses 260 of the placed non-plot props.
+
+Run the import and automated state/physics checks with:
+
+```powershell
+& '.\Tools\BuildGodot.ps1' -Action Check
+```
+
+To rebuild the house from the current opening manifest, use the same helper with -Action RecoverScene. Avoid running project imports concurrently. These commands operate on the editable project. The older offline scene-build log contains dummy-renderer cleanup errors; the prior portable runtime smoke had empty stderr. To rebuild and verify the latest portable copy, run Tools/Packaging/BuildPortable.ps1 and Tools/Packaging/TestPortable.ps1. The portable PCK keeps recovered GLB/JSON inputs and Godot's imported texture cache; original PNG payloads remain in the editable source. No export templates are required.
+
+[ASSET_PROVENANCE.md](Docs/ASSET_PROVENANCE.md) records supplied-asset permission and remaining unknown distribution terms. [LukeAsset.md](Docs/LukeAsset.md) records the Microsoft Rocketbox source and retained MIT notices. The current web texture is an original locally generated game asset; new Poly Haven and Quaternius imports are CC0 and documented in [ThirdPartyAssets.md](Docs/ThirdPartyAssets.md). No Fab asset was downloaded because its applicable EULA requires acceptance under the project brief. No paid assets were purchased, and no game binaries or screenshots are published in the private atlas source.
+
+The verified relocation of the original game and archive moved **1,535,358,578 bytes (1.430 GiB)** off C:. **The requested 5 GB was not reached.** The original game folder remains accessible through a junction; the archive is at D:/GameDownloads/BlackwebSourceBackup-20261103/Arachnophobia.rar. See [StorageRelocation.md](Docs/StorageRelocation.md) and the separate [project footprint](Docs/ProjectFootprint.md).
+
+Recovery tools omit the optional FMOD functionality that Windows Application Control blocked; no policy setting or blocked DLL was changed. Model, texture and audio outputs each have their own validation records. The SDK's first run created an unintended untrusted development certificate; automatic approval review rejected removal of that exact certificate. It was not trusted, retried or removed through another method. Details are in [SETUP-LOG.md](Tools/Recovery/SETUP-LOG.md).

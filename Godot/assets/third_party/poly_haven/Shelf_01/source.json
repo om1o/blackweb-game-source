@@ -1,0 +1,45 @@
+{
+  "asset": "Shelf 01",
+  "id": "Shelf_01",
+  "creators": [
+    "Gabriel Radić"
+  ],
+  "sourcePage": "https://polyhaven.com/a/Shelf_01",
+  "license": "CC0",
+  "licensePage": "https://polyhaven.com/license",
+  "resolution": "1K",
+  "fileCount": 5,
+  "totalBytes": 605448,
+  "files": [
+    {
+      "path": "Shelf_01_1k.gltf",
+      "bytes": 2617,
+      "md5": "9e852782eeae96108206c888d2b68df1",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/Shelf_01/Shelf_01_1k.gltf"
+    },
+    {
+      "path": "textures/Shelf_01_diff_1k.jpg",
+      "bytes": 153220,
+      "md5": "965ce260ce114308026fe98260cd482a",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/Shelf_01/Shelf_01_diff_1k.jpg"
+    },
+    {
+      "path": "Shelf_01.bin",
+      "bytes": 12676,
+      "md5": "bf2ff8bef60025c079565fd1926b8476",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/Shelf_01/Shelf_01.bin"
+    },
+    {
+      "path": "textures/Shelf_01_nor_gl_1k.jpg",
+      "bytes": 231393,
+      "md5": "3ccf77ba277b06f29e3e68233a83bae7",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/Shelf_01/Shelf_01_nor_gl_1k.jpg"
+    },
+    {
+      "path": "textures/Shelf_01_arm_1k.jpg",
+      "bytes": 205542,
+      "md5": "b0044e2cc568cd2a7f906ca56f473542",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/Shelf_01/Shelf_01_arm_1k.jpg"
+    }
+  ]
+}

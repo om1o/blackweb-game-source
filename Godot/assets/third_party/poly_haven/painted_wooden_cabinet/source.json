@@ -1,0 +1,45 @@
+{
+  "asset": "Painted Wooden Cabinet",
+  "id": "painted_wooden_cabinet",
+  "creators": [
+    "Kirill Sannikov"
+  ],
+  "sourcePage": "https://polyhaven.com/a/painted_wooden_cabinet",
+  "license": "CC0",
+  "licensePage": "https://polyhaven.com/license",
+  "resolution": "1K",
+  "fileCount": 5,
+  "totalBytes": 1861779,
+  "files": [
+    {
+      "path": "painted_wooden_cabinet_1k.gltf",
+      "bytes": 9253,
+      "md5": "43f7a37a61773dadbafd46ab51b97c9e",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/painted_wooden_cabinet/painted_wooden_cabinet_1k.gltf"
+    },
+    {
+      "path": "textures/painted_wooden_cabinet_diff_1k.jpg",
+      "bytes": 688654,
+      "md5": "cab7d6088249cb2687e0c79b2cdf62c5",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_cabinet/painted_wooden_cabinet_diff_1k.jpg"
+    },
+    {
+      "path": "textures/painted_wooden_cabinet_arm_1k.jpg",
+      "bytes": 622122,
+      "md5": "616ce8f1c545087c463b79e7bea952a6",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_cabinet/painted_wooden_cabinet_arm_1k.jpg"
+    },
+    {
+      "path": "textures/painted_wooden_cabinet_nor_gl_1k.jpg",
+      "bytes": 463678,
+      "md5": "e39fdc39e2fce036fd7a904ea3862671",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_cabinet/painted_wooden_cabinet_nor_gl_1k.jpg"
+    },
+    {
+      "path": "painted_wooden_cabinet.bin",
+      "bytes": 78072,
+      "md5": "c86f9e483a0da1d5a9f68b08099a4166",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/painted_wooden_cabinet/painted_wooden_cabinet.bin"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "time": "2026-11-03T20:07:56.448Z",
+  "note": "Logical file sizes, excludes original game, root runtime harness and Godot; no deletions performed.",
+  "directories": [
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/dotnet10",
+      "files": 5577,
+      "bytes": 807619073,
+      "MiB": 770
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/dotnet-home",
+      "files": 7,
+      "bytes": 1025,
+      "MiB": 0
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/nuget-packages",
+      "files": 665,
+      "bytes": 223555500,
+      "MiB": 213
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/nuget-http-cache",
+      "files": 94,
+      "bytes": 53784184,
+      "MiB": 51
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/cue4parse-source",
+      "files": 2446,
+      "bytes": 52134775,
+      "MiB": 50
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/native",
+      "files": 1,
+      "bytes": 998400,
+      "MiB": 1
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/mappings",
+      "files": 2,
+      "bytes": 1761311,
+      "MiB": 2
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/temp",
+      "files": 9,
+      "bytes": 7590840,
+      "MiB": 7
+    },
+    {
+      "path": "D:/GameProjects/BlackwebHouseRebuild-20261103/Tools/Recovery",
+      "files": 97,
+      "bytes": 63739429,
+      "MiB": 61
+    },
+    {
+      "path": "D:/GameProjects/BlackwebHouseRebuild-20261103/RecoveredAssets",
+      "files": 1,
+      "bytes": 11250,
+      "MiB": 0
+    }
+  ]
+}

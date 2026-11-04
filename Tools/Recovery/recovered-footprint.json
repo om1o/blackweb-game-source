@@ -1,0 +1,38 @@
+{
+  "updatedUtc": "2026-11-03T20:34:46.879Z",
+  "groups": {
+    "textures": {
+      "files": 240,
+      "bytes": 851379638
+    },
+    "audio": {
+      "files": 13,
+      "bytes": 3223225
+    },
+    "reference": {
+      "files": 22,
+      "bytes": 252118404
+    },
+    "other": {
+      "files": 27,
+      "bytes": 468135
+    },
+    "metadata": {
+      "files": 306,
+      "bytes": 3428191
+    },
+    "spiderOrExtra": {
+      "files": 3,
+      "bytes": 98146436
+    },
+    "animationsSource": {
+      "files": 3,
+      "bytes": 116630772
+    },
+    "geometry": {
+      "files": 206,
+      "bytes": 14729731
+    }
+  },
+  "totalBytes": 1340124532
+}

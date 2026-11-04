@@ -1,0 +1,637 @@
+{
+  "house_scene": "res://scenes/recovered_house.tscn",
+  "player": [
+    -2.16025,
+    0.44,
+    0.06718
+  ],
+  "player_yaw": -1.5707963267948966,
+  "player_model": "res://scenes/luke.tscn",
+  "spider": [
+    5.7,
+    0.45,
+    -2.15
+  ],
+  "spider_model": "res://scenes/spider_visual.tscn",
+  "spider_retreat": [
+    6.85,
+    0.45,
+    -2.75
+  ],
+  "safe_exit": [
+    -4.4,
+    0.44,
+    0.4
+  ],
+  "phone_position": [
+    -3.6,
+    1.068239858,
+    1.9
+  ],
+  "tutorial": {
+    "rooms": ["Entry / Mara's phone", "Record room / keys and paper", "Supply room / juvenile sighting", "Infested room / adult encounter", "Vault / cabinet, cash and juvenile"],
+    "interior_doors": 4,
+    "exterior_exits": 1,
+    "bounds_meters": [-5.6, 7.8, -4.25, 4.25]
+  },
+  "lights": [
+    {
+      "position": [
+        0.21122824218000003,
+        2.13346647386,
+        0.40804622709
+      ],
+      "range": 5,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": true
+    },
+    {
+      "position": [
+        12.34817388355,
+        2.0129974111999998,
+        -2.50368349406
+      ],
+      "range": 4,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        38.74766937302,
+        2.0129963283000003,
+        2.8028564038100003
+      ],
+      "range": 4,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        16.46469054604,
+        2.05222234009,
+        -15.50284514671
+      ],
+      "range": 4,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        41.92452732979,
+        2.06225086862,
+        -38.34095114239
+      ],
+      "range": 4,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        45.06146063364,
+        2.01299627728,
+        -28.45264918255
+      ],
+      "range": 4,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        43.15293686898,
+        1.05188152069,
+        -12.334828566650001
+      ],
+      "range": 4,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        42.05692301050001,
+        2.0328931082899997,
+        -22.88362598416
+      ],
+      "range": 4,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        46.02050034477,
+        1.05188290215,
+        -3.4515043697800003
+      ],
+      "range": 4,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        13.140391211379999,
+        1.14793840904,
+        -42.2652927369
+      ],
+      "range": 4,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        34.1347613588,
+        1.05188155282,
+        26.56267639666
+      ],
+      "range": 4,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        18.11370047379,
+        1.77600925084,
+        -24.00581381555
+      ],
+      "range": 2,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        17.82860093934,
+        1.86509431199,
+        18.81370074442
+      ],
+      "range": 2,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        53.61370080542,
+        1.58942046249,
+        17.57232606718
+      ],
+      "range": 2,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        18.74019733432,
+        1.8813344592,
+        3.21866251644
+      ],
+      "range": 2,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        34.20870656804,
+        2.01299686057,
+        -23.26200927764
+      ],
+      "range": 4,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        28.158366263910004,
+        2.01299718353,
+        -9.70078488877
+      ],
+      "range": 4,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        20.533714023389997,
+        2.01299718195,
+        -9.70078489
+      ],
+      "range": 4,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        29.286220376030002,
+        2.01299700013,
+        14.152806521099999
+      ],
+      "range": 4,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        46.98932715012,
+        2.01299679601,
+        -6.85601360982
+      ],
+      "range": 4,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        26.71760575074,
+        1.55586366868,
+        -16.3053251022
+      ],
+      "range": 7,
+      "energy": 0.55,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        41.46661411545,
+        2.73648545319,
+        -29.55806036515
+      ],
+      "range": 4.3716241455078,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        12.76661412,
+        2.73648545,
+        -22.158060369999998
+      ],
+      "range": 4.3716241455078,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        27.641054638700002,
+        2.99007895442,
+        2.8993373056
+      ],
+      "range": 4.3716241455078,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        51.782064755920004,
+        2.15723608342,
+        26.54784556604
+      ],
+      "range": 4.3716241455078,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        -3.43881806599,
+        2.96278401805,
+        0.22642331438
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": true
+    },
+    {
+      "position": [
+        12.3481738804,
+        1.71255635518,
+        -2.50368349406
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        38.74766936987,
+        1.7125552722800002,
+        2.8028564038100003
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        16.46469054289,
+        1.75178128407,
+        -15.50284514671
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        41.92452732664,
+        1.7618098126000001,
+        -38.34095114239
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        45.06146063048,
+        1.71255522126,
+        -28.45264918255
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        43.15293686587,
+        0.89489607736,
+        -12.334828566650001
+      ],
+      "range": 3.7930688476562002,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        42.0569230074,
+        1.87590766496,
+        -22.88362598416
+      ],
+      "range": 3.7930688476562002,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        46.02050034167001,
+        0.89489745881,
+        -3.4515043697800003
+      ],
+      "range": 3.7930688476562002,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        13.14039120828,
+        0.9909529657,
+        -42.2652927369
+      ],
+      "range": 3.7930688476562002,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        34.1347613557,
+        0.89489610949,
+        26.56267639666
+      ],
+      "range": 3.7930688476562002,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        18.08315353936,
+        1.70127355449,
+        -24.00581381629
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        17.82860093971,
+        1.79035861564,
+        18.78315380999
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        53.58315387099,
+        1.51468476614,
+        17.57232606643
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        18.74019733469,
+        1.8065987628400002,
+        3.1881155820100004
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        34.208706564879996,
+        1.7125558045400002,
+        -23.26200927764
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        28.15836626076,
+        1.7125561275,
+        -9.70078488877
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        20.53371402024,
+        1.71255612593,
+        -9.70078489
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        29.28622037288,
+        1.7125559441,
+        14.152806521099999
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        46.98932714697,
+        1.71255573999,
+        -6.85601360982
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    },
+    {
+      "position": [
+        26.82195713569,
+        1.48776126804,
+        -16.2582092512
+      ],
+      "range": 7,
+      "energy": 0.65,
+      "color": "ffe2ba",
+      "shadows": false
+    }
+  ],
+  "additional_props": [
+    {
+      "model": "res://assets/recovered/Geometry/Arachnophobia/Content/OldBrickHouse/Meshes/Props/SM_Coffeetable.glb",
+      "position": [
+        -3.6,
+        0.4,
+        1.9
+      ],
+      "yaw": 0
+    },
+    {
+      "model": "res://assets/recovered/Geometry/Arachnophobia/Content/OldBrickHouse/Meshes/Props/SM_Coffeetable.glb",
+      "position": [
+        -1.6,
+        0.4,
+        -2
+      ],
+      "yaw": 0
+    },
+    {
+      "model": "res://assets/recovered/Geometry/Arachnophobia/Content/OldBrickHouse/Meshes/Props/SM_Couch.glb",
+      "position": [
+        1,
+        0.4,
+        -2.85
+      ],
+      "yaw": -1.5707963267948966,
+      "scale": 1
+    },
+    {
+      "model": "res://assets/recovered/Geometry/Arachnophobia/Content/OldBrickHouse/Meshes/Props/SM_StandingLamp.glb",
+      "position": [
+        -3.1,
+        0.4,
+        -3.1
+      ],
+      "yaw": 0,
+      "scale": 1
+    }
+  ],
+  "interactions": [
+    {
+      "kind": "phone",
+      "label": "Listen to Mara",
+      "position": [
+        -3.6,
+        1.068239858,
+        1.9
+      ],
+      "model": "res://assets/recovered/Geometry/Arachnophobia/Content/OldBrickHouse/Meshes/Props/SM_Telephone.glb",
+      "scale": 1
+    },
+    {
+      "kind": "keys",
+      "label": "Take car keys",
+      "position": [
+        0.45,
+        1.451,
+        3.04
+      ]
+    },
+    {
+      "kind": "flashlight",
+      "label": "Take charged backup flashlight",
+      "position": [
+        -1.6,
+        1.067239858,
+        -2
+      ]
+    },
+    {
+      "kind": "exit",
+      "label": "Leave for Greyhaven",
+      "position": [
+        -4.94,
+        1.3,
+        0.4
+      ],
+      "yaw": 1.5707963267948966
+    }
+  ],
+  "audio": {
+    "steps": [
+      "res://assets/recovered/Audio/Arachnophobia/Content/Audio/Footstep/Wood/FootstepWood_01.wav",
+      "res://assets/recovered/Audio/Arachnophobia/Content/Audio/Footstep/Wood/FootstepWood_02.wav",
+      "res://assets/recovered/Audio/Arachnophobia/Content/Audio/Footstep/Wood/FootstepWood_03.wav",
+      "res://assets/recovered/Audio/Arachnophobia/Content/Audio/Footstep/Wood/FootstepWood_04.wav"
+    ],
+    "presence": "res://assets/recovered/Audio/Arachnophobia/Content/Audio/Ambient/Horror_AmbiantDark_01.wav",
+    "door": "res://assets/recovered/Audio/Arachnophobia/Content/Audio/Effects/Squeaking_Door.wav"
+  },
+  "placement_status": "Measured source furniture/floor bounds; keys moved to accessible cabinet top after camera reach test. Full geometry and controller QA required after each scene rebuild."
+}

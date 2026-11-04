@@ -1,0 +1,12 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.3",
+  "Category": "Games",
+  "Description": "Arachnophobia: Blackweb — rebuilt house opening",
+  "Modules": [{ "Name": "Blackweb", "Type": "Runtime", "LoadingPhase": "Default" }],
+  "Plugins": [
+    { "Name": "PythonScriptPlugin", "Enabled": true },
+    { "Name": "EditorScriptingUtilities", "Enabled": true },
+    { "Name": "USDImporter", "Enabled": true }
+  ]
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "name": "CUE4Parse-Natives.dll",
+    "bytes": 141312,
+    "sha256": "1b5ce859de181400c75e533e6d34d8935379e8f00476021507df346964e984d1"
+  },
+  {
+    "name": "oodle-data-shared.dll",
+    "bytes": 998400,
+    "sha256": "cba19529d0a3b5ec9c630e95652af01e123ae29a34a8a5f7507f5bcf23d9e82b"
+  }
+]

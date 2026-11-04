@@ -1,0 +1,45 @@
+{
+  "asset": "Fish Knife",
+  "id": "fish_knife",
+  "creators": [
+    "Mateusz Sadek"
+  ],
+  "sourcePage": "https://polyhaven.com/a/fish_knife",
+  "license": "CC0",
+  "licensePage": "https://polyhaven.com/license",
+  "resolution": "1K",
+  "fileCount": 5,
+  "totalBytes": 2565498,
+  "files": [
+    {
+      "path": "fish_knife_1k.gltf",
+      "bytes": 4611,
+      "md5": "334b4548df24297d1c67c9206367ea55",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/fish_knife/fish_knife_1k.gltf"
+    },
+    {
+      "path": "textures/fish_knife_nor_gl_1k.jpg",
+      "bytes": 692765,
+      "md5": "09816358d5463890798a4300ce22c29d",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fish_knife/fish_knife_nor_gl_1k.jpg"
+    },
+    {
+      "path": "textures/fish_knife_diff_1k.jpg",
+      "bytes": 749609,
+      "md5": "1da666c48f4d829d39c7704f59e42606",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fish_knife/fish_knife_diff_1k.jpg"
+    },
+    {
+      "path": "textures/fish_knife_arm_1k.jpg",
+      "bytes": 1023377,
+      "md5": "406270d76b375bd88a137edb1c8a76ad",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fish_knife/fish_knife_arm_1k.jpg"
+    },
+    {
+      "path": "fish_knife.bin",
+      "bytes": 95136,
+      "md5": "edac44fb7f70ffa37e77fe4c033d9e2b",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/fish_knife/fish_knife.bin"
+    }
+  ]
+}

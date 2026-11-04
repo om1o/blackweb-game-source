@@ -1,0 +1,14 @@
+{
+  "asset": "Spider",
+  "creator": "Quaternius",
+  "sourcePage": "https://poly.pizza/m/yRYJiAJyiM",
+  "downloadUrl": "https://static.poly.pizza/4259fbdb-afb5-4d40-9108-363625dd6b6e.glb",
+  "license": "Public Domain (CC0)",
+  "licenseEvidence": "https://poly.pizza/m/yRYJiAJyiM",
+  "format": "GLB",
+  "file": "quaternius_spider.glb",
+  "bytes": 449008,
+  "sha256": "D759E35F6CF5ADC7EB7E3F70135CD2A808787FC36337A523015592BA840CCD6D",
+  "animations": ["SpiderArmature|Spider_Attack", "SpiderArmature|Spider_Death", "SpiderArmature|Spider_Idle", "SpiderArmature|Spider_Jump", "SpiderArmature|Spider_Walk"],
+  "note": "Openly licensed animated model imported for the two common-flesh-spider juveniles. Runtime import and all five clips pass Godot visual integration tests. Dark red/black low-poly style remains prototype art."
+}

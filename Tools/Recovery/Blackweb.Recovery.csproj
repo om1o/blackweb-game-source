@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CUE4Parse-Conversion" Version="1.2.2.202611" />
+    <!-- Patched transitive versions; CUE4Parse itself remains pinned. -->
+    <PackageReference Include="Microsoft.Bcl.Memory" Version="9.0.14" />
+  </ItemGroup>
+  <ItemGroup><Compile Remove="NoFmod/**/*.cs" /></ItemGroup>
+</Project>

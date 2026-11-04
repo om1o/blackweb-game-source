@@ -1,0 +1,18 @@
+# Keep downloaded model files byte-for-byte identical to their recorded hashes.
+*.gltf -text
+*.glb -text
+*.fbx -text
+*.bin -text
+*.tga -text
+*.png -text
+*.jpg -text
+*.wav -text
+
+# Stable source text on Windows and other platforms.
+*.gd text eol=lf
+*.tscn text eol=lf
+*.json text eol=lf
+*.cmd text eol=crlf
+
+# Preserve upstream notices without rewriting their license text.
+Tools/Recovery/Licenses/CUE4Parse-NOTICE -whitespace

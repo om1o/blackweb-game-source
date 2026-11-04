@@ -1,0 +1,51 @@
+{
+  "asset": "Caged Hanging Light",
+  "id": "caged_hanging_light",
+  "creators": [
+    "Ulan Cabanilla"
+  ],
+  "sourcePage": "https://polyhaven.com/a/caged_hanging_light",
+  "license": "CC0",
+  "licensePage": "https://polyhaven.com/license",
+  "resolution": "1K",
+  "fileCount": 6,
+  "totalBytes": 3066504,
+  "files": [
+    {
+      "path": "caged_hanging_light_1k.gltf",
+      "bytes": 3098,
+      "md5": "7d2c05208f5106e55d4110bb703ef54f",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/caged_hanging_light/caged_hanging_light_1k.gltf"
+    },
+    {
+      "path": "textures/caged_hanging_light_emissive_1k.jpg",
+      "bytes": 64111,
+      "md5": "b2dcea07375dc5ace5819e9077e029e4",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/caged_hanging_light/caged_hanging_light_emissive_1k.jpg"
+    },
+    {
+      "path": "textures/caged_hanging_light_nor_gl_1k.jpg",
+      "bytes": 723864,
+      "md5": "8f07935f84220fc22f97062b31cd7e54",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/caged_hanging_light/caged_hanging_light_nor_gl_1k.jpg"
+    },
+    {
+      "path": "textures/caged_hanging_light_diff_1k.jpg",
+      "bytes": 606043,
+      "md5": "22233dfbdc8339a55c04b230b6cf2668",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/caged_hanging_light/caged_hanging_light_diff_1k.jpg"
+    },
+    {
+      "path": "textures/caged_hanging_light_arm_1k.jpg",
+      "bytes": 958332,
+      "md5": "925175c279b908dfe65e071e0e0adbbb",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/caged_hanging_light/caged_hanging_light_arm_1k.jpg"
+    },
+    {
+      "path": "caged_hanging_light.bin",
+      "bytes": 711056,
+      "md5": "73e9a79c4971df680e554bc5aeac30da",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/caged_hanging_light/caged_hanging_light.bin"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+	"bone_count": 81,
+	"clips": {
+		"idle": {
+			"duration_seconds": 2.73333333333333,
+			"removed_helper_tracks": 3,
+			"sampled_maximum_y": 1.75009274482727,
+			"sampled_minimum_y": -0.00035399867920205,
+			"tracks": 66
+		},
+		"run": {
+			"duration_seconds": 0.766666666666667,
+			"removed_helper_tracks": 4,
+			"sampled_maximum_y": 1.76876652240753,
+			"sampled_minimum_y": -0.00605949759483337,
+			"tracks": 37
+		},
+		"walk": {
+			"duration_seconds": 1.06666666666667,
+			"removed_helper_tracks": 4,
+			"sampled_maximum_y": 1.74563932418823,
+			"sampled_minimum_y": -0.000513552688062191,
+			"tracks": 61
+		}
+	},
+	"failures": [],
+	"forward": "-Z",
+	"height_m": 1.75,
+	"model_offset_y": -0.00388244912028313,
+	"model_scale": 0.939246535301209,
+	"source": "res://assets/luke/Export/Male_Adult_04.fbx",
+	"visible_meshes": 1
+}

@@ -1,0 +1,122 @@
+{
+  "source": "recovered_components.json",
+  "original": 896,
+  "retained": 877,
+  "removed": [
+    {
+      "name": "StaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.BP_Gift_C_1.SM_Gift",
+      "mesh": "StaticMesh /Game/Meshs/Gift/SM_Gift.SM_Gift",
+      "reason": "Remove old gift-collection props/instructions and holiday spider hat for Blackweb opening"
+    },
+    {
+      "name": "StaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.BP_Gift_C_11.SM_Gift",
+      "mesh": "StaticMesh /Game/Meshs/Gift/SM_Gift.SM_Gift",
+      "reason": "Remove old gift-collection props/instructions and holiday spider hat for Blackweb opening"
+    },
+    {
+      "name": "StaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.BP_Gift_C_3.SM_Gift",
+      "mesh": "StaticMesh /Game/Meshs/Gift/SM_Gift.SM_Gift",
+      "reason": "Remove old gift-collection props/instructions and holiday spider hat for Blackweb opening"
+    },
+    {
+      "name": "StaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.BP_Gift_C_5.SM_Gift",
+      "mesh": "StaticMesh /Game/Meshs/Gift/SM_Gift.SM_Gift",
+      "reason": "Remove old gift-collection props/instructions and holiday spider hat for Blackweb opening"
+    },
+    {
+      "name": "StaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.BP_Gift_C_7.SM_Gift",
+      "mesh": "StaticMesh /Game/Meshs/Gift/SM_Gift.SM_Gift",
+      "reason": "Remove old gift-collection props/instructions and holiday spider hat for Blackweb opening"
+    },
+    {
+      "name": "StaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.BP_Gift_C_9.SM_Gift",
+      "mesh": "StaticMesh /Game/Meshs/Gift/SM_Gift.SM_Gift",
+      "reason": "Remove old gift-collection props/instructions and holiday spider hat for Blackweb opening"
+    },
+    {
+      "name": "StaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.BP_Note_C_1.Nail",
+      "mesh": "StaticMesh /Game/Megascans/3D_Assets/Rusty_Stake_tkpmbcnjw/S_Rusty_Stake_tkpmbcnjw_lod5.S_Rusty_Stake_tkpmbcnjw_lod5",
+      "reason": "Remove old gift-collection props/instructions and holiday spider hat for Blackweb opening"
+    },
+    {
+      "name": "StaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.BP_Note_C_1.Paper SM",
+      "mesh": "StaticMesh /Engine/BasicShapes/Plane.Plane",
+      "reason": "Remove old gift-collection props/instructions and holiday spider hat for Blackweb opening"
+    },
+    {
+      "name": "StaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.BP_Note_C_9.Nail",
+      "mesh": "StaticMesh /Game/Megascans/3D_Assets/Rusty_Stake_tkpmbcnjw/S_Rusty_Stake_tkpmbcnjw_lod5.S_Rusty_Stake_tkpmbcnjw_lod5",
+      "reason": "Remove old gift-collection props/instructions and holiday spider hat for Blackweb opening"
+    },
+    {
+      "name": "StaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.BP_Note_C_9.Paper SM",
+      "mesh": "StaticMesh /Engine/BasicShapes/Plane.Plane",
+      "reason": "Remove old gift-collection props/instructions and holiday spider hat for Blackweb opening"
+    },
+    {
+      "name": "StaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.BP_Spider_C_3.Christmas_Hat",
+      "mesh": "StaticMesh /Game/Meshs/Christmas_Hat/Christmas_Hat.Christmas_Hat",
+      "reason": "Remove old gift-collection props/instructions and holiday spider hat for Blackweb opening"
+    },
+    {
+      "name": "InstancedStaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.Actor_0.InstancedStaticMeshComponent_0_Instance_0",
+      "mesh": "StaticMesh /Game/OldBrickHouse/Meshes/Props/SM_Coffeetable.SM_Coffeetable",
+      "reason": "Remove stacked coffee-table maze barrier; keep original table at floor level"
+    },
+    {
+      "name": "InstancedStaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.Actor_0.InstancedStaticMeshComponent_0_Instance_2",
+      "mesh": "StaticMesh /Game/OldBrickHouse/Meshes/Props/SM_Coffeetable.SM_Coffeetable",
+      "reason": "Remove stacked coffee-table maze barrier; keep original table at floor level"
+    },
+    {
+      "name": "InstancedStaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.Actor_0.InstancedStaticMeshComponent_0_Instance_3",
+      "mesh": "StaticMesh /Game/OldBrickHouse/Meshes/Props/SM_Coffeetable.SM_Coffeetable",
+      "reason": "Remove stacked coffee-table maze barrier; keep original table at floor level"
+    },
+    {
+      "name": "InstancedStaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.Actor_0.InstancedStaticMeshComponent_0_Instance_4",
+      "mesh": "StaticMesh /Game/OldBrickHouse/Meshes/Props/SM_Coffeetable.SM_Coffeetable",
+      "reason": "Remove stacked coffee-table maze barrier; keep original table at floor level"
+    },
+    {
+      "name": "StaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.StaticMeshActor_1090.StaticMeshComponent0",
+      "mesh": "StaticMesh /Game/OldBrickHouse/Meshes/Props/SM_Book_Series_Complete.SM_Book_Series_Complete",
+      "reason": "Remove 6.77x oversized entrance book barrier; raw source retained"
+    },
+    {
+      "name": "InstancedStaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.Actor_0.InstancedStaticMeshComponent_6_Instance_1",
+      "mesh": "StaticMesh /Game/OldBrickHouse/Meshes/Props/SM_Cabinet_Corner.SM_Cabinet_Corner",
+      "reason": "Replace repetitive corner-cabinet row in first room with a seating area using the original couch mesh."
+    },
+    {
+      "name": "InstancedStaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.Actor_0.InstancedStaticMeshComponent_6_Instance_2",
+      "mesh": "StaticMesh /Game/OldBrickHouse/Meshes/Props/SM_Cabinet_Corner.SM_Cabinet_Corner",
+      "reason": "Replace repetitive corner-cabinet row in first room with a seating area using the original couch mesh."
+    },
+    {
+      "name": "InstancedStaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.Actor_0.InstancedStaticMeshComponent_6_Instance_3",
+      "mesh": "StaticMesh /Game/OldBrickHouse/Meshes/Props/SM_Cabinet_Corner.SM_Cabinet_Corner",
+      "reason": "Replace repetitive corner-cabinet row in first room with a seating area using the original couch mesh."
+    },
+    {
+      "name": "InstancedStaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.Actor_0.InstancedStaticMeshComponent_6_Instance_4",
+      "mesh": "StaticMesh /Game/OldBrickHouse/Meshes/Props/SM_Cabinet_Corner.SM_Cabinet_Corner",
+      "reason": "Replace repetitive corner-cabinet row in first room with a seating area using the original couch mesh."
+    }
+  ],
+  "structural_changes": [
+    {
+      "reason": "Original full wall panels covered the existing door; reconstruct flanks and lintel from the same original wall mesh/materials.",
+      "removed_names": [
+        "InstancedStaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.Actor_2.InstancedStaticMeshComponent_0_Instance_20",
+        "InstancedStaticMeshComponent /Game/Maps/Map_House.Map_House:PersistentLevel.Actor_2.InstancedStaticMeshComponent_0_Instance_21"
+      ],
+      "added_names": [
+        "AuthoredStaticMeshComponent BlackwebOpening.ExitWall_NegativeZ",
+        "AuthoredStaticMeshComponent BlackwebOpening.ExitWall_PositiveZ",
+        "AuthoredStaticMeshComponent BlackwebOpening.ExitWall_Lintel"
+      ],
+      "evidence": "Tools/Recovery/doorway-cutout-proposal.json"
+    }
+  ]
+}

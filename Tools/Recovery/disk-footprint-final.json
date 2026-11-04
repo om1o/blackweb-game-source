@@ -1,0 +1,87 @@
+{
+  "updatedUtc": "2026-11-03T20:36:37.222Z",
+  "scratchOwned": [
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/dotnet10",
+      "files": 5577,
+      "bytes": 807619073
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/dotnet-home",
+      "files": 7,
+      "bytes": 1025
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/cue4parse-source",
+      "files": 2469,
+      "bytes": 74312340
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/nuget-packages",
+      "files": 665,
+      "bytes": 223555500
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/nuget-http-cache",
+      "files": 94,
+      "bytes": 53784184
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/mappings",
+      "files": 2,
+      "bytes": 1761311
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/native",
+      "files": 2,
+      "bytes": 1139712
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/temp",
+      "files": 9,
+      "bytes": 7590840
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/vgmstream-r2168",
+      "files": 13,
+      "bytes": 11001512
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/cue4parse-e76778c.zip",
+      "files": 1,
+      "bytes": 30968601
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/FModel-nov-2026.zip",
+      "files": 1,
+      "bytes": 21019605
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/vgmstream-win64-r2168.zip",
+      "files": 1,
+      "bytes": 4574355
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/dotnet-install.ps1",
+      "files": 1,
+      "bytes": 76676
+    },
+    {
+      "path": "D:/CodexTemp/Arachnophobia-Blackweb-20261103/work/cue4parse-tree.json",
+      "files": 1,
+      "bytes": 1030793
+    }
+  ],
+  "scratchOwnedBytes": 1238435527,
+  "toolProject": {
+    "path": "D:/GameProjects/BlackwebHouseRebuild-20261103/Tools/Recovery",
+    "files": 168,
+    "bytes": 123890266
+  },
+  "recoveredAssets": {
+    "path": "D:/GameProjects/BlackwebHouseRebuild-20261103/RecoveredAssets",
+    "files": 1078,
+    "bytes": 1349300723
+  },
+  "excluded": "Original game, root-owned retoc/UE4SS/runtime/Godot tooling, Godot project/import cache, other agent files."
+}

@@ -1,0 +1,147 @@
+{
+  "capturedUtc": "2026-11-03T23:10:21.728Z",
+  "method": "Regular-file logical lengths; junctions and symbolic links skipped; source recovered assets counted once; additional portable PCK copy counted separately; existing portable UserData included",
+  "project": {
+    "root": "D:/GameProjects/BlackwebHouseRebuild-20261103",
+    "files": 2641,
+    "bytes": 4599114815,
+    "groups": {
+      ".git": {
+        "files": 18,
+        "bytes": 27276
+      },
+      "root files": {
+        "files": 3,
+        "bytes": 7465
+      },
+      "Config": {
+        "files": 3,
+        "bytes": 2252
+      },
+      "Docs": {
+        "files": 12,
+        "bytes": 219919
+      },
+      "Evidence": {
+        "files": 74,
+        "bytes": 18498899
+      },
+      "Godot": {
+        "files": 963,
+        "bytes": 1132678913
+      },
+      "Playable": {
+        "files": 162,
+        "bytes": 1926078176
+      },
+      "RecoveredAssets": {
+        "files": 1200,
+        "bytes": 1397509291
+      },
+      "Source": {
+        "files": 23,
+        "bytes": 88303
+      },
+      "Tools": {
+        "files": 183,
+        "bytes": 124004321
+      }
+    },
+    "skippedLinks": [
+      {
+        "path": "D:/GameProjects/BlackwebHouseRebuild-20261103/Godot/assets/recovered",
+        "target": "D:\\GameProjects\\BlackwebHouseRebuild-20261103\\RecoveredAssets"
+      }
+    ]
+  },
+  "godot": {
+    "root": "D:/GameProjects/BlackwebHouseRebuild-20261103/Godot",
+    "files": 963,
+    "bytes": 1132678913,
+    "groups": {
+      "root files": {
+        "files": 3,
+        "bytes": 1107
+      },
+      ".godot": {
+        "files": 867,
+        "bytes": 768787659
+      },
+      "assets": {
+        "files": 29,
+        "bytes": 96206956
+      },
+      "BlackwebHouseRebuild": {
+        "files": 1,
+        "bytes": 1013
+      },
+      "data": {
+        "files": 11,
+        "bytes": 4180546
+      },
+      "licenses": {
+        "files": 2,
+        "bytes": 101257
+      },
+      "runtime": {
+        "files": 3,
+        "bytes": 181057040
+      },
+      "scenes": {
+        "files": 5,
+        "bytes": 80806592
+      },
+      "scripts": {
+        "files": 16,
+        "bytes": 86347
+      },
+      "tests": {
+        "files": 4,
+        "bytes": 10102
+      },
+      "tools": {
+        "files": 13,
+        "bytes": 104709
+      },
+      "validation": {
+        "files": 9,
+        "bytes": 1335585
+      }
+    },
+    "skippedLinks": [
+      {
+        "path": "D:/GameProjects/BlackwebHouseRebuild-20261103/Godot/assets/recovered",
+        "target": "D:\\GameProjects\\BlackwebHouseRebuild-20261103\\RecoveredAssets"
+      }
+    ]
+  },
+  "playable": {
+    "root": "D:/GameProjects/BlackwebHouseRebuild-20261103/Playable",
+    "files": 162,
+    "bytes": 1926078176,
+    "groups": {
+      "root files": {
+        "files": 10,
+        "bytes": 1904513616
+      },
+      "licenses": {
+        "files": 5,
+        "bytes": 110696
+      },
+      "UserData": {
+        "files": 147,
+        "bytes": 21453864
+      }
+    },
+    "skippedLinks": []
+  },
+  "budget_bytes": 5000000000,
+  "within_budget": true,
+  "package": {
+    "bytes": 1723201068,
+    "files": 1566,
+    "sha256": "53E7E5894C53F8487F278FEBC380FE5A6710F9496E9987282B6B71EAB49E5939",
+    "isolated_smoke_checks": 17,
+    "isolated_smoke_passed": true
+  }
+}

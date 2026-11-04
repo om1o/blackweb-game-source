@@ -1,0 +1,54 @@
+{
+  "updatedUtc": "2026-11-03T20:35:42.096Z",
+  "engine": "UE5.3.2",
+  "cueCommit": "e76778c10ed25860e11ec488750753224d067d87",
+  "cueVersion": "1.2.2.202611",
+  "sourceArchivesUnchanged": true,
+  "sourceVariant": "NoFmod",
+  "exactMappingsSHA256": "8862701ea1609c7f5364e5d0d077e6af33fe2374d06a67a3824d764309b39942",
+  "successfulInterchange": {
+    "runtimeHouseGLB": 102,
+    "runtimeHouseGeometryBytes": 12810752,
+    "projectTexturePNG": 244,
+    "projectTextureBytes": 858922176,
+    "spiderSkeletonBones": 142,
+    "spiderAnimatedGLB": true,
+    "spiderAnimations": [
+      "Idle",
+      "Walk",
+      "Run"
+    ],
+    "audioPCM16WAV": 6,
+    "rawMaterialMetadataCandidates": 98
+  },
+  "mapTransforms": {
+    "rawWorldActors": 130,
+    "runtimeCaptureFile": "../../Godot/data/recovered_components.json",
+    "runtimeMeshInstances": 896,
+    "runtimeLights": 55,
+    "source": "Original running game capture by root agent; individual instances preserved"
+  },
+  "validationFiles": [
+    "../../RecoveredAssets/Geometry/geometry-validation.json",
+    "../../RecoveredAssets/texture-validation.json",
+    "../../RecoveredAssets/Audio/wav-validation.json",
+    "../../RecoveredAssets/Audio/decode-report.json"
+  ],
+  "finalBatchFailures": 0,
+  "referenceTexturedHouseGLBs": 22,
+  "referenceExcludedFromGodot": true,
+  "limits": [
+    "Recovered material parameters are not original editable Unreal shader graphs.",
+    "Original Blueprint graphs/source are unavailable in cooked archives.",
+    "Game import, appearance and gameplay validation are separate from interchange recovery.",
+    "Spider source animations carry unusually high ~1920Hz samples. Source Idle RateScale0,Walk1.5,Run0.7; preserved metadata is available."
+  ],
+  "historicalFailures": [
+    "Missing unversioned schema before exact runtime mapping dump.",
+    "Original NuGet FMOD dependency blocked by Windows Application Control; blocked binary was not executed or modified, policy unchanged.",
+    "Clean NoFmod first compile needed independent NAudio.Core dependency; resolved.",
+    "Animation first attempt lacked CUE4Parse-Natives; official native resource supplied, all3clips now decoded.",
+    "Source ImageSharp3.2.0 upgrade not used due license-key requirement; upstream3.1.12 retained."
+  ],
+  "setupArtifact": "SETUP-LOG.md records an untrusted SDK development certificate. Exact cleanup was blocked by automatic approval review; no workaround attempted."
+}

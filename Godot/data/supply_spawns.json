@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "policy": "World pickups are fixed and guaranteed. Each storage contents table rolls once per new opening; fatal checkpoint retries preserve the result and collected supplies.",
+  "world_pickups": [
+    {
+      "id": "phone_table_cells",
+      "area": "front room phone side table",
+      "item": "battery",
+      "amount": 35,
+      "chance": 1.0,
+      "position": [-3.18, 1.07, 1.57]
+    },
+    {
+      "id": "key_counter_bandage",
+      "area": "front room counter beside car keys",
+      "item": "bandage",
+      "amount": 1,
+      "chance": 1.0,
+      "position": [0.78, 1.46, 3.33]
+    },
+    {
+      "id": "middle_table_flare",
+      "area": "middle coffee table",
+      "item": "flare",
+      "amount": 1,
+      "chance": 1.0,
+      "position": [3.18, 1.07, 1.19]
+    }
+  ],
+  "storage": {
+    "EntryDrawer": [
+      {"item": "battery", "amount": 30, "chance": 1.0},
+      {"item": "bandage", "amount": 1, "chance": 0.35}
+    ],
+    "HallCabinet": [
+      {"item": "bandage", "amount": 1, "chance": 1.0},
+      {"item": "flare", "amount": 1, "chance": 0.40}
+    ]
+  }
+}
