@@ -50,6 +50,7 @@ var _hand_flashlight: Node3D
 var _view_flashlight: Node3D
 var _hand_mount: BoneAttachment3D
 var _luke_skeleton: Skeleton3D
+var _armor_visuals: Node3D
 var _locomotion_pose: BlackwebLocomotionPose = LocomotionPose.new()
 var _right_upper_bone := -1
 var _right_forearm_bone := -1
@@ -332,6 +333,32 @@ func attach_model(scene: PackedScene, model_scale := 1.0) -> void:
 			_hand_flare.rotation = Vector3(0.0, 0.0, -PI * 0.5)
 			left_hand.add_child(_hand_flare)
 			_hand_flare.hide()
+	var armor_controller = load("res://scripts/armor_visuals.gd").new()
+	armor_controller.name = "WornArmorVisuals"
+	add_child(armor_controller)
+	if armor_controller.setup(model):
+		_armor_visuals = armor_controller
+		if not inventory_changed.is_connected(_refresh_armor_visuals): inventory_changed.connect(_refresh_armor_visuals)
+		_refresh_armor_visuals()
+	else:
+		armor_controller.queue_free()
+		push_warning("Worn armor models could not be loaded; check the complete asset package.")
+
+func _refresh_armor_visuals() -> void:
+	if is_instance_valid(_armor_visuals): _armor_visuals.apply_state(get_armor_state())
+
+func item_preview_source(item_id: StringName) -> Node3D:
+	if BlackwebInventoryGrid.is_armor(item_id) and is_instance_valid(_armor_visuals):
+		var slot := StringName(str(item_id).trim_prefix("leather_"))
+		return _armor_visuals.get("_garments").get(slot) as Node3D
+	if str(item_id).begins_with("battery_"): return _hand_battery
+	match item_id:
+		&"flashlight": return _hand_flashlight
+		&"knife": return _hand_knife
+		&"candy_bar": return _hand_candy
+		&"bandage": return _hand_bandage
+		&"flare": return _hand_unlit_flare
+	return null
 
 func _make_lens_materials() -> void:
 	_lens_on_material = StandardMaterial3D.new()
@@ -643,7 +670,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.is_action_pressed("hotbar_%d" % (quick_index + 1)):
 			select_quick_slot(quick_index)
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		if is_instance_valid(_focused) and _focused.kind == &"tutorial_evidence":
+		# A focused document or ringing phone owns this click. Never consume a
+		# supply or swing the knife while trying to answer Mica.
+		if is_instance_valid(_focused) and _focused.kind in [&"tutorial_evidence", &"phone"]:
 			_focused.interact()
 			get_viewport().set_input_as_handled()
 			return
@@ -1475,7 +1504,7 @@ func _tick_equipment(delta: float) -> void:
 			flashlight_changed.emit(false)
 			_flicker_clock = 0.0
 			_flicker_off_remaining = 0.0
-		elif battery_charge <= 25.0:
+		elif battery_charge <= 25.0 and _flashlight_flicker_allowed():
 			_flicker_clock += delta
 			_flicker_off_remaining = maxf(0.0, _flicker_off_remaining - delta)
 			var interval := 1.55 if battery_charge <= 8.0 else 4.2
@@ -1502,6 +1531,11 @@ func _tick_equipment(delta: float) -> void:
 	if lamp.visible and _beam_scan_remaining <= 0.0:
 		_beam_scan_remaining = 0.12
 		_scan_flashlight_beam(0.12)
+
+func _flashlight_flicker_allowed() -> bool:
+	# Let the player learn the torch before the house's first warning beat.
+	# Standalone equipment fixtures retain ordinary low-charge behavior.
+	return not is_instance_valid(progression) or not progression.has_method("flashlight_flicker_allowed") or progression.flashlight_flicker_allowed()
 
 func _scan_flashlight_beam(sample_seconds: float) -> void:
 	# Gameplay aim uses the shoulder camera's unobstructed view. The physical

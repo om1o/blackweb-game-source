@@ -56,6 +56,8 @@ Playable/
 !Godot/assets/third_party/texturecan/**/*.import
 !Godot/assets/generated/blood_variants_v3.png.import
 !Godot/assets/generated/goo_variants_v3.png.import
+!Godot/assets/third_party/makehuman_armor/**/*.import
+!Godot/assets/third_party/poly_haven/brown_leather/*.import
 *.tmp
 *.log
 /Tools/Recovery/NoFmod/bin/

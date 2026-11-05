@@ -29,7 +29,9 @@ if ($Action -eq 'RecoverScene') {
         'res://tests/spider_navigation_tests.gd','res://tests/house_spider_combat_tests.gd',
         'res://tests/juvenile_visual_tests.gd','res://tests/combat_effects_tests.gd',
         'res://tests/player_survival_tests.gd','res://tests/tutorial_campaign_tests.gd',
-        'res://tests/tutorial_intro_tests.gd','res://tests/tutorial_journey_tests.gd')) {
+        'res://tests/tutorial_intro_tests.gd','res://tests/paper_reader_tests.gd',
+        'res://tests/tutorial_pacing_tests.gd','res://tests/menu_rendering_tests.gd',
+        'res://tests/tutorial_journey_tests.gd')) {
         & $godotExecutable --headless --path $godotProject --script $test
         if ($LASTEXITCODE -ne 0) { throw "Failed: $test" }
     }

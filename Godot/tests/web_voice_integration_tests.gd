@@ -16,6 +16,7 @@ func _run() -> void:
 	game._resume()
 	game.progression.warning_heard = true
 	game.progression._set_stage(game.progression.Stage.PREPARATION)
+	game.progression.step(4.0) # The authored post-call breathing room.
 	game.player.global_position = Vector3(-1.6, 0.44, -2.0)
 	for frame in range(3): await process_frame
 	var sounds = game.get_node("Soundscape")

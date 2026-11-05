@@ -31,7 +31,7 @@ Mica's phone warning cuts off after the plant clue without speaking the code. Lu
 
 ## Visual provenance and limits
 
-The paper reader, vault keypad, inventory armor row, plant and folded leather kit are original code-authored assets. The plant and garments are lightweight prototype geometry, not scanned or production-finished character clothing. Equipping armor applies protection and records the loadout; it does not replace Luke's character costume with a new clothing rig.
+The plant and folded leather pickup kit remain lightweight prototype props. The subsequent [interface pass](HorrorInterfacePass.md) replaces the text-only reader with original illustrated paper images and zoom/pan controls, and rebuilds the menu, vault and inventory presentation. The [armor integration](ArmorIntegrationPlan.md) replaces stats-only equipment with credited artist-made garments fitted to Luke's existing skeleton. The clothing is adapted game art, not a bespoke scanned costume.
 
 Higgsfield's Cinema Studio Video 3.0 quoted 40 credits for an eight-second intro. Submission was rejected for insufficient credits; the account reported 1.7 available and no usable free generation. No video was produced and no trial was activated. The shipped arrival is an in-engine camera sequence with captions, not a Higgsfield clip.
 

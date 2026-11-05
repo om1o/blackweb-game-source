@@ -41,6 +41,14 @@ func _run() -> void:
 	for resource in info.critical_source_sha256:
 		if FileAccess.get_sha256(str(resource)).to_upper() != str(info.critical_source_sha256[resource]).to_upper(): wrong_hash.append(str(resource))
 	_check("Critical scenes, scripts and layout match source hashes", wrong_hash.is_empty(), wrong_hash)
+	var ui_theme := load("res://scripts/horror_theme.gd")
+	_check("Bundled Barlow interface fonts load from the portable PCK", ui_theme.body_font().data.size() > 10000 and ui_theme.heading_font().data.size() > 10000)
+	var document_source := load("res://scripts/tutorial_evidence.gd")
+	for title in ["transfer log", "Project 08 record", "Mica's hidden note"]:
+		var document: Texture2D = document_source.document_texture(title)
+		_check("Generated document texture is packaged: " + title, document != null and document.get_width() == 1024 and document.get_height() == 1536)
+	var menu_art := load("res://assets/generated/blackweb_menu_corridor_v1.png") as Texture2D
+	_check("Original menu corridor artwork loads from the PCK", menu_art != null and menu_art.get_width() > 1000)
 	_check("All 102 recovered geometry GLBs are packaged", int(info.raw_recovered_geometry_glb_count) == 102, info.raw_recovered_geometry_glb_count)
 	var scene: PackedScene = load("res://scenes/main.tscn") as PackedScene
 	_check("Main scene loads from the PCK", scene != null)
@@ -65,6 +73,9 @@ func _run() -> void:
 	var player: Node = game.get("player")
 	var spider: Node = game.get("spider")
 	_check("Player controller exists", player != null)
+	var armor = player.get("_armor_visuals")
+	_check("All four credited garment meshes bind in the isolated package", armor != null and armor.visual_state().size() == 4 and not armor.visual_state().values().has(true))
+	_check("Inventory preview can resolve every starter model from the package", player.item_preview_source(&"flashlight") != null and player.item_preview_source(&"knife") != null and player.item_preview_source(&"candy_bar") != null)
 	var candy: Node = player.get("_hand_candy") if player != null else null
 	_check("Original Blender candy and bitten variant load from the PCK", candy != null and candy.has_node("CandyBarBody/CandyReady") and candy.has_node("CandyBarBody/CandyBitten"))
 	var supply_factory := load("res://scripts/supply_models.gd")
@@ -125,7 +136,9 @@ func _run() -> void:
 	for tick in 5: await physics_frame
 	_check("Packed game resumes actual physics", not paused)
 	_check("QA run does not read or write player checkpoints", game.get("progression") != null and not bool(game.get("progression").get("auto_save")) and not bool(game.get("progression").get("auto_load")))
-	if player is CharacterBody3D: await _check_world_evidence(game, player)
+	if player is CharacterBody3D:
+		await _check_world_evidence(game, player, true)
+		await _check_world_evidence(game, player)
 	game.process_mode = Node.PROCESS_MODE_DISABLED
 	_stop_audio(game)
 	game.queue_free()
@@ -133,7 +146,7 @@ func _run() -> void:
 	await create_timer(0.12).timeout
 	_finish()
 
-func _check_world_evidence(game: Node, player: CharacterBody3D) -> void:
+func _check_world_evidence(game: Node, player: CharacterBody3D, before_vault_unlock := false) -> void:
 	# Use the assembled PCK collision, not direct interaction calls or an assigned
 	# focus target. A bounded grid proves a standing route from the real spawn.
 	player.set_physics_process(false)
@@ -141,6 +154,10 @@ func _check_world_evidence(game: Node, player: CharacterBody3D) -> void:
 	for group in [&"spider", &"mini_spider"]:
 		for actor in get_nodes_in_group(group): actor.set_physics_process(false)
 	for door in game.get("_tutorial_doors"):
+		if before_vault_unlock and door.name == &"RearNorthDoor":
+			door.call("reset_closed")
+			door.set("locked", true)
+			continue
 		door.set("locked", false) # The keypad/unlock transaction has a separate suite.
 		if not bool(door.get("opened")): door.call("toggle")
 	await create_timer(0.72).timeout
@@ -192,13 +209,15 @@ func _check_world_evidence(game: Node, player: CharacterBody3D) -> void:
 			if not sweep.is_empty() and sweep[0] > 0.99:
 				visited[next] = true
 				pending.append(next)
-	_check("Standing capsule connects spawn to supported house approaches", not connected.is_empty(), {"sampled_cells": 851, "connected_cells": connected.size()})
+	var condition := " while the vault is locked" if before_vault_unlock else ""
+	_check("Standing capsule connects spawn to supported house approaches" + condition, not connected.is_empty(), {"sampled_cells": 851, "connected_cells": connected.size()})
 	var camera: Camera3D = player.get("camera")
 	var original_pose := player.global_transform
 	var original_camera := camera.global_transform
 	var paper_focused := false
 	# Keep the paper last so its real focused object can receive the input event.
-	for name in ["VaultCash", "VaultFieldKit", "PlantCodeNote"]:
+	var targets := ["PlantCodeNote"] if before_vault_unlock else ["PhoneInteraction", "EntryTransferLog", "RecordRoomPage", "VaultCash", "VaultFieldKit", "PlantCodeNote"]
+	for name in targets:
 		var evidence := game.get_node_or_null(NodePath(name)) as Node3D
 		var found := false
 		var approach := Vector3.ZERO
@@ -219,10 +238,10 @@ func _check_world_evidence(game: Node, player: CharacterBody3D) -> void:
 					found = true
 					approach = feet
 					break
-		_check("Actual collision and focus rays can reach " + name, found, {"approach": str(approach), "target": str(evidence.global_position) if evidence != null else "missing"})
+		_check("Actual collision and focus rays can reach " + name + condition, found, {"approach": str(approach), "target": str(evidence.global_position) if evidence != null else "missing"})
 		if name == "PlantCodeNote": paper_focused = found
 	var headless_input := DisplayServer.get_name() == "headless"
-	var input_check := ("E input" if headless_input else "Left click") + " on physically focused paper opens paused readable overlay"
+	var input_check := ("E input" if headless_input else "Left click") + " on physically focused paper opens paused readable overlay" + condition
 	if paper_focused:
 		player.set("active", true)
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -246,13 +265,17 @@ func _check_world_evidence(game: Node, player: CharacterBody3D) -> void:
 		await process_frame
 		var overlay: Control = game.get("field_overlay")
 		_check(input_check, overlay.visible and overlay.get("mode") == "paper" and paused and bool(game.get("campaign").get("code_found")))
-		interaction_event.set("pressed", false)
-		Input.parse_input_event(interaction_event)
+		var release_event := interaction_event.duplicate() as InputEvent
+		release_event.set("pressed", false)
+		Input.parse_input_event(release_event)
 		if overlay.visible: overlay.call("close_overlay")
 	else:
 		_check(input_check, false, "No reachable physical paper focus was found")
 	player.global_transform = original_pose
 	camera.global_transform = original_camera
+	if before_vault_unlock:
+		var vault = game.get_node("RearNorthDoor")
+		_check("The clue is readable before obtaining the key or unlocking the vault", vault.locked and not vault.opened and not game.progression.has_keys and not game.campaign.vault_unlocked)
 	paused = false
 
 func _stop_audio(node: Node) -> void:

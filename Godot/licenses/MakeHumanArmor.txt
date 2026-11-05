@@ -1,0 +1,33 @@
+BLACKWEB ARMOR GARMENT ATTRIBUTION
+
+Shoes Biker Boots Male and Male Trousers 1 by Mindfront (Sweden).
+Hooded Sweat Jacket 1 / ladieshoodiedown1 by Elvaerwyn.
+Used under Creative Commons Attribution 4.0 International (CC BY 4.0).
+https://creativecommons.org/licenses/by/4.0/
+https://creativecommons.org/licenses/by/4.0/legalcode
+
+Monk's Robe Hood by Donitz, CC0 1.0 Universal.
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Official source pages:
+https://static.makehumancommunity.org/assets/assetpacks/shoes03.html
+https://static.makehumancommunity.org/assets/assetpacks/pants02.html
+https://static.makehumancommunity.org/assets/assetpacks/shirts02.html
+https://static.makehumancommunity.org/assets/assetpacks/suits02.html
+
+Adaptations for Blackweb: geometry fitted and reweighted to the existing Luke
+rig; sleeve and torso fit adjusted; covered original clothing masked; larger
+source textures resized to 2048; material changed to brown leather. The jacket,
+pants and hood were originally clothing rather than leather armor. Original
+UVs, seams and selected normal detail remain. These changes are not endorsed
+by the original artists.
+
+Brown Leather PBR material by Rob Tuytel / Poly Haven, CC0.
+https://polyhaven.com/a/brown_leather
+https://polyhaven.com/license
+
+Luke's existing rest rig and transferred skin weights are derived from
+Microsoft Rocketbox Male_Adult_04, under MIT; see the bundled Rocketbox notice.
+
+Detailed source URLs, file hashes and modifications are recorded in
+assets/third_party/makehuman_armor/source-manifest.json and ATTRIBUTION.md.

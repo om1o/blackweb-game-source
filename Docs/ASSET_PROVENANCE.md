@@ -18,6 +18,8 @@ Initial recovery sources were accessed 2026-11-03. The later Blackweb corner-web
 
 ## Additional runtime content
 
+The November 5 interface/armor update adds Barlow and Barlow Condensed from the official Google Fonts repository (SIL OFL 1.1), original ImageGen menu/paper/steel-panel artwork, and the artist-made MakeHuman clothing described in [ArmorIntegrationPlan.md](ArmorIntegrationPlan.md). Per-garment creator, license, exact source and fitting changes are retained in `Godot/assets/third_party/makehuman_armor/ATTRIBUTION.md` and `source-manifest.json`. The leather shader uses Rob Tuytel's [Brown Leather](https://polyhaven.com/a/brown_leather) from Poly Haven under CC0, with three 2K texture channels and acquisition metadata beside them. Full generation prompts are in [InterfaceAssetPrompts.md](InterfaceAssetPrompts.md). These additions do not change the rights status of the supplied original game assets.
+
 | Asset | Creator and pinned source | License and obligations | Modifications and use |
 |---|---|---|---|
 | Luke interim model, Male_Adult_04 and idle/walk/run clips | Microsoft and Rocketbox contributors; [Microsoft-Rocketbox](https://github.com/microsoft/Microsoft-Rocketbox/tree/0943055db6ec570bcef9f2c8b41c9e5467c808f9), accessed2026-11-03 | MIT; commercial use, modification and redistribution permitted with copyright and permission notice retained. Exact notice and file hashes in Godot/assets/luke. | Imported FBX, canonical texture bindings, one visible LOD, motion extraction removed, grounded/scaled and facing adjusted for Godot. This is interim character art, not a bespoke scan of Luke. |

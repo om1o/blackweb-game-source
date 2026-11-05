@@ -1,6 +1,6 @@
 extends Node3D
 ## Recovered: wood footsteps, the brief PRESENCE clip, and door creak.
-## Original procedural audio: low mechanical room hum, phone ping, power-cut click.
+## Original procedural audio: low mechanical room hum, phone ring, power-cut click.
 ## Sound positions are this opening's staging. There is no continuous horror score.
 
 var player: BlackwebPlayer
@@ -34,6 +34,14 @@ var _mara_warning_played := false
 var _phone_reply_played := false
 var _phone_clock_elapsed := 0.0
 var _phone_clock_tick_usec := 0
+var _completion_channel := 0
+var _completion_position := -1.0
+var _completion_stall_seconds := 0.0
+var _completion_tick_usec := 0
+var _restore_pending := false
+const WEB_REACTION_DELAY := 4.0
+const PRESENCE_CUE_DELAY := 2.0
+const PRESENCE_CUE_SECONDS := 6.0
 const WEB_REVEAL_POSITION := Vector3(-1.6, 0.44, -2.0)
 const PHONE_DIALOGUE_PATH := "res://data/phone_dialogue.json"
 const DIALOGUE_BUS := &"Dialogue"
@@ -63,12 +71,12 @@ func _ready() -> void:
 		var stream: AudioStream = _load_sound(str(sound_path), "wood_footstep")
 		if stream != null: _step_streams.append(stream)
 	_phone = AudioStreamPlayer3D.new()
-	_phone.name = "OriginalPhonePing"
+	_phone.name = "OriginalPhoneRing"
 	_phone.position = phone_position
-	_phone.volume_db = -17.0
-	_phone.unit_size = 2.0
+	_phone.volume_db = -7.0
+	_phone.unit_size = 3.0
 	_phone.max_distance = 18.0
-	_phone.stream = _tone(0.42, 520.0, 0.20)
+	_phone.stream = _phone_ring()
 	add_child(_phone)
 	_presence = AudioStreamPlayer3D.new()
 	_presence.name = "RecoveredPresenceCue"
@@ -123,6 +131,7 @@ func _ready() -> void:
 		player.recovery_changed.connect(_on_recovery)
 		_recovering = player.is_recovering()
 	if is_instance_valid(progression):
+		progression.message_boundary_guard = _guard_phone_boundary
 		progression.stage_changed.connect(_stage_changed)
 		if progression.has_signal("checkpoint_restored"):
 			progression.checkpoint_restored.connect(_checkpoint_restored)
@@ -133,6 +142,7 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_PAUSED or what == NOTIFICATION_UNPAUSED:
 		# A paused menu must not count toward the real-time message clock.
 		_phone_clock_tick_usec = Time.get_ticks_usec()
+		_completion_tick_usec = Time.get_ticks_usec()
 	if what == NOTIFICATION_UNPAUSED:
 		stop_voice_test()
 
@@ -201,11 +211,11 @@ func _load_voice(sound_path: String, role: String = "Luke web reveal neural voic
 	return null
 
 func get_audio_provenance() -> Dictionary:
-	return {"recovered": _recovered_audio.duplicate(true), "original_procedural": ["low mechanical room hum", "phone notification ping", "power-cut click"], "prototype_voice": {"path": _dialogue_path("web_reaction", WEB_VOICE_PATH), "source": "Locally generated Kokoro-82M neural voice, am_michael; synthetic placeholder, not an actor performance"}, "phone_dialogue": {"mica_path": _dialogue_path("warning", MICA_WARNING_PATH), "luke_path": _dialogue_path("reply", PHONE_REPLY_PATH), "timeline": PHONE_DIALOGUE_PATH, "source": "Local Kokoro-82M stock synthetic voices: af_heart and am_michael; no voice cloning", "policy": "Once per message attempt, aligned to message elapsed time and subtitle slots, no overlap with the web reaction"}, "missing": _missing_audio.duplicate(), "presence_policy": "Spatial, quiet, once per PRESENCE entry, at most 8 active seconds, stopped on POWER_LOSS.", "footstep_policy": "Recovered wood samples, grounded velocity-based stride distance, deterministic mild pitch/gain sequence.", "continuous_horror_score": false}
+	return {"recovered": _recovered_audio.duplicate(true), "original_procedural": ["low mechanical room hum", "two-burst phone ring", "power-cut click"], "prototype_voice": {"path": _dialogue_path("web_reaction", WEB_VOICE_PATH), "source": "Locally generated Kokoro-82M neural voice, am_michael; synthetic placeholder, not an actor performance"}, "phone_dialogue": {"mica_path": _dialogue_path("warning", MICA_WARNING_PATH), "luke_path": _dialogue_path("reply", PHONE_REPLY_PATH), "timeline": PHONE_DIALOGUE_PATH, "source": "Local Kokoro-82M stock synthetic voices: af_heart and am_michael; no voice cloning", "policy": "Once per message attempt, aligned to message elapsed time and subtitle slots, no overlap with the web reaction"}, "missing": _missing_audio.duplicate(), "presence_policy": "Spatial, quiet, once per PRESENCE entry, delayed two active seconds; at most six active seconds, stopped on POWER_LOSS; never overlays Luke's web reaction.", "footstep_policy": "Recovered wood samples, grounded velocity-based stride distance, deterministic mild pitch/gain sequence.", "continuous_horror_score": false}
 
 func _process(delta: float) -> void:
 	if not is_instance_valid(player) or not is_instance_valid(progression): return
-	if _recovering or player.is_recovering(): return
+	if _recovering or player.is_recovering() or get_tree().paused: return
 	if not player.active:
 		_phone_clock_tick_usec = Time.get_ticks_usec()
 		_steps.stop()
@@ -231,15 +241,11 @@ func _process(delta: float) -> void:
 		play_web_reveal_voice()
 	if _stage < progression.Stage.POWER_LOSS and not _room.playing: _room.play()
 	if _stage == progression.Stage.PRESENCE and _presence_remaining > 0.0:
-		if not _presence_started and _presence.stream != null:
-			_presence.play()
-			_presence_started = true
-		_presence_remaining = maxf(0.0, _presence_remaining - delta)
-		if _presence_remaining <= 0.0: _presence.stop()
+		_tick_presence(delta)
 	_phone_timer -= delta
 	if _stage == progression.Stage.NORMAL and _phone_timer <= 0.0:
 		_phone.play()
-		_phone_timer = 6.0
+		_phone_timer = 4.8
 	_steps.global_position = player.global_position + Vector3.UP * 0.1
 	var horizontal_speed := Vector2(player.velocity.x, player.velocity.z).length()
 	if not player.is_on_floor() or horizontal_speed <= 0.5 or _step_streams.is_empty():
@@ -256,11 +262,25 @@ func _process(delta: float) -> void:
 		_step_index += 1
 		_steps.play()
 
+func _tick_presence(delta: float) -> void:
+	# Leave a quiet beat after the visual/objective change, and let an already
+	# spoken reaction finish before revealing a second spatial warning.
+	if not _presence_started:
+		if progression._elapsed < PRESENCE_CUE_DELAY or _web_voice.playing: return
+		_presence_started = true
+		if _presence.stream != null: _presence.play()
+	_presence_remaining = maxf(0.0, _presence_remaining - delta)
+	if _presence_remaining <= 0.0: _presence.stop()
+
 func play_web_reveal_voice() -> bool:
 	if _web_voice_played or not is_instance_valid(_web_voice) or _web_voice.stream == null or _recovering or get_tree().paused:
 		return false
 	if not is_instance_valid(progression) or _stage < progression.Stage.PREPARATION or _stage >= progression.Stage.POWER_LOSS or _mara_warning.playing or _phone_reply.playing:
 		return false
+	# The call gets breathing room before Luke reacts to the house. If the
+	# player missed this during exploration, wait until the presence cue ends.
+	var delay := WEB_REACTION_DELAY if _stage == progression.Stage.PREPARATION else PRESENCE_CUE_DELAY + PRESENCE_CUE_SECONDS
+	if progression._elapsed < delay or _presence.playing: return false
 	_web_voice_played = true
 	_web_voice.play()
 	if is_instance_valid(progression):
@@ -292,6 +312,59 @@ func _phone_reply_start() -> float:
 	for index in range(mini(4, progression.mara_durations.size())):
 		start += maxf(0.5, float(progression.mara_durations[index]))
 	return start
+
+func _guard_phone_boundary(proposed: float) -> float:
+	# A stalled render thread can leave wall time ahead of the audio mixer.
+	# Spoken captions may lead its reported position by at most 80 ms; the
+	# silent disconnect uses wall time only after the full warning finishes.
+	var channel: AudioStreamPlayer
+	var boundary := 0.0
+	var start := 0.0
+	var channel_id := 0
+	if _dialogue_can_play():
+		if _voice_has_pending_samples(_mara_warning):
+			channel = _mara_warning
+			boundary = _mara_warning.stream.get_length()
+			channel_id = 1
+		elif _voice_has_pending_samples(_phone_reply):
+			channel = _phone_reply
+			start = _phone_reply_start()
+			for duration in progression.mara_durations: boundary += maxf(0.5, float(duration))
+			channel_id = 2
+	var now := Time.get_ticks_usec()
+	var delta := maxf(0.0, float(now - _completion_tick_usec) / 1000000.0) if _completion_tick_usec > 0 else 0.0
+	_completion_tick_usec = now
+	if channel == null or channel.get_playback_position() >= channel.stream.get_length():
+		_completion_channel = 0
+		_completion_stall_seconds = 0.0
+		return proposed
+	var position := channel.get_playback_position()
+	var held := minf(maxf(0.0, boundary - 0.001), start + position + 0.08)
+	if proposed <= held:
+		_completion_stall_seconds = 0.0
+		return proposed
+	if channel_id != _completion_channel or absf(position - _completion_position) > 0.001:
+		_completion_stall_seconds = 0.0
+	else:
+		_completion_stall_seconds += delta
+	_completion_channel = channel_id
+	_completion_position = position
+	# Muted streams still advance. A genuinely frozen/unavailable backend must
+	# not trap the player indefinitely; retain subtitles and stop its stale voice.
+	if _completion_stall_seconds >= 3.0:
+		channel.stop()
+		_missing_audio.append("Phone playback stopped advancing; continuing the readable subtitle timeline")
+		_completion_channel = 0
+		_completion_stall_seconds = 0.0
+		return proposed
+	_phone_clock_elapsed = held
+	return held
+
+func _voice_has_pending_samples(channel: AudioStreamPlayer) -> bool:
+	# Godot reports playing=false for a paused stream while retaining its
+	# playback object. In active gameplay an unexpectedly frozen/paused stream
+	# receives the same bounded fallback; normal game/menu pauses never call us.
+	return is_instance_valid(channel) and channel.stream != null and channel.has_stream_playback() and (channel.playing or channel.stream_paused)
 
 func _dialogue_can_play() -> bool:
 	return is_instance_valid(player) and player.active and is_instance_valid(progression) and _stage == progression.Stage.MESSAGE and not _recovering and not player.is_recovering() and not get_tree().paused
@@ -330,13 +403,19 @@ func play_door() -> bool:
 
 func _stage_changed(stage: int, restoring: bool = false) -> void:
 	var previous: int = _stage
+	restoring = restoring or _restore_pending
+	_restore_pending = false
 	_stage = stage
 	if previous != stage or restoring:
 		_phone_clock_elapsed = maxf(0.0, progression._elapsed)
+		_completion_channel = 0
+		_completion_stall_seconds = 0.0
+		_completion_tick_usec = Time.get_ticks_usec()
 	_phone_clock_tick_usec = Time.get_ticks_usec()
 	if stage == progression.Stage.NORMAL:
 		_mara_warning_played = false
 		_phone_reply_played = false
+		_web_voice_played = false
 	if stage != progression.Stage.MESSAGE:
 		_mara_warning.stop()
 		_phone_reply.stop()
@@ -344,11 +423,13 @@ func _stage_changed(stage: int, restoring: bool = false) -> void:
 		_web_voice.stop()
 	if stage != progression.Stage.NORMAL: _phone.stop()
 	else: _phone_timer = 1.2
-	_presence.stop()
-	_presence_remaining = 8.0 if stage == progression.Stage.PRESENCE else 0.0
-	_presence_started = false
+	if previous != stage or restoring:
+		_presence.stop()
+		_presence_remaining = PRESENCE_CUE_SECONDS if stage == progression.Stage.PRESENCE else 0.0
+		_presence_started = false
 	if stage >= progression.Stage.POWER_LOSS:
 		_room.stop() # The house loses its mechanical hum; no music replaces it.
+		_web_voice.stop()
 	else:
 		_room.volume_db = -27.0 if stage in [progression.Stage.MESSAGE, progression.Stage.PRESENCE] else -24.0
 	if stage == progression.Stage.POWER_LOSS and previous == progression.Stage.PRESENCE and not restoring and not _recovering:
@@ -379,8 +460,12 @@ func _on_recovery(recovering: bool) -> void:
 	_step_distance = 0.0
 
 func _checkpoint_restored() -> void:
+	_restore_pending = true
 	_phone_clock_elapsed = maxf(0.0, progression._elapsed)
 	_phone_clock_tick_usec = Time.get_ticks_usec()
+	_completion_channel = 0
+	_completion_stall_seconds = 0.0
+	_completion_tick_usec = Time.get_ticks_usec()
 	_step_index = 0
 	_step_distance = 0.0
 	_phone_timer = 1.2
@@ -388,6 +473,7 @@ func _checkpoint_restored() -> void:
 	_presence_started = false
 	_door.stop()
 	_event.stop()
+	_web_voice.stop()
 	_mara_warning.stop()
 	_phone_reply.stop()
 	# A restored MESSAGE checkpoint restarts its subtitle clock from zero.
@@ -395,6 +481,8 @@ func _checkpoint_restored() -> void:
 	if progression.stage in [progression.Stage.NORMAL, progression.Stage.MESSAGE]:
 		_mara_warning_played = false
 		_phone_reply_played = false
+	if progression.stage <= progression.Stage.PREPARATION:
+		_web_voice_played = false
 	# The immediately following stage_changed signal restores the correct state.
 
 func _mechanical_hum() -> AudioStreamWAV:
@@ -428,6 +516,27 @@ func _tone(duration: float, frequency: float, amplitude: float) -> AudioStreamWA
 		var envelope := minf(t * 40.0, 1.0) * pow(maxf(0.0, 1.0 - t / duration), 2.0)
 		var pulse := sin(TAU * frequency * t) * 0.65 + sin(TAU * frequency * 1.5 * t) * 0.35
 		bytes.encode_s16(i * 2, int(clampf(pulse * envelope * amplitude, -1.0, 1.0) * 32767.0))
+	var sound := AudioStreamWAV.new()
+	sound.format = AudioStreamWAV.FORMAT_16_BITS
+	sound.mix_rate = rate
+	sound.data = bytes
+	return sound
+
+func _phone_ring() -> AudioStreamWAV:
+	# A recognizable two-burst telephone ring, audible from the entrance.
+	# A short quiet ping was easily lost under room noise and footsteps.
+	var rate := 22050
+	var count := int(1.5 * rate)
+	var bytes := PackedByteArray()
+	bytes.resize(count * 2)
+	for i in range(count):
+		var t := float(i) / rate
+		var burst := t if t < 0.55 else t - 0.78
+		if burst < 0.0 or burst > 0.55: continue
+		var envelope := clampf(burst * 45.0, 0.0, 1.0) * clampf((0.55 - burst) * 30.0, 0.0, 1.0)
+		var tremolo := 0.7 + 0.3 * sin(TAU * 24.0 * t)
+		var ring := (sin(TAU * 480.0 * t) + sin(TAU * 620.0 * t)) * 0.22
+		bytes.encode_s16(i * 2, int(ring * envelope * tremolo * 32767.0))
 	var sound := AudioStreamWAV.new()
 	sound.format = AudioStreamWAV.FORMAT_16_BITS
 	sound.mix_rate = rate

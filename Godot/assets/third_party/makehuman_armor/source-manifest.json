@@ -1,0 +1,294 @@
+{
+  "acquired_utc": "2026-11-05",
+  "sources": [
+    {
+      "asset": "mindfront_shoes_biker_boots_male",
+      "author": "Mindfront",
+      "license": "CC BY 4.0",
+      "url": "https://files2.makehumancommunity.org/asset_packs/shoes03/shoes03_ccby.zip",
+      "archive_bytes": 50300350,
+      "files": [
+        {
+          "name": "clothes/mindfront_shoes_biker_boots_male/shoes_biker_boots_male.mhmat",
+          "compression": 8,
+          "crc32": 3508669815,
+          "compressed_size": 289,
+          "size": 582,
+          "header_offset": 39568093,
+          "sha256": "5b227da9e27981730a69180154d03520d2ae5a55e761e0c2ec5e32de8c82679c"
+        },
+        {
+          "name": "clothes/mindfront_shoes_biker_boots_male/mindfront_shoes_biker_boots_male.thumb",
+          "compression": 8,
+          "crc32": 369579016,
+          "compressed_size": 47097,
+          "size": 47697,
+          "header_offset": 39568509,
+          "sha256": "afc9f711d6177b3911149249a81a0e342e8fb5a26421aa2cd2e126bfde7df4a1"
+        },
+        {
+          "name": "clothes/mindfront_shoes_biker_boots_male/Shoes_Biker_Boots.png",
+          "compression": 8,
+          "crc32": 565248124,
+          "compressed_size": 1686776,
+          "size": 1704794,
+          "header_offset": 39615743,
+          "sha256": "66bffc916541707ab3f737c43278704aca8c5d00b15c5923b55178f06b0c47b7"
+        },
+        {
+          "name": "clothes/mindfront_shoes_biker_boots_male/mindfront_shoes_biker_boots_male.mhclo",
+          "compression": 8,
+          "crc32": 1274250887,
+          "compressed_size": 164538,
+          "size": 553935,
+          "header_offset": 41302639,
+          "sha256": "c14c09b34909ee9b871a9e269dfe778a50bc276a42b54cc33f398321cc00f368"
+        },
+        {
+          "name": "clothes/mindfront_shoes_biker_boots_male/Shoes_Biker_Boots_NRM.png",
+          "compression": 8,
+          "crc32": 4286708704,
+          "compressed_size": 4544392,
+          "size": 4554274,
+          "header_offset": 41467314,
+          "sha256": "c9dd535c7c89f677698934857d08b8862bad87de5f10684c663f3dbe1971b303"
+        },
+        {
+          "name": "clothes/mindfront_shoes_biker_boots_male/shoes_biker_boots_male.obj",
+          "compression": 8,
+          "crc32": 1195525718,
+          "compressed_size": 212936,
+          "size": 683093,
+          "header_offset": 46011830,
+          "sha256": "4700ba355de52b630dac4d2ed872fd0cd59452fe94d31d27789fb0cb2dc3c8ca"
+        },
+        {
+          "name": "clothes/mindfront_shoes_biker_boots_male/Shoes_Biker_Boots_SPEC.png",
+          "compression": 8,
+          "crc32": 4042479522,
+          "compressed_size": 2003480,
+          "size": 2059496,
+          "header_offset": 46224891,
+          "sha256": "2eea95de355748d6739be2f2896be25a7147167b3bbc7d9bc9fa793056127f71"
+        }
+      ]
+    },
+    {
+      "asset": "mindfront_male_trousers_1",
+      "author": "Mindfront",
+      "license": "CC BY 4.0",
+      "url": "https://files2.makehumancommunity.org/asset_packs/pants02/pants02_ccby.zip",
+      "archive_bytes": 131847848,
+      "files": [
+        {
+          "name": "clothes/mindfront_male_trousers_1/mindfront_male_trousers_1.thumb",
+          "compression": 8,
+          "crc32": 3315283596,
+          "compressed_size": 41147,
+          "size": 41553,
+          "header_offset": 20826559,
+          "sha256": "0f107c4e55e3554ad46978f2b68fcbad9925d01ab95b91156606b10a8bfc14c0"
+        },
+        {
+          "name": "clothes/mindfront_male_trousers_1/m_trousers_01.obj",
+          "compression": 8,
+          "crc32": 2767804100,
+          "compressed_size": 44956,
+          "size": 134735,
+          "header_offset": 20867829,
+          "sha256": "8866ae70637c11d6944738e50819609096749a4acb7d3ccef6533cc029607121"
+        },
+        {
+          "name": "clothes/mindfront_male_trousers_1/m_trousers_01.mhmat",
+          "compression": 8,
+          "crc32": 1419719671,
+          "compressed_size": 280,
+          "size": 566,
+          "header_offset": 20912894,
+          "sha256": "cc339e7c4094594264b4761f4ff7154e8c5e94c2d33529e355be6f68e2ab9d10"
+        },
+        {
+          "name": "clothes/mindfront_male_trousers_1/M_Trousers_01_SPEC.png",
+          "compression": 8,
+          "crc32": 3001540159,
+          "compressed_size": 2662717,
+          "size": 2776450,
+          "header_offset": 20913285,
+          "sha256": "5bcfba76a14047ecc242952a5a4ac014f385c2da469b336df99d4903dba67d34"
+        },
+        {
+          "name": "clothes/mindfront_male_trousers_1/M_Trousers_01_NRM.png",
+          "compression": 8,
+          "crc32": 2550812528,
+          "compressed_size": 7534645,
+          "size": 7615678,
+          "header_offset": 23576116,
+          "sha256": "3a9520b638c4bf5ab99206d61ef9ef442e32fd08966413e0dc89193ab32b1ce8"
+        },
+        {
+          "name": "clothes/mindfront_male_trousers_1/M_Trousers_01.png",
+          "compression": 8,
+          "crc32": 1537830960,
+          "compressed_size": 10614840,
+          "size": 10722948,
+          "header_offset": 31110874,
+          "sha256": "039e5bfb6990eb301383a2481d331b60efd23f7a9a19e1720d2d4b2d9cbb9844"
+        },
+        {
+          "name": "clothes/mindfront_male_trousers_1/mindfront_male_trousers_1.mhclo",
+          "compression": 8,
+          "crc32": 846165437,
+          "compressed_size": 41397,
+          "size": 117202,
+          "header_offset": 41725823,
+          "sha256": "8b0e1764cfe03d03eeec9d3a89326df99d446c0842f52c3def5c0f23dfe3d30f"
+        }
+      ]
+    },
+    {
+      "asset": "elvs_hooded_sweat_jacket1",
+      "author": "Elvaerwyn",
+      "license": "CC BY 4.0",
+      "url": "https://files2.makehumancommunity.org/asset_packs/shirts02/shirts02_ccby.zip",
+      "archive_bytes": 175395076,
+      "files": [
+        {
+          "name": "clothes/elvs_hooded_sweat_jacket1/ladieshoodiedown1.obj",
+          "compression": 8,
+          "crc32": 3918815324,
+          "compressed_size": 319672,
+          "size": 936824,
+          "header_offset": 24695116,
+          "sha256": "e53204f19be28c005c920748322fc2aa42e7ebdb84a4ab72f48e7a244b71aa64"
+        },
+        {
+          "name": "clothes/elvs_hooded_sweat_jacket1/hoodietex1.png",
+          "compression": 8,
+          "crc32": 2535983019,
+          "compressed_size": 243187,
+          "size": 243913,
+          "header_offset": 25014901,
+          "sha256": "8c186f1c37094c46b8fcc84aa9d3896b91b863093df084056dd676ca6d3302b0"
+        },
+        {
+          "name": "clothes/elvs_hooded_sweat_jacket1/normalshoodie.png",
+          "compression": 8,
+          "crc32": 3984771523,
+          "compressed_size": 256004,
+          "size": 256592,
+          "header_offset": 25258194,
+          "sha256": "ef106c733e71e5c262b128748a212358b3402d402bc8bb6786d7ab0dca6a4876"
+        },
+        {
+          "name": "clothes/elvs_hooded_sweat_jacket1/elvs_hooded_sweat_jacket1.mhclo",
+          "compression": 8,
+          "crc32": 1937598195,
+          "compressed_size": 238155,
+          "size": 671469,
+          "header_offset": 25514307,
+          "sha256": "0bcba0098a56c32f66b9f22ae37e8d0329e1cd515c44ce384edbaf848ef6fcb0"
+        },
+        {
+          "name": "clothes/elvs_hooded_sweat_jacket1/ladieshoodiedown1.mhmat",
+          "compression": 8,
+          "crc32": 1667371962,
+          "compressed_size": 377,
+          "size": 827,
+          "header_offset": 25752585,
+          "sha256": "b3a4cc7eaa937e26d36230de0684c1e18b95b15e7faa9e4020db7baafb158ce0"
+        },
+        {
+          "name": "clothes/elvs_hooded_sweat_jacket1/elvs_hooded_sweat_jacket1.thumb",
+          "compression": 8,
+          "crc32": 2331665643,
+          "compressed_size": 60327,
+          "size": 60761,
+          "header_offset": 25753077,
+          "sha256": "78654041d8be43fa089cf8f78f7bea11097679a36610b546deef68fc1338f07c"
+        }
+      ]
+    },
+    {
+      "asset": "donitz_monk_robe_hood",
+      "author": "Donitz",
+      "license": "CC0 1.0",
+      "url": "https://files2.makehumancommunity.org/asset_packs/suits02/suits02_cc0.zip",
+      "archive_bytes": 192511027,
+      "files": [
+        {
+          "name": "clothes/donitz_monk_robe_hood/donitz_monk_robe_hood.mhclo",
+          "compression": 8,
+          "crc32": 3522792185,
+          "compressed_size": 97944,
+          "size": 269211,
+          "header_offset": 154,
+          "sha256": "5f32a69d26f68b9c5dd9076e9b6859c154291759726831def4bc5c7afc315aa7"
+        },
+        {
+          "name": "clothes/donitz_monk_robe_hood/monks_robe_brown.mhmat",
+          "compression": 8,
+          "crc32": 3072023910,
+          "compressed_size": 458,
+          "size": 900,
+          "header_offset": 98213,
+          "sha256": "605e05e538f3d2160d62724dd07bd736efda01c055bfcb4c4de13bd90214f4ce"
+        },
+        {
+          "name": "clothes/donitz_monk_robe_hood/donitz_monk_robe_hood.thumb",
+          "compression": 8,
+          "crc32": 662477387,
+          "compressed_size": 82068,
+          "size": 82311,
+          "header_offset": 98781,
+          "sha256": "0dd5567b3d4160481476a1293ce61e10161913c6609288f005dfcff87fade869"
+        },
+        {
+          "name": "clothes/donitz_monk_robe_hood/robe_brown__diffuse.png",
+          "compression": 8,
+          "crc32": 370234411,
+          "compressed_size": 16916456,
+          "size": 16959094,
+          "header_offset": 180964,
+          "sha256": "244f344a4ba574aa4e36b63919d36e5c6bb1ac6b7d0b92ef6815a709c5bc9bb9"
+        },
+        {
+          "name": "clothes/donitz_monk_robe_hood/Monks_Hood.obj",
+          "compression": 8,
+          "crc32": 2612610470,
+          "compressed_size": 117161,
+          "size": 387684,
+          "header_offset": 17097531,
+          "sha256": "989f2632ccce50d4cf99973167ecc10e6f33911a60e8e378d50d8b30d06306fc"
+        },
+        {
+          "name": "clothes/donitz_monk_robe_hood/robe__normal_gl.png",
+          "compression": 8,
+          "crc32": 2794325791,
+          "compressed_size": 11996756,
+          "size": 12239751,
+          "header_offset": 17214794,
+          "sha256": "0ec059f6732c37c234af409c4467eabe1c8865292fdac0755a653ea6f9110859"
+        }
+      ]
+    }
+  ],
+  "modifications": [
+    "Fitted source OBJ geometry to Microsoft Rocketbox Male_Adult_04 rest pose",
+    "Transferred and normalized four strongest Luke bone influences per vertex",
+    "Corrected lowered sleeve rest pose and jacket torso proportions",
+    "Reduced source maps larger than 2048 through Blender runtime export",
+    "Applied separate CC0 Poly Haven brown leather PBR with retained source seam and normal detail",
+    "Smoothed sleeve sections along actual Luke arm axes and blended arm skin weights",
+    "Expanded hood outside rounded scalp clearance envelope",
+    "Preserved hand skin using authored UV islands; constrained pants coverage to hip and leg width"
+  ],
+  "editable_blend": "D:\\CodexTemp\\Blackweb-RealArmor-20261105\\luke_fitted_armor.blend",
+  "runtime_glb": {
+    "path": "res://assets/third_party/makehuman_armor/luke_fitted_armor.glb",
+    "bytes": 25231860,
+    "sha256": "a13b5829902917a8ded91e17b7d026225d6b63bc6a4e08a237d915d037bbb668",
+    "triangles_before_runtime_boot_trim": 47662,
+    "headless_checks": 35,
+    "native_checks": 32
+  }
+}

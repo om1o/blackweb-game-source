@@ -154,6 +154,11 @@ func _run() -> void:
 	player.select_quick_slot(1)
 	player._tick_equipment(10.0)
 	check(is_equal_approx(player.battery_charge, stored_charge), "A stored flashlight does not drain while holding the knife")
+	player.battery_charge = 22.0
+	player.select_quick_slot(0)
+	player._tick_equipment(5.0)
+	check(player.lamp.visible and is_zero_approx(player._flicker_clock) and is_equal_approx(player.battery_charge, 20.9), "Early exploration keeps the weak torch steady while normal battery drain remains active")
+	story._set_stage(story.Stage.PRESENCE)
 	player.battery_charge = 8.05
 	player._battery_warning_band = 1
 	player.select_quick_slot(0)

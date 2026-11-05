@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "purpose": "Only the fitted armor scenes and selected licensed inputs used by fit_armor.py; no archive, thumbnails, unused candidates or caches.",
+  "files": [
+    "luke_boots_reference.blend",
+    "luke_fitted_armor.blend",
+    "boots-selected/clothes/mindfront_shoes_biker_boots_male/shoes_biker_boots_male.obj",
+    "boots-selected/clothes/mindfront_shoes_biker_boots_male/Shoes_Biker_Boots.png",
+    "boots-selected/clothes/mindfront_shoes_biker_boots_male/Shoes_Biker_Boots_NRM.png",
+    "boots-selected/clothes/mindfront_shoes_biker_boots_male/mindfront_shoes_biker_boots_male.mhclo",
+    "pants-selected/clothes/mindfront_male_trousers_1/m_trousers_01.obj",
+    "pants-selected/clothes/mindfront_male_trousers_1/M_Trousers_01.png",
+    "pants-selected/clothes/mindfront_male_trousers_1/M_Trousers_01_NRM.png",
+    "pants-selected/clothes/mindfront_male_trousers_1/mindfront_male_trousers_1.mhclo",
+    "shirts-selected/clothes/elvs_hooded_sweat_jacket1/ladieshoodiedown1.obj",
+    "shirts-selected/clothes/elvs_hooded_sweat_jacket1/hoodietex1.png",
+    "shirts-selected/clothes/elvs_hooded_sweat_jacket1/normalshoodie.png",
+    "shirts-selected/clothes/elvs_hooded_sweat_jacket1/elvs_hooded_sweat_jacket1.mhclo",
+    "suits-selected/clothes/donitz_monk_robe_hood/Monks_Hood.obj",
+    "suits-selected/clothes/donitz_monk_robe_hood/robe_brown__diffuse.png",
+    "suits-selected/clothes/donitz_monk_robe_hood/robe__normal_gl.png",
+    "suits-selected/clothes/donitz_monk_robe_hood/donitz_monk_robe_hood.mhclo"
+  ]
+}

@@ -29,7 +29,7 @@ var progression: Node
 var player: BlackwebPlayer
 var spider: Node3D
 var hud: CanvasLayer
-var menu: Control
+var menu
 var heading: Label
 var objective: Label
 var subtitle: Label
@@ -67,6 +67,7 @@ var _tutorial_evidence: Array[Node3D] = []
 var _sighting_spider: Node3D
 var campaign = CampaignScript.new()
 var field_overlay: BlackwebFieldOverlay
+var _item_preview: Node
 var _loading_campaign := true
 var _save_queued := false
 var _intro: Node
@@ -138,6 +139,12 @@ func _ready() -> void:
 		player.recovery_changed.connect(_on_recovery)
 		var model_path: String = _layout.get("player_model", "")
 		if not model_path.is_empty() and ResourceLoader.exists(model_path): player.attach_model(load(model_path))
+		_item_preview = load("res://scripts/item_preview.gd").new()
+		_item_preview.name = "InventoryModelPreview"
+		add_child(_item_preview)
+		_item_preview.preview_ready.connect(status_hud.set_item_preview)
+		status_hud.item_preview_requested.connect(func(item_id: StringName):
+			_item_preview.show_model(player.item_preview_source(item_id), item_id))
 		if qa_mode: print("JOURNEY LOAD: body loaded")
 		_create_interactions()
 		_create_storage()
@@ -177,6 +184,7 @@ func _ready() -> void:
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_loading_campaign = false
+	menu.present("complete" if progression.stage == progression.Stage.COMPLETE else "main", _has_menu_progress(), _loaded, not campaign.loaded.is_empty())
 	var autosave := Timer.new()
 	autosave.wait_time = 5.0
 	autosave.autostart = true
@@ -284,6 +292,7 @@ func _create_interactions() -> void:
 	for entry in _layout.get("interactions", []):
 		var interaction := InteractionScript.new()
 		interaction.kind = StringName(entry.kind)
+		if interaction.kind == &"phone": interaction.name = "PhoneInteraction"
 		interaction.label = entry.label
 		if interaction.kind == &"keys": interaction.label = "Take vault key"
 		if interaction.kind == &"flashlight": interaction.label = "Salvage spare flashlight cells"
@@ -451,9 +460,8 @@ func _claim_armor(item: StringName) -> void:
 
 func _test_voice_audio() -> void:
 	var sounds := get_node_or_null("Soundscape")
-	if sounds != null and sounds.play_voice_test():
-		menu_state.text = "VOICE TEST  /  MICA SHOULD BE AUDIBLE"
-	else: menu_state.text = "VOICE TEST UNAVAILABLE  /  CHECK AUDIO OUTPUT"
+	var started: bool = sounds != null and sounds.play_voice_test()
+	menu.report_voice_test(sounds.get_audio_status() if sounds != null else {}, started)
 
 func _queue_campaign_save() -> void:
 	if _loading_campaign or qa_mode or _save_queued: return
@@ -605,8 +613,8 @@ func _create_mini_spiders() -> void:
 		mini.process_mode = Node.PROCESS_MODE_PAUSABLE
 
 func _create_sighting_spider() -> void:
-	# A harmless, visible juvenile in the supply room establishes the threat
-	# before the late power-cut encounter. The combat juveniles stay dormant.
+	# The first harmless silhouette appears after exploration, during Presence.
+	# Arrival, the phone call and early clue hunting stay free of enemy reveals.
 	var sighting := MiniSpiderScript.new()
 	sighting.name = "SupplyRoomSighting"
 	sighting.auto_bind_progression = false
@@ -614,7 +622,7 @@ func _create_sighting_spider() -> void:
 	# from the open entry doorway. Behind the couch it was never seen.
 	sighting.position = Vector3(1.55, 0.44, -1.72)
 	add_child(sighting)
-	sighting.show()
+	sighting.hide()
 	sighting._play_visual("idle")
 	sighting.process_mode = Node.PROCESS_MODE_PAUSABLE
 	_sighting_spider = sighting
@@ -633,12 +641,14 @@ func _create_hud() -> void:
 	hud = CanvasLayer.new()
 	add_child(hud)
 	var root := Control.new()
+	preload("res://scripts/horror_theme.gd").apply_theme(root)
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.add_child(root)
 	status_hud = StatusScript.new()
 	status_hud.name = "SelectableStatusHUD"
 	root.add_child(status_hud)
+	status_hud.inventory_close_requested.connect(_toggle_inventory)
 	status_hud.set_layout(2)
 	objective = _label("", 18)
 	objective.position = Vector2(44, 38)
@@ -674,85 +684,24 @@ func _create_hud() -> void:
 	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.add_child(fade)
-	menu = Control.new()
-	menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	menu = preload("res://scripts/horror_menu.gd").new()
+	menu.name = "BlackwebMenu"
+	menu.qa_mode = qa_mode
 	root.add_child(menu)
-	var backdrop := ColorRect.new()
-	backdrop.color = Color(0.004, 0.008, 0.011, 0.88)
-	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	menu.add_child(backdrop)
-	var frame := PanelContainer.new()
-	frame.position = Vector2(54, 53)
-	frame.custom_minimum_size = Vector2(576, 660)
-	frame.add_theme_stylebox_override("panel", _menu_panel_style(Color(0.012, 0.019, 0.023, 0.96), Color(0.33, 0.37, 0.34, 0.82)))
-	menu.add_child(frame)
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 27)
-	margin.add_theme_constant_override("margin_right", 27)
-	margin.add_theme_constant_override("margin_top", 28)
-	margin.add_theme_constant_override("margin_bottom", 26)
-	frame.add_child(margin)
-	var stack := VBoxContainer.new()
-	stack.add_theme_constant_override("separation", 10)
-	margin.add_child(stack)
-	stack.add_child(_label("A R A C H N O P H O B I A   /   BLACKWEB", 14, Color(0.68, 0.73, 0.69)))
-	heading = _label("BLACKWEB", 62, Color(0.92, 0.9, 0.83))
-	stack.add_child(heading)
-	menu_state = _label("HOUSE TUTORIAL  /  A MESSAGE FROM GREYHAVEN", 15, Color(0.76, 0.62, 0.4))
-	stack.add_child(menu_state)
-	var spacer := Control.new()
-	spacer.custom_minimum_size.y = 14
-	stack.add_child(spacer)
-	resume_button = _button("Enter the house", _resume)
-	resume_button.disabled = not _loaded
-	stack.add_child(resume_button)
-	restart_button = _button("Restart opening", _restart)
-	restart_button.visible = false
-	stack.add_child(restart_button)
-	var separator := HSeparator.new()
-	separator.custom_minimum_size.y = 14
-	stack.add_child(separator)
-	stack.add_child(_label("HUD STYLE", 14, Color(0.7, 0.74, 0.68)))
-	hud_picker = OptionButton.new()
-	hud_picker.custom_minimum_size = Vector2(0, 43)
-	for title in StatusScript.LAYOUT_NAMES: hud_picker.add_item(title)
-	hud_picker.select(2)
-	hud_picker.item_selected.connect(_set_hud_layout)
-	stack.add_child(hud_picker)
-	var button_spacer := Control.new()
-	button_spacer.custom_minimum_size.y = 13
-	stack.add_child(button_spacer)
-	stack.add_child(_button("Test voice audio", _test_voice_audio))
-	stack.add_child(_button("Exit game", func():
+	heading = menu.heading
+	menu_state = menu.menu_state
+	resume_button = menu.resume_button
+	restart_button = menu.restart_button
+	hud_picker = menu.hud_picker
+	menu.resume_requested.connect(_resume)
+	menu.restart_requested.connect(_restart)
+	menu.quit_requested.connect(func():
 		_save_campaign()
-		get_tree().quit()))
-	stack.add_child(_label("ONE EXIT   /   THREE STARTER ITEMS   /   FIFTY INVENTORY SPACES", 12, Color(0.48, 0.56, 0.55)))
-	var briefing := PanelContainer.new()
-	briefing.position = Vector2(674, 114)
-	briefing.custom_minimum_size = Vector2(620, 483)
-	briefing.add_theme_stylebox_override("panel", _menu_panel_style(Color(0.012, 0.019, 0.023, 0.88), Color(0.31, 0.33, 0.31, 0.72)))
-	menu.add_child(briefing)
-	var briefing_margin := MarginContainer.new()
-	briefing_margin.add_theme_constant_override("margin_left", 30)
-	briefing_margin.add_theme_constant_override("margin_right", 30)
-	briefing_margin.add_theme_constant_override("margin_top", 28)
-	briefing_margin.add_theme_constant_override("margin_bottom", 24)
-	briefing.add_child(briefing_margin)
-	var briefing_stack := VBoxContainer.new()
-	briefing_stack.add_theme_constant_override("separation", 17)
-	briefing_margin.add_child(briefing_stack)
-	briefing_stack.add_child(_label("FIELD NOTES   /   01", 14, Color(0.76, 0.62, 0.4)))
-	briefing_stack.add_child(_label("Mica's message broke off.\nSomething is inside.", 30, Color(0.91, 0.89, 0.82)))
-	briefing_stack.add_child(_label("Find the vault key and Mica's hidden code.\nSearch drawers and cabinets for supplies.", 18, Color(0.65, 0.71, 0.7)))
-	briefing_stack.add_child(HSeparator.new())
-	briefing_stack.add_child(_label("MOVE     W A S D     /     MOUSE  LOOK     /     SHIFT  SPRINT\nCROUCH  C               /     SPACE  JUMP    /     E  INTERACT\nDRAW       1–3           /     LEFT CLICK  USE /     F  TORCH\nINVENTORY  I           /     ESC  PAUSE     /     F1–F4  HUD", 16, Color(0.72, 0.77, 0.73)))
-	briefing_stack.add_child(_label("Equipped items alone can be used. Change your three\nquick slots from the 50-space inventory.", 16, Color(0.76, 0.62, 0.4)))
-	if not _loaded:
-		var error := _label("House recovery is not ready. See the recovery report.", 18, Color(0.85, 0.55, 0.4))
-		error.position = Vector2(74, 663)
-		menu.add_child(error)
-	else:
-		resume_button.grab_focus()
+		get_tree().quit())
+	menu.voice_test_requested.connect(_test_voice_audio)
+	menu.hud_layout_selected.connect(_set_hud_layout)
+	status_hud.set_layout(menu.settings.hud_layout)
+	menu.present("main", _has_menu_progress(), _loaded, _has_menu_progress())
 	field_overlay = FieldOverlay.new()
 	root.add_child(field_overlay)
 	field_overlay.closed.connect(_close_field_modal)
@@ -800,6 +749,17 @@ func _resume() -> void:
 	player.active = not _leaving
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
+func _has_menu_progress() -> bool:
+	if not _loaded or progression.stage == progression.Stage.COMPLETE: return false
+	if _started: return true
+	if campaign.writes_blocked or progression.save_writes_blocked: return false
+	if not campaign.loaded.is_empty(): return campaign._valid(campaign.loaded)
+	# Keep valid pre-campaign checkpoints available during the existing migration.
+	if not qa_mode:
+		for path in [progression.save_path, progression.save_path + ".backup"]:
+			if not progression._normalized(progression._read_json(path)).is_empty(): return true
+	return false
+
 func _finish_intro() -> void:
 	campaign.intro_seen = true
 	if is_instance_valid(_intro): _intro.queue_free()
@@ -821,11 +781,7 @@ func _restart() -> void:
 	_loading_campaign = false
 	_update_inventory_hud()
 	status_hud.set_record_found(false)
-	heading.text = "BLACKWEB"
-	menu_state.text = "HOUSE TUTORIAL  /  A MESSAGE FROM GREYHAVEN"
-	resume_button.disabled = false
-	resume_button.text = "Resume"
-	restart_button.visible = true
+	menu.present("main", false, _loaded, false)
 	_resume()
 
 func _input(event: InputEvent) -> void:
@@ -835,6 +791,11 @@ func _input(event: InputEvent) -> void:
 			_intro.skip()
 			get_viewport().set_input_as_handled()
 		return
+	if is_instance_valid(menu) and menu.visible:
+		if event.is_action_pressed("pause_game"):
+			menu.back()
+			get_viewport().set_input_as_handled()
+		return # Buttons and option controls receive the normal GUI event next.
 	if is_instance_valid(field_overlay) and field_overlay.visible:
 		var handled := false
 		if event.is_action_pressed("pause_game") or (field_overlay.mode != "vault" and event.is_action_pressed("interact")):
@@ -872,17 +833,13 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 	if event.is_action_pressed("pause_game") and _started and progression.stage != progression.Stage.COMPLETE:
-		if menu.visible: _resume()
-		else:
-			get_tree().paused = true
-			menu.show()
-			status_hud.hide_inventory()
-			resume_button.text = "Resume"
-			menu_state.text = "PAUSED  /  HOUSE OPENING"
-			restart_button.visible = true
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-			resume_button.grab_focus()
-			_queue_campaign_save()
+		get_tree().paused = true
+		player.active = false
+		status_hud.hide_inventory()
+		menu.present("pause", true, _loaded, true)
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		_queue_campaign_save()
+		get_viewport().set_input_as_handled()
 
 func _toggle_inventory() -> void:
 	status_hud.toggle_inventory()
@@ -902,6 +859,8 @@ func _set_hud_layout(index: int) -> void:
 
 func _on_stage(stage: int) -> void:
 	_clear_presence()
+	if is_instance_valid(_sighting_spider):
+		_sighting_spider.visible = stage in [progression.Stage.PRESENCE, progression.Stage.POWER_LOSS]
 	if is_instance_valid(objective):
 		objective.text = progression.objective()
 		status_hud.set_objective(objective.text)
@@ -914,12 +873,7 @@ func _on_stage(stage: int) -> void:
 	if stage >= progression.Stage.ENCOUNTER and is_instance_valid(_sighting_spider): _sighting_spider.hide()
 	if stage == progression.Stage.COMPLETE:
 		get_tree().paused = true
-		menu.show()
-		heading.text = "GREYHAVEN"
-		menu_state.text = "TUTORIAL COMPLETE  /  ONE EXIT FOUND"
-		resume_button.text = "Opening complete"
-		resume_button.disabled = true
-		restart_button.visible = true
+		menu.present("complete", false, _loaded, true)
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _on_recovery(recovering: bool) -> void:
@@ -1026,7 +980,7 @@ func _start_presence() -> void:
 	var animations := _presence_model.find_child("*AnimationPlayer*", true, false) as AnimationPlayer
 	if animations != null and animations.has_animation("walk"): animations.play("walk")
 	_presence_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_STOP)
-	_presence_tween.tween_interval(2.0)
+	_presence_tween.tween_interval(6.0)
 	_presence_tween.tween_callback(func(): if is_instance_valid(_presence_model): _presence_model.show())
 	_presence_tween.tween_property(_presence_model, "position", end, 2.0)
 	_presence_tween.tween_callback(_clear_presence)

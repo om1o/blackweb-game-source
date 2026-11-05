@@ -26,6 +26,7 @@ var _end_transform := Transform3D.IDENTITY
 var _end_fov := 68.0
 var _hidden_visuals: Array[Dictionary] = []
 var _hidden_hud: Array[Dictionary] = []
+var reduced_motion := false
 
 func _init() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -41,6 +42,7 @@ func begin(player: Node3D, hud_parent: Control) -> bool:
 	_prior_active = bool(player.get("active"))
 	_end_transform = gameplay_camera.global_transform
 	_end_fov = gameplay_camera.fov
+	reduced_motion = reduced_motion or preload("res://scripts/menu_settings.gd").prefers_reduced_motion()
 	_player.set("active", false)
 	_hidden_visuals.clear()
 	var body := player.get("visual") as Node3D
@@ -59,6 +61,7 @@ func begin(player: Node3D, hud_parent: Control) -> bool:
 	_camera.global_position = ENTRY_POSITION
 	_camera.look_at(Vector3(-1.5, 1.20, .4), Vector3.UP)
 	_start_transform = _camera.global_transform
+	if reduced_motion: _start_transform = _end_transform
 	_camera.fov = 62.0
 	_camera.make_current()
 	_build_overlay(hud_parent)
@@ -127,10 +130,10 @@ func _build_overlay(parent: Control) -> void:
 func _pose(elapsed: float) -> void:
 	if not _running or not is_instance_valid(_camera): return
 	var blend := smoothstep(0.0, DURATION, elapsed)
-	var sway := sin(elapsed * 1.35) * .012 * (1.0 - blend)
+	var sway := 0.0 if reduced_motion else sin(elapsed * 1.35) * .012 * (1.0 - blend)
 	_camera.global_transform = _start_transform.interpolate_with(_end_transform, blend)
-	_camera.global_position += Vector3(sway, sin(elapsed * .9) * .006 * (1.0 - blend), 0)
-	_camera.fov = lerpf(62.0, _end_fov, blend)
+	if not reduced_motion: _camera.global_position += Vector3(sway, sin(elapsed * .9) * .006 * (1.0 - blend), 0)
+	_camera.fov = _end_fov if reduced_motion else lerpf(62.0, _end_fov, blend)
 	_fade.color.a = 1.0 - smoothstep(0.0, .8, elapsed)
 	var index := 0 if elapsed < 2.1 else (1 if elapsed < 4.8 else 2)
 	_caption.text = CAPTIONS[index]

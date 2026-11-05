@@ -11,6 +11,7 @@ var paths: Array = []
 var mini_spiders: Array = []
 var output_path := "D:/GameProjects/BlackwebHouseRebuild-20261103/Evidence/tutorial-route-performance.json"
 var validation := false
+var with_armor := false
 var concurrent_game_pid := 0
 var source_commit := "not supplied; see runtime file hashes"
 var measuring := false
@@ -28,6 +29,7 @@ func _run() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--output="): output_path = arg.trim_prefix("--output=")
 		if arg == "--validate-route": validation = true
+		if arg == "--with-armor": with_armor = true
 		if arg.begins_with("--concurrent-game-pid="): concurrent_game_pid = int(arg.trim_prefix("--concurrent-game-pid="))
 		if arg.begins_with("--source-commit="): source_commit = arg.trim_prefix("--source-commit=")
 	if not output_path.replace("\\", "/").begins_with("D:/GameProjects/BlackwebHouseRebuild-20261103/Evidence/"):
@@ -45,12 +47,22 @@ func _run() -> void:
 		return
 	game._resume()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if with_armor:
+		for item in game.player.ARMOR_PIECES:
+			game.player.add_item(item)
+			for cell in range(game.player.inventory.slots.size()):
+				if game.player.inventory.item_at(cell) == item:
+					game.player.equip_armor(cell)
+					break
 	mini_spiders = get_nodes_in_group("mini_spider")
 	for door_name in ["NorthEntryDoor", "RearNorthDoor", "SouthEntryDoor", "RearSouthDoor"]:
 		var door := game.get_node_or_null(door_name)
 		if door == null:
 			report.failures.append("Missing interior door " + door_name)
 		elif not door.opened:
+			# Narrative gating is covered by tutorial_journey_tests. This workload
+			# opens doors before timing to measure the full physical house route.
+			door.locked = false
 			door.toggle()
 	for index in 60: await physics_frame
 	_build_graph()
@@ -99,7 +111,7 @@ func _run() -> void:
 		var pack_index := OS.get_cmdline_args().find("--main-pack")
 		package_sha256 = FileAccess.get_sha256(OS.get_cmdline_args()[pack_index + 1])
 	var source_hashes: Dictionary = {}
-	for source_file in ["main.gd", "player.gd", "tutorial_house.gd", "mini_spider.gd", "spider.gd", "house_dressing.gd", "environment_surfaces.gd", "modeled_silk.gd", "house_batching.gd", "locomotion_pose.gd", "props.gd", "supply_models.gd", "storage.gd"]:
+	for source_file in ["main.gd", "player.gd", "tutorial_house.gd", "mini_spider.gd", "spider.gd", "house_dressing.gd", "environment_surfaces.gd", "modeled_silk.gd", "house_batching.gd", "locomotion_pose.gd", "props.gd", "supply_models.gd", "storage.gd", "horror_menu.gd", "menu_settings.gd", "item_preview.gd", "armor_visuals.gd", "progression.gd"]:
 		if FileAccess.file_exists("res://scripts/" + source_file): source_hashes[source_file] = FileAccess.get_sha256("res://scripts/" + source_file)
 	report.metadata = {
 		"utc": Time.get_datetime_string_from_system(true), "process_id": OS.get_process_id(),
@@ -115,6 +127,7 @@ func _run() -> void:
 		"base_source_commit": source_commit, "runtime_script_sha256": source_hashes,
 		"concurrent_game_pid": concurrent_game_pid, "other_processes_left_untouched_by_harness": true,
 		"health_budget_at_setup": 1000, "health_at_sample_start": game.player.health, "battery_at_sample_start": game.player.battery_charge,
+		"armor_loadout": game.player.get_armor_state(), "graphics_preset": game.menu.settings.active_graphics_preset(),
 		"valid_grid_cells": cells.size(), "precomputed_segments": paths.size(),
 		"sampling": "Monotonic process_frame intervals; includes automation and sample-collection CPU overhead. Physics monitor is a cached one-second maximum, not an individual physics tick; draw values are supplemental monitors, not isolated GPU timers. No timed screenshots, logging, file I/O, graph/path construction, teleports, healing, or performance configuration changes.",
 		"workload": "Four interior doors opened in setup; real encounter activated; 1000 HP prevents checkpoint reload; original 22-point starter battery, normal collision/AI/damage/animations; controller walk, room camera pans and knife actions.",

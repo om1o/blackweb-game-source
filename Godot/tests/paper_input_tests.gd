@@ -75,7 +75,7 @@ func _run() -> void:
 	player.active = true
 	note = EvidenceScript.new()
 	note.name = "PhysicalPaper"
-	note.title = "Mica's input test note"
+	note.title = "Mica's hidden note"
 	note.record_text = "The vault code is 0417. This physical note opens on a left click."
 	note.progression = progression
 	note.position = Vector3(0, 0.96, -1.3)
@@ -100,6 +100,7 @@ func _run() -> void:
 	_check(opened == 1 and overlay.visible and overlay.mode == "paper", "Parsed captured left click opens the real readable overlay once")
 	_check(paused and not player.active and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "Reading pauses the world and releases the mouse")
 	_check(_contains_text(overlay, note.record_text), "Readable overlay contains the note's actual text")
+	_check(overlay._paper_image.texture != null and overlay._paper_image.texture == EvidenceScript.document_texture(note.title) and overlay._paper_viewport.visible, "Physical paper click opens its actual generated document image")
 	_check(player._action_kind == &"" and player.item_count(&"candy_bar") == candy_before and is_equal_approx(player.health, 55.0), "Paper click does not begin eating, consume candy, or heal")
 	await _click_left()
 	_check(opened == 1 and player._action_kind == &"" and player.item_count(&"candy_bar") == candy_before, "A click inside the paused readable cannot reach item use")

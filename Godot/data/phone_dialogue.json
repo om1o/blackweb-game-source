@@ -9,61 +9,61 @@
     "Luke: Mica? ... Mica!"
   ],
   "durations": [
-    2.141,
-    2.827,
-    1.741,
+    2.04,
+    2.615,
+    1.68875,
     1.2,
-    1.861
+    1.793625
   ],
   "warning": {
-    "path": "res://assets/generated/mica_phone_warning_neural_v1.wav",
-    "bytes": 322076,
-    "sha256": "b689f6fc848ea36ccd6001a8fa48881ee4b93adcfcd5193c6c8ca5d069a2eaf1",
-    "duration_seconds": 6.709,
-    "peak": 0.7070000171661377,
-    "peak_dbfs": -3.0116115131664314,
-    "rms": 0.11406254153580224,
-    "rms_dbfs": -18.85713911430684,
-    "dc": -0.0005703081217759074,
+    "path": "res://assets/generated/mica_phone_warning_neural_v2.wav",
+    "bytes": 304544,
+    "sha256": "9953c788f7cfa9d05d130bb265711b2f5e5c552c3114ad7abcae2fe579616f83",
+    "duration_seconds": 6.34375,
+    "peak": 0.70697021484375,
+    "peak_dbfs": -3.0119776590405034,
+    "rms": 0.09037044172204713,
+    "rms_dbfs": -20.87947189848765,
+    "dc": -0.0002846381026144294,
     "clipped_samples": 0,
     "start_seconds": 0
   },
   "reply": {
-    "path": "res://assets/generated/luke_mica_reply_neural_v1.wav",
-    "bytes": 70148,
-    "sha256": "af79115c9c2fdb3b9b17221ea2d1565a40e493fe20be5265bbbd782a50da2b0b",
-    "duration_seconds": 1.4605,
-    "peak": 0.7070000171661377,
-    "peak_dbfs": -3.0116115131664314,
-    "rms": 0.1042706364589312,
-    "rms_dbfs": -19.63675951110216,
-    "dc": 0.0006824422866337305,
+    "path": "res://assets/generated/luke_mica_reply_neural_v2.wav",
+    "bytes": 66938,
+    "sha256": "f4aeb37be2a26a219076ce02c633975d7c5da3affff8f64d1062d58820023658",
+    "duration_seconds": 1.393625,
+    "peak": 0.70697021484375,
+    "peak_dbfs": -3.0119776590405034,
+    "rms": 0.08506370841622976,
+    "rms_dbfs": -21.405113756305838,
+    "dc": 0.00025597648541909586,
     "clipped_samples": 0,
-    "start_seconds": 7.909
+    "start_seconds": 7.54375
   },
   "web_reaction": {
-    "path": "res://assets/generated/luke_web_reveal_neural_v3.wav",
-    "bytes": 136486,
-    "sha256": "a5e71c3e3aca75361289d4cc7f6b396bdba08e29d1ba38aef455f88cdb8842ac",
-    "duration_seconds": 2.8425416666666665,
-    "peak": 0.7070000171661377,
-    "peak_dbfs": -3.0116115131664314,
-    "rms": 0.10673169034664001,
-    "rms_dbfs": -19.434132248951247,
-    "dc": 0.0006107723905561567,
+    "path": "res://assets/generated/luke_web_reveal_neural_v4.wav",
+    "bytes": 133630,
+    "sha256": "e252dcf52b02ea1c7de68fe8a3acc0f6af8408fb1ecd1e62cba4fd91aecdb99a",
+    "duration_seconds": 2.7830416666666666,
+    "peak": 0.70697021484375,
+    "peak_dbfs": -3.0119776590405034,
+    "rms": 0.0814818321589416,
+    "rms_dbfs": -21.778784284754988,
+    "dc": 0.000230575327820187,
     "clipped_samples": 0,
     "subtitle": "Luke: Mica... these webs were not here yesterday."
   },
   "voice_test": {
-    "path": "res://assets/generated/luke_voice_check_neural_v1.wav",
-    "bytes": 130512,
-    "sha256": "cfe3f797660bd4ad5f69abf034994e5dc44364216e8b98b6e4a333f889fce708",
-    "duration_seconds": 2.7180833333333334,
-    "peak": 0.7070000171661377,
-    "peak_dbfs": -3.0116115131664314,
-    "rms": 0.1194268383812575,
-    "rms_dbfs": -18.457961294768545,
-    "dc": 0.00041661664553216887,
+    "path": "res://assets/generated/luke_voice_check_neural_v2.wav",
+    "bytes": 128056,
+    "sha256": "306536a005391b605780e9f2163e5a67ba3e6eb3e4e37fe155a10afa7dc20c3d",
+    "duration_seconds": 2.666916666666667,
+    "peak": 0.70697021484375,
+    "peak_dbfs": -3.0119776590405034,
+    "rms": 0.10071196938340067,
+    "rms_dbfs": -19.938378229791343,
+    "dc": 0.00011485024429472433,
     "clipped_samples": 0,
     "subtitle": "Can you hear me? This is the voice check."
   },
@@ -71,102 +71,55 @@
     {
       "id": "home",
       "speaker": "Mica",
-      "text": "Luke? It's Mica. You're home.",
       "voice": "af_heart",
-      "speed": 0.96,
-      "duration_seconds": 1.8403333333333334,
-      "peak": 0.7070000171661377,
-      "peak_dbfs": -3.0116115131664314,
-      "rms": 0.12853736265612578,
-      "rms_dbfs": -17.819412304731753,
-      "dc": -0.0008723651886484819,
+      "speed": 0.98,
+      "duration_seconds": 2.04,
+      "peak": 0.5127390623092651,
+      "peak_dbfs": -5.802071903614962,
+      "rms": 0.10025933288676486,
+      "rms_dbfs": -19.977503789105363,
+      "dc": -0.0003237172688753712,
       "clipped_samples": 0,
       "start_seconds": 0,
-      "subtitle_seconds": 2.141
+      "subtitle_seconds": 2.04
     },
     {
       "id": "vault_keys",
       "speaker": "Mica",
-      "text": "Listen carefully. The keys are for the vault.",
       "voice": "af_heart",
-      "speed": 0.96,
-      "duration_seconds": 2.5260833333333332,
-      "peak": 0.7070000171661377,
-      "peak_dbfs": -3.0116115131664314,
-      "rms": 0.11788146054808851,
-      "rms_dbfs": -18.57108983783929,
-      "dc": -0.0005383890203990456,
+      "speed": 0.98,
+      "duration_seconds": 2.615,
+      "peak": 0.6040095090866089,
+      "peak_dbfs": -4.3791244821689475,
+      "rms": 0.0859309321384782,
+      "rms_dbfs": -21.317009543179488,
+      "dc": -0.00023243316291382955,
       "clipped_samples": 0,
-      "start_seconds": 2.141,
-      "subtitle_seconds": 2.827
+      "start_seconds": 2.04,
+      "subtitle_seconds": 2.615
     },
     {
       "id": "plant_hint",
       "speaker": "Mica",
-      "text": "I left the code by the plant—",
       "voice": "af_heart",
-      "speed": 0.96,
-      "duration_seconds": 1.620375,
+      "speed": 0.98,
+      "duration_seconds": 1.56875,
       "peak": 0.7070000171661377,
       "peak_dbfs": -3.0116115131664314,
-      "rms": 0.1159254891862876,
-      "rms_dbfs": -18.71642125555589,
-      "dc": -0.0005311973732317139,
+      "rms": 0.087443291402435,
+      "rms_dbfs": -21.165470074457883,
+      "dc": -0.00034258700221465364,
       "clipped_samples": 0,
-      "start_seconds": 4.968,
-      "subtitle_seconds": 1.741
-    },
-    {
-      "id": "reply",
-      "speaker": "Luke",
-      "text": "Mica? ... Mica!",
-      "voice": "am_michael",
-      "speed": 0.92,
-      "duration_seconds": 1.4605,
-      "peak": 0.7070000171661377,
-      "peak_dbfs": -3.0116115131664314,
-      "rms": 0.1042706364589312,
-      "rms_dbfs": -19.63675951110216,
-      "dc": 0.0006824422866337305,
-      "clipped_samples": 0,
-      "start_seconds": 7.909,
-      "subtitle_seconds": 1.861
-    },
-    {
-      "id": "web_reaction",
-      "speaker": "Luke",
-      "text": "Mica... these webs were not here yesterday.",
-      "voice": "am_michael",
-      "speed": 0.92,
-      "duration_seconds": 2.8425416666666665,
-      "peak": 0.7070000171661377,
-      "peak_dbfs": -3.0116115131664314,
-      "rms": 0.10673169034664001,
-      "rms_dbfs": -19.434132248951247,
-      "dc": 0.0006107723905561567,
-      "clipped_samples": 0
-    },
-    {
-      "id": "voice_check",
-      "speaker": "Luke",
-      "text": "Can you hear me? This is the voice check.",
-      "voice": "am_michael",
-      "speed": 0.92,
-      "duration_seconds": 2.7180833333333334,
-      "peak": 0.7070000171661377,
-      "peak_dbfs": -3.0116115131664314,
-      "rms": 0.1194268383812575,
-      "rms_dbfs": -18.457961294768545,
-      "dc": 0.00041661664553216887,
-      "clipped_samples": 0
+      "start_seconds": 4.655,
+      "subtitle_seconds": 1.68875
     }
   ],
-  "policy": "The call cuts after plant. The paper by the plant reveals the vault code; no code appears in speech or phone subtitles.",
+  "policy": "The call cuts after the complete word plant. The paper beside the plant outside the vault reveals the code; no code is spoken. Mica remains one continuous waveform; measured quiet intervals only change subtitles. Luke reply and web reaction are separate complete utterances.",
   "provenance": {
     "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
     "model_source": "https://huggingface.co/hexgrad/Kokoro-82M",
     "runtime": "kokoro-js 1.2.1",
-    "dtype": "q8",
+    "dtype": "fp32",
     "voices": [
       "af_heart",
       "am_michael"
@@ -174,6 +127,383 @@
     "local_inference": true,
     "voice_cloning": false,
     "format": "24 kHz mono PCM16",
-    "performance": "Stock synthetic voice, not a human actor performance"
+    "performance": "Fresh full-context stock synthetic takes, not a human actor performance; no listening-quality claim",
+    "source_takes": [
+      {
+        "id": "mica",
+        "voice": "af_heart",
+        "speed": 0.98,
+        "text": "Luke? It's Mica. You're home. Listen carefully. The keys are for the vault. I left the code by the plant—",
+        "source": {
+          "path": "res://assets/generated/voice_sources/mica_full_context_dry_v2.wav",
+          "bytes": 298784,
+          "sha256": "293594b1faa316fcff9057a7971b7c577df4e11324364119bd8993c71fa66999",
+          "duration_seconds": 6.22375,
+          "peak": 0.59356689453125,
+          "peak_dbfs": -4.530606585959828,
+          "rms": 0.07694563580460569,
+          "rms_dbfs": -22.276320148157968,
+          "dc": -0.00042620207671700307,
+          "clipped_samples": 0
+        },
+        "asr": {
+          "text": " Luke, it's Micah, your home. Listen carefully. The keys are for the vault. I left the code by the plant.",
+          "chunks": [
+            {
+              "text": " Luke,",
+              "timestamp": [
+                0,
+                0.5
+              ]
+            },
+            {
+              "text": " it's",
+              "timestamp": [
+                0.68,
+                0.8
+              ]
+            },
+            {
+              "text": " Micah,",
+              "timestamp": [
+                0.8,
+                1.28
+              ]
+            },
+            {
+              "text": " your",
+              "timestamp": [
+                1.32,
+                1.54
+              ]
+            },
+            {
+              "text": " home.",
+              "timestamp": [
+                1.54,
+                2
+              ]
+            },
+            {
+              "text": " Listen",
+              "timestamp": [
+                2.42,
+                2.42
+              ]
+            },
+            {
+              "text": " carefully.",
+              "timestamp": [
+                2.42,
+                2.84
+              ]
+            },
+            {
+              "text": " The",
+              "timestamp": [
+                3.48,
+                3.6
+              ]
+            },
+            {
+              "text": " keys",
+              "timestamp": [
+                3.6,
+                3.84
+              ]
+            },
+            {
+              "text": " are",
+              "timestamp": [
+                3.84,
+                4.04
+              ]
+            },
+            {
+              "text": " for",
+              "timestamp": [
+                4.04,
+                4.14
+              ]
+            },
+            {
+              "text": " the",
+              "timestamp": [
+                4.14,
+                4.32
+              ]
+            },
+            {
+              "text": " vault.",
+              "timestamp": [
+                4.32,
+                4.6
+              ]
+            },
+            {
+              "text": " I",
+              "timestamp": [
+                4.72,
+                4.94
+              ]
+            },
+            {
+              "text": " left",
+              "timestamp": [
+                4.94,
+                5.12
+              ]
+            },
+            {
+              "text": " the",
+              "timestamp": [
+                5.12,
+                5.32
+              ]
+            },
+            {
+              "text": " code",
+              "timestamp": [
+                5.32,
+                5.48
+              ]
+            },
+            {
+              "text": " by",
+              "timestamp": [
+                5.48,
+                5.68
+              ]
+            },
+            {
+              "text": " the",
+              "timestamp": [
+                5.68,
+                5.86
+              ]
+            },
+            {
+              "text": " plant.",
+              "timestamp": [
+                5.86,
+                6.22
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "luke_reply",
+        "voice": "am_michael",
+        "speed": 0.96,
+        "text": "Mica? ... Mica!",
+        "source": {
+          "path": "res://assets/generated/voice_sources/luke_reply_full_context_dry_v2.wav",
+          "bytes": 66938,
+          "sha256": "5242e53309ebc44d22080ca6fafd6565076d979835f37d37d11f2f0f18172a35",
+          "duration_seconds": 1.393625,
+          "peak": 0.71282958984375,
+          "peak_dbfs": -2.940285617158247,
+          "rms": 0.07286464583461649,
+          "rms_dbfs": -22.749662833714723,
+          "dc": -0.00020038297822394386,
+          "clipped_samples": 0
+        },
+        "asr": {
+          "text": " Micah's Micah.",
+          "chunks": [
+            {
+              "text": " Micah's",
+              "timestamp": [
+                0,
+                0.82
+              ]
+            },
+            {
+              "text": " Micah.",
+              "timestamp": [
+                0.82,
+                1.56
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "luke_web",
+        "voice": "am_michael",
+        "speed": 0.96,
+        "text": "Mica... these webs were not here yesterday.",
+        "source": {
+          "path": "res://assets/generated/voice_sources/luke_web_full_context_dry_v2.wav",
+          "bytes": 133630,
+          "sha256": "0ab3f49033becff9eded6ac933a2fdb85c19e0812d96d412d23fe9dfbc303817",
+          "duration_seconds": 2.7830416666666666,
+          "peak": 0.752899169921875,
+          "peak_dbfs": -2.465263633453092,
+          "rms": 0.07254524640444843,
+          "rms_dbfs": -22.787820796972493,
+          "dc": -0.00020038854373891164,
+          "clipped_samples": 0
+        },
+        "asr": {
+          "text": " Micah, these webs were not here yesterday.",
+          "chunks": [
+            {
+              "text": " Micah,",
+              "timestamp": [
+                0,
+                0.86
+              ]
+            },
+            {
+              "text": " these",
+              "timestamp": [
+                0.86,
+                1.12
+              ]
+            },
+            {
+              "text": " webs",
+              "timestamp": [
+                1.12,
+                1.42
+              ]
+            },
+            {
+              "text": " were",
+              "timestamp": [
+                1.42,
+                1.64
+              ]
+            },
+            {
+              "text": " not",
+              "timestamp": [
+                1.64,
+                1.9
+              ]
+            },
+            {
+              "text": " here",
+              "timestamp": [
+                1.9,
+                2.1
+              ]
+            },
+            {
+              "text": " yesterday.",
+              "timestamp": [
+                2.1,
+                2.64
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "voice_check",
+        "voice": "am_michael",
+        "speed": 0.96,
+        "text": "Can you hear me? This is the voice check.",
+        "source": {
+          "path": "res://assets/generated/voice_sources/voice_check_full_context_dry_v2.wav",
+          "bytes": 128056,
+          "sha256": "941e7269b815c3e12785df9de819beceb16d2404c0244bfd5476759bc3b38ba7",
+          "duration_seconds": 2.666916666666667,
+          "peak": 0.5401611328125,
+          "peak_dbfs": -5.349533371958226,
+          "rms": 0.07201556230312078,
+          "rms_dbfs": -22.851472879135322,
+          "dc": -0.0002152279302916914,
+          "clipped_samples": 0
+        },
+        "asr": {
+          "text": " Can you hear me? This is the Voice Check.",
+          "chunks": [
+            {
+              "text": " Can",
+              "timestamp": [
+                0,
+                0.28
+              ]
+            },
+            {
+              "text": " you",
+              "timestamp": [
+                0.28,
+                0.46
+              ]
+            },
+            {
+              "text": " hear",
+              "timestamp": [
+                0.46,
+                0.68
+              ]
+            },
+            {
+              "text": " me?",
+              "timestamp": [
+                0.68,
+                1.2
+              ]
+            },
+            {
+              "text": " This",
+              "timestamp": [
+                1.24,
+                1.46
+              ]
+            },
+            {
+              "text": " is",
+              "timestamp": [
+                1.46,
+                1.66
+              ]
+            },
+            {
+              "text": " the",
+              "timestamp": [
+                1.66,
+                1.86
+              ]
+            },
+            {
+              "text": " Voice",
+              "timestamp": [
+                1.86,
+                2.2
+              ]
+            },
+            {
+              "text": " Check.",
+              "timestamp": [
+                2.2,
+                2.68
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "measured_boundaries": {
+      "mica_subtitles": [
+        {
+          "at": 2.04,
+          "quiet_seconds": 0.08,
+          "word": " Listen",
+          "asr_word_start": 2.42
+        },
+        {
+          "at": 4.655,
+          "quiet_seconds": 0.11,
+          "word": " I",
+          "asr_word_start": 4.72
+        }
+      ]
+    },
+    "processing": "Mica: 230Hz high-pass and two-pole 3.9kHz low-pass, restrained soft compression and signal disconnect after plant. Luke: low-rumble removal, full-band 10kHz finish. No inserted fake breaths, arbitrary phoneme cuts or pitch shifting."
   }
 }

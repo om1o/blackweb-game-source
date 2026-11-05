@@ -4,11 +4,21 @@ extends BlackwebInteraction
 signal discovered(text: String, title: String)
 
 const PAPER_TEXTURE := "res://assets/recovered/Arachnophobia/Content/Megascans/Decals/Parchment_Paper_vimfffnh/T_Parchment_Paper_vimfffnh_1K_D.png"
+const DOCUMENT_TEXTURES := {
+	"transfer log": "res://assets/generated/papers/transfer_log.png",
+	"Project 08 record": "res://assets/generated/papers/project_08_record.png",
+	"Mica's hidden note": "res://assets/generated/papers/mica_hidden_note.png",
+}
 
 var evidence_type := "paper"
 var title := "Field paper"
 var record_text := ""
 var taken := false
+
+static func document_texture(document_title: String) -> Texture2D:
+	var path: String = DOCUMENT_TEXTURES.get(document_title, "")
+	if not path.is_empty() and ResourceLoader.exists(path): return load(path) as Texture2D
+	return null
 
 func _ready() -> void:
 	kind = &"tutorial_evidence"
@@ -34,8 +44,11 @@ func set_taken(value: bool) -> void:
 	collision_layer = 0 if taken else 8
 
 func _make_paper() -> void:
+	var document := document_texture(title)
 	var paper := BoxMesh.new()
-	paper.size = Vector3(0.32, 0.004, 0.23)
+	var page_size := Vector2(0.32, 0.23)
+	if document != null: page_size = Vector2(0.32 * document.get_width() / float(document.get_height()), 0.32)
+	paper.size = Vector3(page_size.x, 0.004, page_size.y)
 	var material := StandardMaterial3D.new()
 	material.albedo_color = Color(0.80, 0.74, 0.59)
 	material.roughness = 0.96
@@ -46,6 +59,21 @@ func _make_paper() -> void:
 	page.material_override = material
 	page.rotation.y = 0.17
 	add_child(page)
+	if document != null:
+		# The world sheet and the inspection reader use the same image, not dummy ink.
+		var face := MeshInstance3D.new()
+		face.name = "GeneratedDocumentFace"
+		var surface := PlaneMesh.new()
+		surface.size = page_size
+		face.mesh = surface
+		var image_material := StandardMaterial3D.new()
+		image_material.albedo_texture = document
+		image_material.roughness = 0.96
+		face.material_override = image_material
+		face.position.y = 0.0025
+		face.rotation.y = page.rotation.y
+		add_child(face)
+		return
 	var ink := StandardMaterial3D.new()
 	ink.albedo_color = Color(0.08, 0.09, 0.09)
 	ink.roughness = 1.0

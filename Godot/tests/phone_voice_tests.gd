@@ -46,6 +46,10 @@ func _drain_signal() -> void:
 		signal_samples += 2
 
 func _run() -> void:
+	# This isolated fixture bypasses main._install_input(), but its real player
+	# still receives native window events while audio is under observation.
+	for action in ["interact", "flashlight", "hotbar_1", "hotbar_2", "hotbar_3"]:
+		if not InputMap.has_action(action): InputMap.add_action(action)
 	timeline = JSON.parse_string(FileAccess.get_file_as_string(SoundScript.PHONE_DIALOGUE_PATH))
 	var second: float = timeline.durations[0]
 	var third: float = second + timeline.durations[1]
@@ -122,7 +126,7 @@ func _run() -> void:
 	OS.delay_msec(400)
 	await process_frame
 	await process_frame
-	_check(progression._elapsed >= before_stall + 0.32 and progression.stage == progression.Stage.MESSAGE, "A blocked render frame catches the message clock up without replaying or changing stage")
+	_check(progression._elapsed >= before_stall - .02 and absf(sounds._mara_warning.get_playback_position() - progression._elapsed) < .25 and progression.stage == progression.Stage.MESSAGE, "A blocked render frame follows the real mixer without skipping unfinished speech")
 	await _until(gap_start + .18)
 	_record_timing("signal_lost")
 	_check(progression.subtitle == "[Connection lost]" and not sounds._mara_warning.playing and not sounds._phone_reply.playing, "Connection-loss beat has no overlapping spoken line")
@@ -136,7 +140,9 @@ func _run() -> void:
 	_check(absf(sounds._phone_reply.get_playback_position() - (progression._elapsed - reply_start)) < 0.25 and not sounds.play_phone_reply(), "Luke's reply uses the shared seek offset and cannot duplicate")
 	await _until(message_end + .1)
 	for frame in range(3): await process_frame
-	_check(progression.stage == progression.Stage.PREPARATION and sounds._web_voice_played and not sounds._phone_reply.playing and not sounds._mara_warning.playing, "The existing web reaction waits until the phone sequence has finished")
+	_check(progression.stage == progression.Stage.PREPARATION and not sounds._web_voice_played and not sounds._phone_reply.playing and not sounds._mara_warning.playing, "The call ends in a quiet exploration beat before Luke's web reaction")
+	await create_timer(4.1).timeout
+	_check(progression.stage == progression.Stage.PREPARATION and sounds._web_voice_played, "The web reaction follows the four-second post-call breathing room")
 	_check("Mica" in progression.notice and not "Mara" in progression.notice, "Web reaction also uses Mica in its subtitle")
 	progression.set_process(false)
 	var message_save := {"version": 1, "stage": progression.Stage.MESSAGE, "warning_heard": false, "has_flashlight": false, "has_keys": false, "encounter_survived": false, "departed": false}
@@ -157,6 +163,16 @@ func _run() -> void:
 	progression.restore_snapshot(message_save)
 	sounds._process(0.0)
 	_check(sounds._mara_warning.playing and progression._elapsed == 0.0 and not sounds.play_mara_warning(), "Restoring a message checkpoint permits one synchronized fresh attempt")
+	progression._elapsed = message_end + 2.0
+	progression._update_message()
+	_check(progression.stage == progression.Stage.MESSAGE and progression.mara_lines.slice(0, 3).has(progression.subtitle) and sounds._mara_warning.playing and not sounds._phone_reply.playing, "A clock leap cannot cut Mica's recording or overlap Luke's reply")
+	_check(progression._elapsed < gap_start and sounds._phone_clock_elapsed < gap_start, "Mixer delay is discarded before starting the full disconnect beat")
+	# Simulate a backend that accepts playback but stops advancing. This is a
+	# bounded failure fallback, distinct from a muted stream that still advances.
+	sounds._mara_warning.stream_paused = true
+	await create_timer(3.3).timeout
+	_check(not sounds._mara_warning.playing and sounds.get_audio_status().missing.has("Phone playback stopped advancing; continuing the readable subtitle timeline"), "An audio backend stalled for three seconds cannot trap story progression")
+	sounds._mara_warning.stream_paused = false
 	progression._set_stage(progression.Stage.COMPLETE)
 	_check(not sounds._mara_warning.playing and not sounds._phone_reply.playing and not sounds._web_voice.playing, "Departure stops all dialogue")
 	_drain_signal()

@@ -16,8 +16,9 @@ const SAVE_VERSION := 1
 @export var auto_save := true
 @export var auto_advance_atmosphere := true
 @export var use_timed_encounter_resolution := false
-@export_range(1.0, 60.0) var presence_seconds := 8.0
-@export_range(1.0, 60.0) var power_loss_seconds := 6.0
+@export_range(0.0, 120.0) var exploration_seconds := 18.0
+@export_range(1.0, 60.0) var presence_seconds := 14.0
+@export_range(1.0, 60.0) var power_loss_seconds := 8.0
 @export_range(3.0, 120.0) var encounter_seconds := 20.0
 @export var save_path := "user://blackweb_house_v1.json"
 @export var player: Node
@@ -43,12 +44,15 @@ var subtitle := ""
 var notice := ""
 var save_writes_blocked := false
 var last_save_succeeded := true
+## Optional live-audio boundary gate; asset-independent stepping has no gate.
+var message_boundary_guard: Callable
 var _elapsed := 0.0
 var _notice_remaining := 0.0
 var _checkpoint: Dictionary = {}
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_to_group("progression")
 	_load_phone_dialogue()
 	_checkpoint = snapshot()
@@ -62,7 +66,7 @@ func _process(delta: float) -> void:
 
 ## Kept deterministic so logic can be exercised without graphics or scene assets.
 func step(delta: float) -> void:
-	if not is_finite(delta) or delta <= 0.0 or _player_recovering():
+	if not is_finite(delta) or delta <= 0.0 or _player_recovering() or (is_inside_tree() and get_tree().paused):
 		return
 	_elapsed += delta
 	if _notice_remaining > 0.0:
@@ -72,6 +76,8 @@ func step(delta: float) -> void:
 	match stage:
 		Stage.MESSAGE:
 			_update_message()
+		Stage.PREPARATION:
+			_try_finish_preparation()
 		Stage.PRESENCE:
 			if auto_advance_atmosphere and _elapsed >= presence_seconds:
 				_set_stage(Stage.POWER_LOSS)
@@ -90,11 +96,21 @@ func _player_recovering() -> bool:
 func prepared() -> bool:
 	return warning_heard and has_flashlight and has_keys and (vault_unlocked or not requires_vault)
 
+func flashlight_flicker_allowed() -> bool:
+	# The worn starter still drains normally. Teach its controls first;
+	# subsequent interruptions remain tied to genuinely low charge in player.gd.
+	return stage >= Stage.PRESENCE and stage < Stage.COMPLETE
+
+func _try_finish_preparation() -> bool:
+	if stage != Stage.PREPARATION or not prepared() or _elapsed < exploration_seconds:
+		return false
+	_set_stage(Stage.PRESENCE)
+	return true
+
 func unlock_vault() -> void:
 	vault_unlocked = true
 	inventory_changed.emit()
-	if stage == Stage.PREPARATION and prepared(): _set_stage(Stage.PRESENCE)
-	else: _record_checkpoint()
+	if not _try_finish_preparation(): _record_checkpoint()
 
 func _load_phone_dialogue() -> void:
 	var path := "res://data/phone_dialogue.json"
@@ -137,9 +153,7 @@ func interact(kind: StringName) -> bool:
 				has_keys = true
 				show_notice("Vault key. Find Mica's code beside the plant.", 5.0)
 			inventory_changed.emit()
-			if prepared():
-				_set_stage(Stage.PRESENCE)
-			else:
+			if not _try_finish_preparation():
 				_record_checkpoint()
 		&"exit", &"exit_door":
 			departed = true
@@ -156,6 +170,8 @@ func resolve_encounter() -> bool:
 
 
 func _update_message() -> void:
+	if message_boundary_guard.is_valid():
+		_elapsed = float(message_boundary_guard.call(_elapsed))
 	var end := 0.0
 	for index in mara_lines.size():
 		end += maxf(0.5, mara_durations[index] if index < mara_durations.size() else 3.5)
@@ -203,9 +219,9 @@ func objective() -> String:
 			if not has_keys: return "Find the vault key"
 			if not has_flashlight: return "Collect the spare flashlight battery"
 			if requires_vault and not vault_unlocked: return "Find the paper beside the plant. Open the vault."
-			return "Prepare to leave"
-		Stage.PRESENCE: return "Get ready to leave"
-		Stage.POWER_LOSS: return "Keep your light close"
+			return "Look around before leaving"
+		Stage.PRESENCE: return "Listen. Something moved in the supply room."
+		Stage.POWER_LOSS: return "The power is out. Keep your flashlight ready."
 		Stage.ENCOUNTER: return "Keep your distance. Find room to move."
 		Stage.READY_TO_LEAVE: return "Leave the house. Find Mica."
 		Stage.COMPLETE: return "GREYHAVEN\nEnd of the house opening"
@@ -261,7 +277,9 @@ func _normalized(data: Dictionary) -> Dictionary:
 		current = Stage.COMPLETE if bool(state.departed) else Stage.READY_TO_LEAVE
 	else:
 		state.departed = false
-		if current not in [Stage.PRESENCE, Stage.POWER_LOSS, Stage.ENCOUNTER]:
+		# Completing the key/cell/vault does not skip a saved exploration beat.
+		# Like the later warning beats, it restarts its full duration on retry.
+		if current not in [Stage.PREPARATION, Stage.PRESENCE, Stage.POWER_LOSS, Stage.ENCOUNTER]:
 			current = Stage.PRESENCE
 	state.stage = current
 	return state

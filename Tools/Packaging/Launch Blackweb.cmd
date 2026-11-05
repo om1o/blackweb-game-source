@@ -20,11 +20,22 @@ if not exist "%~dp0Godot_v4.7.2-stable_win64.exe" (
 )
 set "BLACKWEB_RENDER_ARGS="
 set "BLACKWEB_DISPLAY_ARGS="
+set "BLACKWEB_GRAPHICS_ARGS="
 :parse_args
 if "%~1"=="" goto launch
+if /I "%~1"=="--graphics" goto graphics_arg
 if /I "%~1"=="--room-shadows" set "BLACKWEB_RENDER_ARGS=--room-shadows"
 if /I "%~1"=="--fast" set "BLACKWEB_DISPLAY_ARGS=--resolution 960x540"
+if /I "%~1"=="--graphics=quality" set "BLACKWEB_GRAPHICS_ARGS=--graphics=quality"
+if /I "%~1"=="--graphics=performance" set "BLACKWEB_GRAPHICS_ARGS=--graphics=performance"
+shift
+goto parse_args
+:graphics_arg
+rem cmd.exe splits an unquoted --graphics=value at the equals sign.
+shift
+if /I "%~1"=="quality" set "BLACKWEB_GRAPHICS_ARGS=--graphics=quality"
+if /I "%~1"=="performance" set "BLACKWEB_GRAPHICS_ARGS=--graphics=performance"
 shift
 goto parse_args
 :launch
-start "Blackweb" "%~dp0Godot_v4.7.2-stable_win64.exe" --main-pack "%~dp0Blackweb.pck" %BLACKWEB_DISPLAY_ARGS% --log-file "%~dp0UserData\blackweb.log" -- %BLACKWEB_RENDER_ARGS%
+start "Blackweb" "%~dp0Godot_v4.7.2-stable_win64.exe" --main-pack "%~dp0Blackweb.pck" %BLACKWEB_DISPLAY_ARGS% --log-file "%~dp0UserData\blackweb.log" -- %BLACKWEB_RENDER_ARGS% %BLACKWEB_GRAPHICS_ARGS%

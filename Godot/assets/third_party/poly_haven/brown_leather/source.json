@@ -1,0 +1,27 @@
+{
+  "asset": "Brown Leather",
+  "author": "Rob Tuytel",
+  "source": "https://polyhaven.com/a/brown_leather",
+  "license": "CC0-1.0",
+  "license_url": "https://polyhaven.com/license",
+  "files": [
+    {
+      "channel": "Diffuse",
+      "filename": "brown_leather_albedo_2k.jpg",
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/brown_leather/brown_leather_albedo_2k.jpg",
+      "bytes": 2137518
+    },
+    {
+      "channel": "nor_gl",
+      "filename": "brown_leather_nor_gl_2k.jpg",
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/brown_leather/brown_leather_nor_gl_2k.jpg",
+      "bytes": 3030702
+    },
+    {
+      "channel": "arm",
+      "filename": "brown_leather_arm_2k.jpg",
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/brown_leather/brown_leather_arm_2k.jpg",
+      "bytes": 1870765
+    }
+  ]
+}

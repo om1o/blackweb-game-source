@@ -59,9 +59,14 @@ func _run() -> void:
 	_check(game.player.inventory.slots.size() == 50, "50 backpack cells")
 	_check(game.player.inventory.occupied_count() == 3, "three original starting tools")
 	_check(game.player.equipped_items().size() == 3, "three quick slots")
+	_check(not game._sighting_spider.visible and not game.player._flashlight_flicker_allowed(), "quiet arrival keeps spiders hidden and the starter torch steady")
+	_check(game.player._armor_visuals != null and not game.player._armor_visuals.visual_state().values().has(true), "fresh character has four bound but unequipped garments")
 	_key(KEY_I)
 	await process_frame
 	_check(game.status_hud.is_inventory_open() and paused and not game.player.active, "I opens paused inventory through input pipeline")
+	await process_frame
+	await process_frame
+	_check(game._item_preview != null and game.status_hud._inventory_preview.texture != null, "actual flashlight model reaches the inventory preview")
 	_key(KEY_I)
 	await process_frame
 	_check(not game.status_hud.is_inventory_open() and not paused and game.player.active, "I closes inventory through input pipeline")
@@ -81,7 +86,13 @@ func _run() -> void:
 	_check(not game.campaign.vault_unlocked, "correct code without key denied")
 	game.field_overlay.close_overlay()
 	game.progression.interact(&"phone")
-	game.progression.step(20.0)
+	if visual:
+		var call_deadline := Time.get_ticks_msec() + 20000
+		while game.progression.stage == game.progression.Stage.MESSAGE and Time.get_ticks_msec() < call_deadline:
+			await process_frame
+		_check(game.progression.stage != game.progression.Stage.MESSAGE, "the actual phone audio and subtitle sequence completes within twenty seconds")
+	else:
+		game.progression.step(20.0)
 	_check(game.progression.warning_heard and game.progression.stage == game.progression.Stage.PREPARATION, "Mica warning reaches preparation")
 	game.progression.interact(&"keys")
 	game.progression.interact(&"flashlight")
@@ -92,7 +103,9 @@ func _run() -> void:
 	await _capture("vault-keypad")
 	game._submit_vault_code("0417")
 	_check(game.campaign.vault_unlocked and not door.locked and door.opened, "key plus correct code opens real door")
-	_check(game.progression.stage == game.progression.Stage.PRESENCE, "unlocked vault advances story")
+	_check(game.progression.stage == game.progression.Stage.PREPARATION, "vault unlock preserves the initial exploration beat")
+	game.progression.step(game.progression.exploration_seconds)
+	_check(game.progression.stage == game.progression.Stage.PRESENCE and game._sighting_spider.visible, "prepared exploration leads to the first harmless sighting")
 	game.get_node("VaultFieldKit").interact()
 	await _capture("vault-leather-kit")
 	for item in game.CampaignScript.ARMOR:
@@ -108,6 +121,7 @@ func _run() -> void:
 			_check(game.player.get_armor_state().values().has(game.player.inventory.item_at(index)), "selected armor equips through inventory button")
 	_check(is_equal_approx(game.player.armor_reduction_percent(), 18.0), "full leather kit yields18percent")
 	_check(game.player.equipped_items() == [&"flashlight", &"knife", &"candy_bar"], "armor preserves three quick tools")
+	_check(game.player._armor_visuals.visual_state().values().count(true) == 4, "equipping the kit shows all four fitted clothing meshes")
 	game.get_node("VaultCash").interact()
 	game.get_node("VaultCash").interact()
 	_check(game.campaign.wallet == 120 and game.get_node("VaultCash").taken, "cash awarded once and removed")
@@ -134,7 +148,28 @@ func _run() -> void:
 	_check(restored.load_state() and restored.wallet == 120 and restored.vault_unlocked and restored.claimed.size() == 5, "cash vault and four claims restored together")
 	_check(game.player.restore_survival_state(restored.loaded.survival), "restored survival state accepted")
 	_check(game.player.armor_reduction_percent() == 18.0, "armor loadout survives save")
+	_check(game.player._armor_visuals.visual_state().values().count(true) == 4, "restoring equipped armor also restores its worn appearance")
 	await _capture("house-after-vault")
+	# Run the production restart path after acquiring gear and cash. This catches
+	# stale world claims and already-open vaults that isolated menu tests cannot.
+	game._restart()
+	await process_frame
+	_check(game.player.active and not paused and not game.menu.visible, "New Game returns to active gameplay")
+	_check(game.progression.stage == game.progression.Stage.NORMAL and not game.progression.warning_heard, "New Game restores Mica's unanswered call")
+	_check(not game._sighting_spider.visible and not game.player._flashlight_flicker_allowed(), "New Game restores the quiet opening without stale scares")
+	_check(game.campaign.wallet == 0 and not game.campaign.code_found and not game.campaign.vault_unlocked and game.campaign.claimed.is_empty(), "New Game resets wallet code vault and one-time claims")
+	_check(game.player.inventory.occupied_count() == 3 and game.player.armor_reduction_percent() == 0.0 and game.player.item_count(&"candy_bar") == 1, "New Game restores three starters and removes acquired armor")
+	_check(not game.player._armor_visuals.visual_state().values().has(true), "New Game removes the worn armor meshes")
+	_check(is_equal_approx(game.player.health, 100.0) and game.player.battery_charge > 21.8 and game.player.battery_charge <= 22.0, "New Game resets health stamina and starting battery")
+	_check(door.locked and not door.opened and not game.get_node("VaultCash").taken, "New Game physically closes the vault and restores cash")
+	_key(KEY_ESCAPE)
+	await process_frame
+	_check(game.menu.visible and paused and not game.player.active, "Escape opens the new pause menu after restart")
+	_key(KEY_ESCAPE)
+	await process_frame
+	_check(not game.menu.visible and not paused and game.player.active, "Escape resumes the same fresh run")
+	if visual and OS.get_cmdline_user_args().has("--profile-graphics"):
+		await load("res://tests/graphics_profile.gd").new().run(game, self, output)
 	var report := {"checks": checks, "failed": failures.size(), "failures": failures, "visual": visual}
 	var file := FileAccess.open(output + "/tutorial-journey-report.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(report, "  "))

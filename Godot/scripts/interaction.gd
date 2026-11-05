@@ -20,6 +20,8 @@ func _ready() -> void:
 	_refresh()
 
 func prompt() -> String:
+	if kind == &"phone":
+		return "E / CLICK   ·   Answer Mica" if progression.can_interact(kind) else ("Mica is speaking…" if progression.stage == progression.Stage.MESSAGE else "E / CLICK   ·   Check phone")
 	return "E   ·   " + label
 
 func interact() -> void:

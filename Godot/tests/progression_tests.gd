@@ -27,6 +27,8 @@ func fresh() -> Progression:
 	var story := Progression.new()
 	story.auto_load = false
 	story.auto_save = false
+	# Milestone/transaction coverage; pacing_tests keeps the authored timings.
+	story.exploration_seconds = 0.0
 	root.add_child(story)
 	story.set_process(false)
 	return story

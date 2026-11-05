@@ -70,6 +70,17 @@ func _run() -> void:
 	await create_timer(IntroScript.DURATION + .2, true).timeout
 	_check(not intro.is_running() and completions == 2 and not paused and player.active and player.camera.current, "Natural completion restores active gameplay and camera")
 	_check(health_hud.visible and not hidden_menu.visible, "Natural completion restores original HUD visibility")
+	intro.reduced_motion = true
+	intro.begin(player, hud)
+	var still_camera := intro._camera
+	var still_transform: Transform3D = player.camera.global_transform
+	await create_timer(.25, true).timeout
+	_check(still_camera.global_transform.is_equal_approx(still_transform), "Reduced motion keeps arrival at the gameplay camera without sway")
+	_check(intro.is_running() and intro._overlay.visible and paused, "Reduced motion retains captions and paused arrival lifecycle")
+	intro.skip()
+	_check(not intro.is_running() and player.camera.current and not paused and player.active, "Reduced motion skip restores normal gameplay")
+	intro.reduced_motion = false
+	completions = 2
 	intro.begin(player, hud)
 	var key := InputEventKey.new()
 	key.keycode = KEY_ENTER
