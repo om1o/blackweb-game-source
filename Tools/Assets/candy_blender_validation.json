@@ -1,0 +1,106 @@
+{
+  "checks": [
+    {
+      "label": "GLB loads through Godot GLTFDocument",
+      "passed": true
+    },
+    {
+      "label": "CandyReady root exists",
+      "passed": true
+    },
+    {
+      "label": "CandyReady finite geometry and normals",
+      "passed": true
+    },
+    {
+      "label": "CandyReady UV coordinates survive export",
+      "passed": true
+    },
+    {
+      "label": "CandyReady real hand-held dimensions",
+      "passed": true
+    },
+    {
+      "label": "CandyReady three material meshes",
+      "passed": true
+    },
+    {
+      "label": "CandyReady under 5000 triangles",
+      "passed": true
+    },
+    {
+      "label": "CandyBitten root exists",
+      "passed": true
+    },
+    {
+      "label": "CandyBitten finite geometry and normals",
+      "passed": true
+    },
+    {
+      "label": "CandyBitten UV coordinates survive export",
+      "passed": true
+    },
+    {
+      "label": "CandyBitten real hand-held dimensions",
+      "passed": true
+    },
+    {
+      "label": "CandyBitten three material meshes",
+      "passed": true
+    },
+    {
+      "label": "CandyBitten under 5000 triangles",
+      "passed": true
+    }
+  ],
+  "notes": "Visual bite silhouette and wrapper geometry reviewed in native Godot render; gameplay attachment belongs to player integration.",
+  "passed": true,
+  "variants": {
+    "CandyBitten": {
+      "aabb_position": "(-0.0825, -0.005121, -0.033559)",
+      "parts": [
+        {
+          "material": "Candy_Chocolate",
+          "mesh": "CandyBitten_Candy_Chocolate",
+          "vertices": 2645
+        },
+        {
+          "material": "Candy_InnerFoil",
+          "mesh": "CandyBitten_Candy_InnerFoil",
+          "vertices": 1784
+        },
+        {
+          "material": "Candy_WornWrapper",
+          "mesh": "CandyBitten_Candy_WornWrapper",
+          "vertices": 2028
+        }
+      ],
+      "root_position": "(0.0, 0.0, -0.05)",
+      "size_metres": "(0.149939, 0.028641, 0.066655)",
+      "triangles": 3940
+    },
+    "CandyReady": {
+      "aabb_position": "(-0.0825, -0.005121, -0.033559)",
+      "parts": [
+        {
+          "material": "Candy_Chocolate",
+          "mesh": "CandyReady_Candy_Chocolate",
+          "vertices": 2685
+        },
+        {
+          "material": "Candy_InnerFoil",
+          "mesh": "CandyReady_Candy_InnerFoil",
+          "vertices": 1784
+        },
+        {
+          "material": "Candy_WornWrapper",
+          "mesh": "CandyReady_Candy_WornWrapper",
+          "vertices": 2028
+        }
+      ],
+      "root_position": "(0.0, 0.0, 0.05)",
+      "size_metres": "(0.151, 0.028641, 0.066655)",
+      "triangles": 4016
+    }
+  }
+}

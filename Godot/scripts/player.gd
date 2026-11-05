@@ -56,6 +56,9 @@ var _right_grip_fingers: Array[Dictionary] = []
 var _arm_pose_weight := 0.0
 var _hand_knife: Node3D
 var _view_knife: Node3D
+var _knife_wrist_override_applied := false
+var _knife_chest_bone := -1
+var _knife_chest_override_applied := false
 var _hand_candy: Node3D
 var _view_candy: Node3D
 var _hand_flare: Node3D
@@ -90,7 +93,8 @@ const JUMP_SPEED := 5.0
 const BATTERY_DRAIN_PER_SECOND := 0.22
 const KNIFE_DAMAGE := 4.0
 const KNIFE_HIT_TIME := 0.24
-const KNIFE_ACTION_DURATION := 0.58
+const KNIFE_ACTION_DURATION := 0.68
+const KNIFE_REACH := 1.55
 const CANDY_HEAL_TIME := 0.78
 const CANDY_ACTION_DURATION := 1.16
 const REAL_FLASHLIGHT_PATH := "res://assets/third_party/poly_haven/small_plastic_torch/small_plastic_torch_1k.gltf"
@@ -206,6 +210,7 @@ func attach_model(scene: PackedScene, model_scale := 1.0) -> void:
 		_right_upper_bone = skeleton.find_bone("Bip01 R UpperArm")
 		_right_forearm_bone = skeleton.find_bone("Bip01 R Forearm")
 		_right_hand_bone = skeleton.find_bone("Bip01 R Hand")
+		_knife_chest_bone = skeleton.find_bone("Bip01 Spine1")
 		# This recovered idle rig has open fingers. Bend the existing phalanges
 		# around the prop shaft instead of leaving the torch balanced on a palm.
 		for grip_bone in [
@@ -240,8 +245,10 @@ func attach_model(scene: PackedScene, model_scale := 1.0) -> void:
 			hand.add_child(_grip_fill)
 			_hand_knife = _make_knife_model()
 			_hand_knife.name = "HeldWornKnife"
-			_hand_knife.position = Vector3(0.05, -0.035, -0.075)
-			_hand_knife.rotation = Vector3(0.0, 0.0, PI * 0.5)
+			# The knife origin is its handle centre. The shaft crosses the
+			# closed palm, and the wrist moves the hand and blade together.
+			_hand_knife.position = Vector3(0.076, 0.025, -0.006)
+			_hand_knife.rotation = Vector3(0.0, PI, 0.0)
 			hand.add_child(_hand_knife)
 			_hand_knife.hide()
 			_hand_candy = _make_candy_model()
@@ -342,7 +349,7 @@ func _make_knife_model() -> Node3D:
 			var imported: Node3D = source.instantiate()
 			imported.name = "PolyHavenWeatheredFishKnife"
 			# The source steel blade runs along +Y, with its wooden grip on -Y.
-			# Rotate that steel point toward the stab and centre the grip in the fist.
+			# Rotate the steel point along -Z and centre the grip in the fist.
 			imported.rotation.x = -PI * 0.5
 			imported.position.y = -0.04
 			imported.position.z = -0.065
@@ -355,6 +362,9 @@ func _make_knife_model() -> Node3D:
 			if source_grip != null: source_grip.scale = Vector3(0.75, 0.65, 0.90)
 			if source_blade != null: source_blade.scale = Vector3(1.65, 2.25, 1.40)
 			weathered_knife.add_child(imported)
+			if source_grip != null:
+				var grip_centre := imported.transform * source_grip.transform * source_grip.mesh.get_aabb().get_center()
+				imported.position -= grip_centre
 			return weathered_knife
 	var model := Node3D.new()
 	var worn_steel := StandardMaterial3D.new()
@@ -395,6 +405,7 @@ func _make_knife_model() -> Node3D:
 	blade.rotation.x = PI * 0.5
 	blade.position.z = -0.207
 	model.add_child(blade)
+	for part in model.get_children(): part.position.z += 0.035
 	return model
 
 func _make_candy_model() -> Node3D:
@@ -403,7 +414,34 @@ func _make_candy_model() -> Node3D:
 	var body := Node3D.new()
 	body.name = "CandyBarBody"
 	body.position.x = 0.115
+	body.rotation.x = PI
 	model.add_child(body)
+	var candy_path := "res://assets/generated/candy_blender/candy_variants.glb"
+	if ResourceLoader.exists(candy_path):
+		var packed := load(candy_path) as PackedScene
+		if packed != null:
+			var imported := packed.instantiate()
+			for variant_name in ["CandyReady", "CandyBitten"]:
+				var variant := imported.find_child(variant_name, true, false) as Node3D
+				if variant == null: continue
+				variant.owner = null
+				for child in variant.find_children("*", "Node", true, false): child.owner = null
+				variant.get_parent().remove_child(variant)
+				body.add_child(variant)
+				variant.transform = Transform3D.IDENTITY
+				variant.visible = variant_name == "CandyReady"
+				for part in variant.find_children("*", "MeshInstance3D", true, false):
+					for surface in range(part.mesh.get_surface_count()):
+						var material := part.mesh.surface_get_material(surface) as StandardMaterial3D
+						if material != null and material.resource_name == "Candy_WornWrapper":
+							var wrapper := material.duplicate() as StandardMaterial3D
+							wrapper.albedo_color = Color(0.90, 0.85, 0.80)
+							wrapper.albedo_texture = CandyWrapperTexture
+							wrapper.roughness = 0.93
+							part.set_surface_override_material(surface, wrapper)
+			imported.free()
+			if body.has_node("CandyReady") and body.has_node("CandyBitten"):
+				return model
 	var cocoa := StandardMaterial3D.new()
 	cocoa.albedo_color = Color(0.145, 0.074, 0.043)
 	cocoa.roughness = 0.78
@@ -432,6 +470,23 @@ func _make_candy_model() -> Node3D:
 		var crease := _add_candy_piece(body, "FoilCrease", Vector3(0.020, 0.0008, 0.003), Vector3(0.0, 0.011, z), faded_print)
 		crease.rotation.y = 0.32
 	return model
+
+func _candy_raise_amount() -> float:
+	if _action_kind != &"candy_bar": return 0.0
+	if _action_time < 0.32: return smoothstep(0.0, 0.32, _action_time)
+	if _action_time <= 0.82: return 1.0
+	return 1.0 - smoothstep(0.82, CANDY_ACTION_DURATION, _action_time)
+
+func _candy_mouth_world() -> Vector3:
+	var head_index := _luke_skeleton.find_bone("Bip01 Head")
+	var head_world := _luke_skeleton.to_global(_luke_skeleton.get_bone_global_pose(head_index).origin)
+	return head_world - camera.global_basis.z * 0.09 + camera.global_basis.x * 0.025 - Vector3.UP * 0.045
+
+func _set_candy_bitten(model: Node3D, bitten: bool) -> void:
+	var ready := model.get_node_or_null("CandyBarBody/CandyReady") as Node3D
+	var bitten_model := model.get_node_or_null("CandyBarBody/CandyBitten") as Node3D
+	if ready != null: ready.visible = not bitten
+	if bitten_model != null: bitten_model.visible = bitten
 
 func _add_candy_piece(parent: Node3D, piece_name: String, size: Vector3, offset: Vector3, material: Material) -> MeshInstance3D:
 	var piece := MeshInstance3D.new()
@@ -686,7 +741,6 @@ func use_item(id: StringName) -> bool:
 			_action_kind = &"knife"
 			_action_time = 0.0
 			_action_effect_done = false
-			_item_audio.play_cue(&"knife_swing")
 			return true
 		&"candy_bar":
 			if health >= 100.0: return false
@@ -733,7 +787,10 @@ func reset_starting_inventory() -> void:
 
 func _tick_item_action(delta: float) -> void:
 	if _action_kind == &"": return
+	var previous_time := _action_time
 	_action_time += delta
+	if _action_kind == &"knife" and previous_time < 0.14 and _action_time >= 0.14:
+		_item_audio.play_cue(&"knife_swing")
 	if not _action_effect_done and _action_kind == &"knife" and _action_time >= KNIFE_HIT_TIME:
 		_action_effect_done = true
 		if _knife_strike(): _item_audio.play_cue(&"knife_hit")
@@ -777,22 +834,21 @@ func _update_held_item_visuals(show_visual: bool, delta: float) -> void:
 		_view_flashlight.visible = fallback and holding_torch
 		_view_flashlight.position = _view_flashlight.position.lerp(Vector3(0.37, -0.23, -0.65) if aim else Vector3(0.39, -0.38, -0.54), lift)
 		_view_flashlight.rotation = _view_flashlight.rotation.lerp(Vector3(0.0, 0.0, 0.20) if aim else Vector3(-0.31, -0.12, 0.40), lift)
-	var thrust := sin(PI * clampf((_action_time - 0.06) / 0.43, 0.0, 1.0)) if striking else 0.0
+	var knife_pose := _knife_pose_sample(_action_time if striking else 0.0)
 	if is_instance_valid(_hand_knife):
 		_hand_knife.visible = holding_knife or striking
-		_hand_knife.position = Vector3(0.05, -0.005, -0.075)
-		if is_instance_valid(_hand_mount):
-			var stab_world := (-camera.global_basis.z + camera.global_basis.x * 0.52 + Vector3.UP * 0.08).normalized()
-			var stab_local := (_hand_mount.global_basis.inverse() * stab_world).normalized()
-			var stab_rotation := Quaternion.from_euler(Vector3(0.0, 0.0, PI * 0.5))
-			_hand_knife.quaternion = stab_rotation.slerp(Quaternion(Vector3.FORWARD, stab_local), 0.72 + thrust * 0.28)
+		_hand_knife.position = Vector3(0.076, 0.025, -0.006)
+		_hand_knife.rotation = Vector3(0.0, PI, 0.0)
 	if is_instance_valid(_view_knife):
 		_view_knife.visible = fallback and (holding_knife or striking)
-		_view_knife.position = Vector3(0.43 - 0.07 * thrust, -0.39 + 0.11 * thrust, -0.58 - 0.31 * thrust)
-		_view_knife.rotation = Vector3(-0.3 + 0.22 * thrust, -0.5 + 0.43 * thrust, 0.5 - 0.48 * thrust)
-	var raise := sin(PI * clampf(_action_time / CANDY_ACTION_DURATION, 0.0, 1.0)) if eating else 0.0
+		var knife_offset: Vector3 = knife_pose.hand
+		var knife_direction: Vector3 = knife_pose.blade
+		_view_knife.position = Vector3(knife_offset.x + 0.13, knife_offset.y - 0.35, -knife_offset.z - 0.42)
+		_view_knife.quaternion = Quaternion(Vector3.FORWARD, Vector3(knife_direction.x, knife_direction.y, -knife_direction.z).normalized())
+	var raise := _candy_raise_amount()
 	if is_instance_valid(_hand_candy):
 		_hand_candy.visible = holding_candy or eating
+		_set_candy_bitten(_hand_candy, eating and _action_effect_done)
 		_hand_candy.position = Vector3.ZERO
 		var candy_body := _hand_candy.get_node_or_null("CandyBarBody") as Node3D
 		if candy_body: candy_body.position.x = lerpf(0.115, 0.075, raise)
@@ -801,9 +857,8 @@ func _update_held_item_visuals(show_visual: bool, delta: float) -> void:
 			_hand_candy.position = _hand_mount.global_basis.inverse() * grip_offset_world
 			var head_index := _luke_skeleton.find_bone("Bip01 Head")
 			if head_index >= 0:
-				var head_world := _luke_skeleton.to_global(_luke_skeleton.get_bone_global_pose(head_index).origin)
-				var mouth_world := head_world + camera.global_basis.x * 0.025 - Vector3.UP * 0.045
-				var to_mouth := mouth_world - _hand_mount.global_position
+				var mouth_world := _candy_mouth_world()
+				var to_mouth := mouth_world - _hand_candy.global_position
 				var ready_world := (Vector3.UP * 0.7 - camera.global_basis.z * 0.6 + camera.global_basis.x * 0.2).normalized()
 				var bar_direction := ready_world.lerp(to_mouth.normalized(), raise) if to_mouth.length_squared() > 0.000001 else ready_world
 				if bar_direction.length_squared() > 0.000001:
@@ -811,6 +866,7 @@ func _update_held_item_visuals(show_visual: bool, delta: float) -> void:
 					_hand_candy.quaternion = Quaternion(Vector3.RIGHT, hand_local)
 	if is_instance_valid(_view_candy):
 		_view_candy.visible = fallback and (holding_candy or eating)
+		_set_candy_bitten(_view_candy, eating and _action_effect_done)
 		_view_candy.position = Vector3(0.41 - 0.12 * raise, -0.37 + 0.26 * raise, -0.54 - 0.16 * raise)
 		_view_candy.rotation = Vector3(-0.15 - 0.4 * raise, -0.25, 0.17 + 0.14 * raise)
 	if is_instance_valid(_hand_flare): _hand_flare.visible = _flare_remaining > 0.0
@@ -824,6 +880,12 @@ func _update_held_item_visuals(show_visual: bool, delta: float) -> void:
 
 func _update_right_arm_pose(delta: float) -> void:
 	if not is_instance_valid(_luke_skeleton) or _right_upper_bone < 0 or _right_forearm_bone < 0 or _right_hand_bone < 0: return
+	if _knife_chest_override_applied:
+		_luke_skeleton.set_bone_global_pose_override(_knife_chest_bone, Transform3D.IDENTITY, 0.0, false)
+		_knife_chest_override_applied = false
+	if _knife_wrist_override_applied:
+		_luke_skeleton.set_bone_global_pose_override(_right_hand_bone, Transform3D.IDENTITY, 0.0, false)
+		_knife_wrist_override_applied = false
 	var wanted := 1.0 if _light_on or selected_quick_item() == &"knife" or selected_quick_item() == &"candy_bar" or _action_kind != &"" else 0.0
 	_arm_pose_weight = move_toward(_arm_pose_weight, wanted, delta * 4.5)
 	_luke_skeleton.set_bone_global_pose_override(_right_upper_bone, Transform3D.IDENTITY, 0.0, false)
@@ -831,6 +893,12 @@ func _update_right_arm_pose(delta: float) -> void:
 	if _arm_pose_weight <= 0.001:
 		_update_right_hand_grip()
 		return
+	if _action_kind == &"knife" and _knife_chest_bone >= 0:
+		var chest := _luke_skeleton.get_bone_global_pose(_knife_chest_bone)
+		var up_local := (_luke_skeleton.global_basis.inverse() * Vector3.UP).normalized()
+		var twist := Basis(up_local, float(_knife_pose_sample(_action_time).torso))
+		_luke_skeleton.set_bone_global_pose_override(_knife_chest_bone, Transform3D(twist * chest.basis, chest.origin), 1.0, true)
+		_knife_chest_override_applied = true
 	var upper_base := _luke_skeleton.get_bone_global_pose(_right_upper_bone)
 	var forearm_base := _luke_skeleton.get_bone_global_pose(_right_forearm_bone)
 	var hand_base := _luke_skeleton.get_bone_global_pose(_right_hand_bone)
@@ -847,14 +915,17 @@ func _update_right_arm_pose(delta: float) -> void:
 	# forward; the old fixed -Z target pulled the arm behind Luke's shoulder.
 	var target_world := shoulder_world + facing * 0.16 + right * 0.30 - Vector3.UP * 0.04
 	if _action_kind == &"knife":
-		var stab := sin(PI * clampf((_action_time - 0.06) / 0.43, 0.0, 1.0))
-		target_world = shoulder_world + facing * (0.12 + 0.32 * stab) + right * (0.31 - 0.06 * stab) + Vector3.UP * (-0.12 + 0.10 * stab)
+		var slash_offset: Vector3 = _knife_pose_sample(_action_time).hand
+		target_world = shoulder_world + right * slash_offset.x + Vector3.UP * slash_offset.y + facing * slash_offset.z
 	elif _action_kind == &"candy_bar":
-		var lift := sin(PI * clampf(_action_time / CANDY_ACTION_DURATION, 0.0, 1.0))
+		var lift := _candy_raise_amount()
 		var head_index := _luke_skeleton.find_bone("Bip01 Head")
 		var head_world := _luke_skeleton.to_global(_luke_skeleton.get_bone_global_pose(head_index).origin) if head_index >= 0 else shoulder_world + Vector3.UP * 0.2
-		var mouth_world := head_world + facing * 0.09 + right * 0.08 - Vector3.UP * 0.045
-		target_world = (shoulder_world + facing * 0.19 + right * 0.22 - Vector3.UP * 0.18).lerp(mouth_world, lift)
+		var mouth_world := head_world + facing * 0.09 + right * 0.025 - Vector3.UP * 0.045
+		# Hold the wrapper beside the mouth; the exposed end reaches the lips.
+		# Sending the palm itself to the mouth hid the bar inside Luke's face.
+		var bite_grip := mouth_world + right * 0.13 + facing * 0.025 - Vector3.UP * 0.01
+		target_world = (shoulder_world + facing * 0.19 + right * 0.22 - Vector3.UP * 0.18).lerp(bite_grip, lift)
 	var target := _luke_skeleton.to_local(target_world)
 	var to_target := target - shoulder
 	if to_target.length_squared() < 0.000001: return
@@ -875,7 +946,39 @@ func _update_right_arm_pose(delta: float) -> void:
 	var lower_rotation := Quaternion(lower_current, (adjusted_hand - elbow).normalized())
 	_luke_skeleton.set_bone_global_pose_override(_right_upper_bone, Transform3D(Basis(upper_rotation) * upper_base.basis, shoulder), _arm_pose_weight, true)
 	_luke_skeleton.set_bone_global_pose_override(_right_forearm_bone, Transform3D(Basis(lower_rotation) * forearm_base.basis, elbow), _arm_pose_weight, true)
+	if selected_quick_item() == &"knife" or _action_kind == &"knife":
+		# Turn the wrist itself; rotating only the prop would slide its handle
+		# through otherwise stationary fingers during the diagonal sweep.
+		var blade: Vector3 = _knife_pose_sample(_action_time if _action_kind == &"knife" else 0.0).blade
+		var desired_world := (right * blade.x + Vector3.UP * blade.y + facing * blade.z).normalized()
+		var desired_local := (_luke_skeleton.global_basis.inverse() * desired_world).normalized()
+		var hand_pose := _luke_skeleton.get_bone_global_pose(_right_hand_bone)
+		var current_axis := hand_pose.basis.z.normalized()
+		var wrist_rotation := Quaternion(desired_local, -0.55) * Quaternion(current_axis, desired_local)
+		_luke_skeleton.set_bone_global_pose_override(_right_hand_bone, Transform3D(Basis(wrist_rotation) * hand_pose.basis, adjusted_hand), _arm_pose_weight, true)
+		_knife_wrist_override_applied = true
 	_update_right_hand_grip()
+
+func _knife_pose_sample(time: float) -> Dictionary:
+	# Camera-space X/right, Y/up, Z/forward. A short raised windup leads into
+	# one curved diagonal cut, a follow-through, then a longer recovery.
+	var ready := Vector3(0.30, -0.04, 0.16)
+	var windup := Vector3(0.36, 0.22, 0.10)
+	# Finish beside the inner-right guard. Crossing behind the torso hid the
+	# complete follow-through from the production shoulder camera.
+	var finish := Vector3(0.08, -0.40, 0.22)
+	var ready_blade := Vector3(0.50, 0.08, 0.82).normalized()
+	var windup_blade := Vector3(0.80, 0.60, 0.10).normalized()
+	var finish_blade := Vector3(-0.80, -0.65, 0.35).normalized()
+	if time <= 0.14:
+		var windup_weight := smoothstep(0.0, 0.14, time)
+		return {"hand": ready.lerp(windup, windup_weight), "blade": ready_blade.slerp(windup_blade, windup_weight), "torso": -0.18 * windup_weight}
+	if time <= 0.34:
+		var cut := clampf((time - 0.14) / 0.20, 0.0, 1.0)
+		var hand := windup.bezier_interpolate(Vector3(0.35, 0.20, 0.45), Vector3(0.10, -0.16, 0.58), finish, cut)
+		return {"hand": hand, "blade": windup_blade.slerp(finish_blade, cut), "torso": lerpf(-0.18, 0.45, cut)}
+	var recovery := smoothstep(0.39, KNIFE_ACTION_DURATION, time)
+	return {"hand": finish.lerp(ready, recovery), "blade": finish_blade.slerp(ready_blade, recovery), "torso": 0.45 * (1.0 - recovery)}
 
 func _update_right_hand_grip() -> void:
 	var weight := 1.0 if selected_quick_item() != &"" or _action_kind != &"" else 0.0
@@ -888,6 +991,10 @@ func _update_right_hand_grip() -> void:
 	for grip_bone in _right_grip_fingers:
 		var index: int = grip_bone.index
 		var curl: float = grip_bone.curl
+		if selected_quick_item() == &"knife" or _action_kind == &"knife":
+			var bone_name := _luke_skeleton.get_bone_name(index)
+			if bone_name == "Bip01 R Finger0": curl = 0.60
+			elif bone_name == "Bip01 R Finger01": curl = 0.70
 		var base := _luke_skeleton.get_bone_global_pose(index)
 		var curled := Transform3D(base.basis * Basis(Vector3.BACK, curl * weight), base.origin)
 		_luke_skeleton.set_bone_global_pose_override(index, curled, 1.0, true)
@@ -945,7 +1052,7 @@ func _knife_strike() -> bool:
 	var origin := global_position + Vector3.UP * 0.65
 	var facing := -camera.global_basis.z
 	var closest: Node3D
-	var distance := 1.9
+	var distance := KNIFE_REACH
 	for group in [&"mini_spider", &"spider"]:
 		for candidate in get_tree().get_nodes_in_group(group):
 			if not is_instance_valid(candidate) or not candidate is Node3D or not candidate.visible or not candidate.has_method("take_damage"): continue

@@ -54,6 +54,8 @@ func _run() -> void:
 		var door_z: float = door.global_position.z
 		var from := Vector3(door_x - 0.35, 1.45, door_z)
 		var to := Vector3(door_x + 0.82, 1.45, door_z)
+		_check(not _ray_clear(Vector3(from.x, 3.0, from.z), Vector3(to.x, 3.0, to.z), game.get_world_3d()),
+			"%s has a solid lintel up to the ceiling" % door.name)
 		_check(not _ray_clear(from, to, game.get_world_3d()), "%s blocks its doorway when closed" % door.name)
 		door.toggle()
 		await create_timer(0.68).timeout

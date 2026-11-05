@@ -71,7 +71,10 @@ $emptyTextureMarker = Join-Path $ScratchRoot 'imported-texture-placeholder.png'
 Add-InputFile (Join-Path $godotRoot 'project.godot') 'res://project.godot'
 Add-InputTree (Join-Path $godotRoot 'scripts') 'res://scripts' { param($p) $p -match '\.(gd|uid)$' }
 Add-InputTree (Join-Path $godotRoot 'scenes') 'res://scenes' { param($p) $p.EndsWith('.tscn') }
-Add-InputTree (Join-Path $godotRoot 'data') 'res://data' { param($p) $p.EndsWith('.json') }
+Add-InputTree (Join-Path $godotRoot 'data') 'res://data' {
+    param($p)
+    $p.EndsWith('.json') -and $p -notmatch '/([^/]*_test_report|playthrough_[^/]*|knife_swing_capture)\.json$'
+}
 Add-InputFile (Join-Path $godotRoot 'tools\recovered_materials.gd') 'res://tools/recovered_materials.gd'
 Add-InputFile (Join-Path $PSScriptRoot 'portable_smoke.gd') 'res://tools/portable_smoke.gd'
 Add-InputTree (Join-Path $godotRoot 'licenses') 'res://licenses' { param($p) $true }
@@ -81,7 +84,7 @@ foreach ($name in @('LICENSE.md','NOTICE.txt','provenance.json')) {
 Add-InputTree (Join-Path $godotRoot 'assets\luke\Textures') 'res://assets/luke/Textures' { param($p) $p.EndsWith('.import') }
 if (Test-Path -LiteralPath (Join-Path $godotRoot 'assets\generated')) {
     Add-InputTree (Join-Path $godotRoot 'assets\generated') 'res://assets/generated' {
-        param($p) $p -match '\.(png|jpg|jpeg|webp|wav|import|json|md|txt)$'
+        param($p) $p -match '\.(glb|gltf|bin|png|jpg|jpeg|webp|wav|import|json|md|txt)$'
     }
 }
 if (Test-Path -LiteralPath (Join-Path $godotRoot 'assets\third_party')) {

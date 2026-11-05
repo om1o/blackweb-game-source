@@ -40,6 +40,12 @@ func _run() -> void:
 	await _save("candy-bite-gameplay.png")
 	game.status_hud.hide()
 	await _capture(player, camera, fill, "candy-eating-qa.png")
+	game.status_hud.show()
+	player.camera.current = true
+	for frame in range(12): await physics_frame
+	await _save("candy-bitten-gameplay.png")
+	game.status_hud.hide()
+	await _capture(player, camera, fill, "candy-bitten-qa.png")
 	quit()
 
 func _capture(player: BlackwebPlayer, camera: Camera3D, fill: OmniLight3D, filename: String) -> void:

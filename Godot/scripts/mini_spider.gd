@@ -198,7 +198,7 @@ func _physics_process(delta: float) -> void:
 			if is_instance_valid(_body_visual): _body_visual.scale = Vector3.ONE
 			if is_instance_valid(_visual_root): _visual_root.scale = _visual_rest_scale
 			_attack_cooldown = 1.6
-			if toward.length() <= 0.52 and not (target.has_method("is_recovering") and target.call("is_recovering")):
+			if _can_bite_target(0.52):
 				if target.has_method("take_damage"): target.call("take_damage", hit_damage)
 				_bite_audio.play()
 		velocity.x = move_toward(velocity.x, 0.0, 8.0 * delta)
@@ -214,9 +214,21 @@ func _physics_process(delta: float) -> void:
 	if desired.length_squared() > 0.001: rotation.y = lerp_angle(rotation.y, atan2(-desired.x, -desired.z), minf(1.0, delta * 7.0))
 	move_and_slide()
 	_play_visual("walk" if desired.length_squared() > 0.001 else "idle")
-	if toward.length() <= 0.50 and _attack_cooldown <= 0.0 and not (target.has_method("is_recovering") and target.call("is_recovering")):
+	if _attack_cooldown <= 0.0 and _can_bite_target(0.50):
 		_bite_windup_remaining = bite_windup_seconds
 		_play_visual("attack")
+
+func _can_bite_target(reach: float) -> bool:
+	if not is_instance_valid(target): return false
+	if target.has_method("is_recovering") and target.call("is_recovering"): return false
+	# Feet-level bite path: use full 3D distance so jumping out of reach works,
+	# and check again at impact in case a door closes during the windup.
+	var bite_from := global_position + Vector3.UP * 0.14
+	var bite_to := target.global_position + Vector3.UP * 0.14
+	if bite_from.distance_to(bite_to) > reach: return false
+	var query := PhysicsRayQueryParameters3D.create(bite_from, bite_to, 1, [get_rid()])
+	query.hit_from_inside = true
+	return get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
 func apply_flashlight_beam(intensity: float, _delta: float) -> void:
 	if not active or intensity <= 0.0: return

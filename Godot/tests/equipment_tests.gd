@@ -23,7 +23,7 @@ func _run() -> void:
 	await process_frame
 	check(game._loaded, "House loads with starter equipment")
 	if not game._loaded:
-		_finish()
+		await _finish(game)
 		return
 	game._resume()
 	for frame in range(15): await physics_frame
@@ -57,10 +57,13 @@ func _run() -> void:
 	check(player._hand_knife.visible and not player._hand_flashlight.visible and game.status_hud.selected_quick_index == 1, "Worn knife remains visible in Luke's hand before attack")
 	check(player.use_selected_item() and player._action_kind == &"knife", "Selected knife attacks on use input")
 	for frame in range(48): await physics_frame
-	check(player._hand_knife.visible and player._action_kind == &"", "Knife returns to a visible ready hold after its stab")
+	check(player._hand_knife.visible and player._action_kind == &"", "Knife returns to a visible ready hold after its slash")
 	check(player.select_quick_slot(2) and player.selected_quick_item() == &"candy_bar", "Slot three draws the candy bar before eating")
 	for frame in range(3): await physics_frame
 	check(player._hand_candy.visible and not player._hand_knife.visible, "Selected candy bar remains visible until used")
+	var candy_body: Node3D = player._hand_candy.get_node("CandyBarBody")
+	check(candy_body.has_node("CandyReady") and candy_body.has_node("CandyBitten") and candy_body.get_node("CandyReady").visible and not candy_body.get_node("CandyBitten").visible,
+		"Held candy uses the original Blender model with an unbitten starting state")
 	player.health = 50.0
 	check(player.use_selected_item() and player._action_kind == &"candy_bar" and player.item_count(&"candy_bar") == 1, "Eating begins from the selected bar before item consumption")
 	for frame in range(25): await physics_frame
@@ -68,7 +71,12 @@ func _run() -> void:
 	var head_bone: int = player._luke_skeleton.find_bone("Bip01 Head")
 	var head_world: Vector3 = player._luke_skeleton.to_global(player._luke_skeleton.get_bone_global_pose(head_bone).origin)
 	check(player._hand_mount.global_position.distance_to(head_world) < 0.45 and player._hand_candy.global_position.distance_to(player._hand_mount.global_position) < 0.13, "Candy stays within Luke's grip as his hand moves near his mouth")
-	for frame in range(55): await physics_frame
+	var edible_tip := candy_body.to_global(Vector3(0.0685, 0.0, 0.0))
+	check(edible_tip.distance_to(player._candy_mouth_world()) < 0.04, "Exposed chocolate reaches the mouth instead of sending the palm inside the face")
+	for frame in range(25): await physics_frame
+	check(not candy_body.get_node("CandyReady").visible and candy_body.get_node("CandyBitten").visible and player._hand_candy.visible,
+		"Bite event displays the scalloped consumed model during recovery")
+	for frame in range(30): await physics_frame
 	check(is_equal_approx(player.health, 80.0) and player.item_count(&"candy_bar") == 0, "Candy bar heals moderately at the bite timing and is consumed")
 	check(game.status_hud._slot_labels[2].text.contains("USED"), "HUD reflects eaten candy")
 	player.add_item(&"bandage", 1)
@@ -131,11 +139,11 @@ func _run() -> void:
 	mini.global_position = Vector3(0.0, 0.44, -1.85)
 	mini.walk_speed = 0.0
 	for frame in range(5): await physics_frame
-	var health_before_stab: float = mini.health
-	check(player.use_item(&"knife") and is_equal_approx(mini.health, health_before_stab), "Knife starts a visible stab without dealing instant damage")
+	var health_before_slash: float = mini.health
+	check(player.use_item(&"knife") and is_equal_approx(mini.health, health_before_slash), "Knife starts a visible slash without dealing instant damage")
 	for frame in range(18): await physics_frame
-	check(mini.health < health_before_stab and mini.health >= health_before_stab - 4.01, "Knife deals low damage only in its stab hit window")
-	check(player._hand_knife.global_position.distance_to(player._hand_mount.global_position) < 0.13, "Stabbing knife stays within Luke's posed right-hand grip")
+	check(mini.health < health_before_slash and mini.health >= health_before_slash - 4.01, "Knife deals low damage only in its slash hit window")
+	check(player._hand_knife.global_position.distance_to(player._hand_mount.global_position) < 0.13, "Slashing knife stays within Luke's posed right-hand grip")
 	mini.activate(player)
 	mini.take_damage(4.0)
 	check(mini.active and is_equal_approx(mini.health, 8.0), "Worn knife damage cannot one-shot a mini spider")
@@ -158,15 +166,28 @@ func _run() -> void:
 	large.activate(player)
 	large.apply_flashlight_beam(1.0, 1.0)
 	check(large.beam_damage_total > 0.05 and large.beam_damage_total < common_damage, "Anomalous type has intermediate beam response")
-	_finish()
+	await _finish(game)
 
-func _finish() -> void:
+func _finish(game: Node) -> void:
 	var file := FileAccess.open("res://data/equipment_test_report.json", FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify({"kind": "automated headless equipment verification", "checks": checks, "failures": failures, "results": results}, "  "))
 		file.close()
 	print("Equipment: %d checks, %d failures" % [checks, failures])
+	# End this fixture's active WAV playbacks before quitting the audio server.
+	# Otherwise --verbose reports playback/stream references during shutdown.
+	game.process_mode = Node.PROCESS_MODE_DISABLED
+	_stop_fixture_audio(game)
+	game.queue_free()
+	await process_frame
+	await create_timer(0.10).timeout
 	quit(0 if failures == 0 else 1)
+
+func _stop_fixture_audio(node: Node) -> void:
+	if node is AudioStreamPlayer or node is AudioStreamPlayer2D or node is AudioStreamPlayer3D:
+		node.stop()
+	for child in node.get_children():
+		_stop_fixture_audio(child)
 
 func _find_cell(player: BlackwebPlayer, item: StringName) -> int:
 	for index in range(player.inventory.slots.size()):

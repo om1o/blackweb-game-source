@@ -59,6 +59,11 @@ static func apply(house: Node3D) -> Dictionary:
 		for span in [[-4.0, -2.8], [-1.2, 1.2], [2.8, 4.0]]:
 			_add_wall(house, wall_template, "CrossWall", Vector3(x, WALL_BOTTOM, float(span[1])), 0.0, float(span[1]) - float(span[0]))
 			segments += 1
+		# The imported door frame tops out at 2.80 m; seal the 0.40 m gap
+		# above it so the rooms don't look like disconnected exhibition panels.
+		for doorway_end in [-1.20, 2.80]:
+			_add_wall(house, wall_template, "DoorLintel", Vector3(x, 2.78, doorway_end), 0.0, 1.60, 0.42)
+			segments += 1
 	# A solid spine separates the two middle and two rear rooms. The first room
 	# stays wide enough for Mara's phone and the original front-door sightline.
 	# Bury each spine end inside the crossing wall. Matching the visible face
@@ -69,13 +74,22 @@ static func apply(house: Node3D) -> Dictionary:
 	return {"success": true, "removed": removed, "new_wall_segments": segments,
 		"room_count": 5, "bounds": [MIN_X, MAX_X, MIN_Z, MAX_Z]}
 
-static func _add_wall(house: Node3D, template: Node3D, prefix: String, origin: Vector3, yaw: float, length: float) -> void:
+static func _add_wall(house: Node3D, template: Node3D, prefix: String, origin: Vector3, yaw: float, length: float, height: float = WALL_HEIGHT) -> void:
 	var visual: Node3D = template.duplicate()
 	visual.name = "%s_%02d" % [prefix, house.get_child_count()]
 	visual.position = origin
 	visual.rotation = Vector3(0.0, yaw, 0.0)
-	visual.scale = Vector3(1.0, 1.0, length / 2.0)
+	visual.scale = Vector3(1.0, height / WALL_HEIGHT, length / 2.0)
 	visual.set_meta("tutorial_partition", true)
+	if not is_equal_approx(height, WALL_HEIGHT):
+		# Preserve brick scale when a full-height source segment becomes a lintel.
+		for mesh_node in visual.find_children("*", "MeshInstance3D", true, false):
+			for surface in range(mesh_node.mesh.get_surface_count()):
+				var source_material := mesh_node.get_active_material(surface) as StandardMaterial3D
+				if source_material != null:
+					var material := source_material.duplicate() as StandardMaterial3D
+					material.uv1_scale.y *= height / WALL_HEIGHT
+					mesh_node.set_surface_override_material(surface, material)
 	house.add_child(visual)
 	var body := StaticBody3D.new()
 	body.name = visual.name + "_Collision"
@@ -84,11 +98,11 @@ static func _add_wall(house: Node3D, template: Node3D, prefix: String, origin: V
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
 	if absf(yaw) < 0.01:
-		body.position = Vector3(origin.x + WALL_THICKNESS * 0.5, WALL_BOTTOM + WALL_HEIGHT * 0.5, origin.z - length * 0.5)
-		box.size = Vector3(WALL_THICKNESS, WALL_HEIGHT, length)
+		body.position = Vector3(origin.x + WALL_THICKNESS * 0.5, origin.y + height * 0.5, origin.z - length * 0.5)
+		box.size = Vector3(WALL_THICKNESS, height, length)
 	else:
-		body.position = Vector3(origin.x + length * 0.5, WALL_BOTTOM + WALL_HEIGHT * 0.5, origin.z + WALL_THICKNESS * 0.5)
-		box.size = Vector3(length, WALL_HEIGHT, WALL_THICKNESS)
+		body.position = Vector3(origin.x + length * 0.5, origin.y + height * 0.5, origin.z + WALL_THICKNESS * 0.5)
+		box.size = Vector3(length, height, WALL_THICKNESS)
 	shape.shape = box
 	body.add_child(shape)
 	house.add_child(body)

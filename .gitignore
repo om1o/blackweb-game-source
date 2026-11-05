@@ -45,6 +45,7 @@ Playable/
 /Godot/data/*_test_report.json
 /Godot/data/playthrough_*.json
 /Godot/data/item_pose_capture.json
+/Godot/data/knife_swing_capture.json
 /Godot/validation/**/report.json
 /Godot/assets/generated/luke_web_reveal_v1.wav
 *.import

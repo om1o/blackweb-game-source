@@ -27,7 +27,7 @@ const REMOVE_MESHES := {
 }
 const PHOTO_WEB_TEXTURE := "res://assets/generated/corner_web_v1.png"
 const DENSE_SILK_TEXTURE := "res://assets/generated/ceiling_silk_v2.png"
-const RESIDUE_TEXTURE := "res://assets/generated/blood_goo_decal_v1.png"
+const RESIDUE_TEXTURE := "res://assets/generated/blood_goo_smears_v2.png"
 const PAINTED_CABINET_SCENE := "res://assets/third_party/poly_haven/painted_wooden_cabinet/painted_wooden_cabinet_1k.gltf"
 const WORN_SHELF_SCENE := "res://assets/third_party/poly_haven/Shelf_01/Shelf_01_1k.gltf"
 const CAGED_LIGHT_SCENE := "res://assets/third_party/poly_haven/caged_hanging_light/caged_hanging_light_1k.gltf"
@@ -220,6 +220,7 @@ static func _web_mesh() -> ArrayMesh:
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_NORMAL] = _strand_normals(vertices, indices)
 	arrays[Mesh.ARRAY_INDEX] = indices
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
@@ -227,7 +228,7 @@ static func _web_mesh() -> ArrayMesh:
 	silk.resource_name = "Procedural spider silk"
 	silk.albedo_color = Color(0.57, 0.64, 0.64, 0.70)
 	silk.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	silk.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	silk.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	silk.cull_mode = BaseMaterial3D.CULL_DISABLED
 	silk.no_depth_test = false
 	mesh.surface_set_material(0, silk)
@@ -241,8 +242,8 @@ static func _web_sites() -> Array[Dictionary]:
 		{"origin": Vector3(-4.90, 3.05, 3.55), "u": Vector3(1.20, 0, 0), "v": Vector3(0, -0.68, 0), "normal": Vector3(0, 0, -1)},
 		{"origin": Vector3(3.70, 3.03, 3.55), "u": Vector3(-1.10, 0, 0), "v": Vector3(0, -0.65, 0), "normal": Vector3(0, 0, -1)},
 		{"origin": Vector3(5.80, 3.02, -3.75), "u": Vector3(-1.05, 0, 0), "v": Vector3(0, -0.63, 0), "normal": Vector3(0, 0, 1)},
-		{"origin": Vector3(9.55, 3.03, -3.75), "u": Vector3(1.00, 0, 0), "v": Vector3(0, -0.62, 0), "normal": Vector3(0, 0, 1)},
-		{"origin": Vector3(12.75, 3.03, 3.55), "u": Vector3(-1.05, 0, 0), "v": Vector3(0, -0.63, 0), "normal": Vector3(0, 0, -1)},
+		{"origin": Vector3(4.55, 3.03, 0.255), "u": Vector3(1.00, 0, 0), "v": Vector3(0, -0.62, 0), "normal": Vector3(0, 0, 1)},
+		{"origin": Vector3(6.95, 3.03, -0.055), "u": Vector3(-1.05, 0, 0), "v": Vector3(0, -0.63, 0), "normal": Vector3(0, 0, -1)},
 	]
 
 
@@ -254,8 +255,8 @@ static func _radial_web_sites() -> Array[Dictionary]:
 		{"center": Vector3(-2.87, 2.54, -3.56), "radius": 0.45, "phase": 0.2},
 		{"center": Vector3(1.42, 2.47, 3.38), "radius": 0.54, "phase": 0.8},
 		{"center": Vector3(4.48, 2.57, -3.56), "radius": 0.43, "phase": 1.4},
-		{"center": Vector3(8.87, 2.53, 3.38), "radius": 0.52, "phase": 2.2},
-		{"center": Vector3(11.72, 2.52, -3.56), "radius": 0.47, "phase": 2.8},
+		{"center": Vector3(6.77, 2.53, 3.38), "radius": 0.52, "phase": 2.2},
+		{"center": Vector3(6.62, 2.52, -3.56), "radius": 0.47, "phase": 2.8},
 	]
 
 
@@ -291,6 +292,7 @@ static func _radial_web_mesh() -> ArrayMesh:
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_NORMAL] = _strand_normals(vertices, indices)
 	arrays[Mesh.ARRAY_INDEX] = indices
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
@@ -311,8 +313,8 @@ static func _hanging_veil_sites() -> Array[Dictionary]:
 		{"start": Vector3(-3.65, 2.95, -3.14), "width": 0.80, "length": 0.78},
 		{"start": Vector3(-0.65, 2.95, 3.10), "width": 0.90, "length": 0.96},
 		{"start": Vector3(3.48, 2.95, -3.14), "width": 0.82, "length": 0.72},
-		{"start": Vector3(7.25, 2.95, 3.10), "width": 0.94, "length": 0.90},
-		{"start": Vector3(10.55, 2.95, -3.14), "width": 0.88, "length": 0.86},
+		{"start": Vector3(6.25, 2.95, 3.10), "width": 0.94, "length": 0.90},
+		{"start": Vector3(5.55, 2.95, -3.14), "width": 0.88, "length": 0.86},
 	]
 
 
@@ -349,6 +351,7 @@ static func _hanging_veil_mesh() -> ArrayMesh:
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_NORMAL] = _strand_normals(vertices, indices)
 	arrays[Mesh.ARRAY_INDEX] = indices
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
@@ -361,7 +364,7 @@ static func _strand_material(name: String, color: Color) -> StandardMaterial3D:
 	silk.resource_name = name
 	silk.albedo_color = color
 	silk.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	silk.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	silk.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	silk.cull_mode = BaseMaterial3D.CULL_DISABLED
 	return silk
 
@@ -419,12 +422,13 @@ static func _residue_sites() -> Array[Dictionary]:
 					"kind": (index + row + wall_index) % 2,
 					"tilt": 0.16 * sin(float(index * 4 + row * 7))})
 	for face in range(2):
-		var z := -0.035 if face == 0 else 0.035
+		var z := -0.035 if face == 0 else 0.235
 		for index in range(12):
 			var x := -0.30 + float(index) * 0.64
 			sites.append({"center": Vector3(x, 0.75 + float(index % 3) * 0.58, z),
 				"u": Vector3(0.36 + 0.12 * float(index % 3), 0, 0),
 				"v": Vector3(0, 0.42 + 0.11 * float((index + face) % 3), 0),
+				"normal": Vector3.FORWARD if face == 0 else Vector3.BACK,
 				"kind": (index + face) % 2, "tilt": 0.12 * sin(float(index * 5 + face))})
 	# The short cross walls are what Luke sees immediately on entering. Dress
 	# both faces as heavily as the perimeter, keeping the four doorway gaps free.
@@ -436,6 +440,7 @@ static func _residue_sites() -> Array[Dictionary]:
 				sites.append({"center": Vector3(surface_x, 0.92 + 0.37 * float(index % 2), z),
 					"u": Vector3(0, 0, 0.50 + 0.12 * float(index % 2)),
 					"v": Vector3(0, 0.42 + 0.11 * float((index + face) % 2), 0),
+					"normal": Vector3.LEFT if face == 0 else Vector3.RIGHT,
 					"kind": (index + face) % 2, "tilt": 0.11 * sin(float(index * 3 + face))})
 	for index in range(12):
 		sites.append({"center": Vector3(-4.45 + float(index) * 1.03, 0.026,
@@ -443,6 +448,17 @@ static func _residue_sites() -> Array[Dictionary]:
 			"u": Vector3(0.52 + 0.08 * float(index % 3), 0, 0),
 			"v": Vector3(0, 0, 0.27 + 0.07 * float(index % 2)),
 			"kind": index % 2, "tilt": 0.11 * sin(float(index * 6))})
+	# The recovered floor surface is at 0.40 m, not the import origin. Keep all
+	# stains in the cropped house and just above the boards, without z-fighting.
+	for site in sites:
+		var center: Vector3 = site.center
+		if center.x > 7.35:
+			center.x = 3.70 + fmod(center.x - 7.35, 3.40)
+		if absf(site.v.y) < 0.01:
+			center.y = 0.414
+		site.center = center
+		if not site.has("normal"):
+			site.normal = Vector3.UP if absf(site.v.y) < 0.01 else (Vector3.FORWARD if center.z > 0.0 else Vector3.BACK)
 	return sites
 
 
@@ -467,15 +483,15 @@ static func _residue_mesh() -> ArrayMesh:
 		]))
 		# Imported photo decals need surface normals for flashlight shading. The
 		# unlit fallback would otherwise turn both blood and goo pure black.
-		var outward := Vector3.UP if absf(v.y) < 0.01 else (Vector3(0, 0, -1) if center.z > 0.0 else Vector3(0, 0, 1))
+		var outward: Vector3 = site.normal
 		normals.append_array(PackedVector3Array([outward, outward, outward, outward]))
 		var left: float = 0.01 if int(site.kind) == 0 else 0.51
 		var right: float = 0.49 if int(site.kind) == 0 else 0.99
 		uvs.append_array(PackedVector2Array([
-			Vector2(left, 0.02), Vector2(right, 0.02),
 			Vector2(left, 0.98), Vector2(right, 0.98),
+			Vector2(left, 0.02), Vector2(right, 0.02),
 		]))
-		indices.append_array(PackedInt32Array([base, base + 1, base + 2, base + 2, base + 1, base + 3]))
+		_append_facing_quad(indices, base, u, v, outward)
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = vertices
@@ -525,6 +541,7 @@ static func _fallback_residue_texture() -> ImageTexture:
 
 static func _web_card_mesh() -> ArrayMesh:
 	var vertices := PackedVector3Array()
+	var normals := PackedVector3Array()
 	var uvs := PackedVector2Array()
 	var indices := PackedInt32Array()
 	# One wall card and one shallow projecting card at all seven high corners.
@@ -536,13 +553,14 @@ static func _web_card_mesh() -> ArrayMesh:
 		var u: Vector3 = fan.u
 		var v: Vector3 = fan.v
 		var normal: Vector3 = fan.normal
-		_append_web_card(vertices, uvs, indices, origin, origin + u * 0.95, origin + v * 0.94)
-		_append_web_card(vertices, uvs, indices, origin + normal * 0.025,
+		_append_web_card(vertices, normals, uvs, indices, origin, origin + u * 0.95, origin + v * 0.94, normal)
+		_append_web_card(vertices, normals, uvs, indices, origin + normal * 0.025,
 			origin + u * 0.72 + normal * 0.33,
-			origin + v * 0.78 + normal * 0.12)
+			origin + v * 0.78 + normal * 0.12, normal)
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_NORMAL] = normals
 	arrays[Mesh.ARRAY_TEX_UV] = uvs
 	arrays[Mesh.ARRAY_INDEX] = indices
 	var mesh := ArrayMesh.new()
@@ -553,6 +571,7 @@ static func _web_card_mesh() -> ArrayMesh:
 
 static func _accent_web_meshes() -> Dictionary:
 	var card_vertices := PackedVector3Array()
+	var card_normals := PackedVector3Array()
 	var card_uvs := PackedVector2Array()
 	var card_indices := PackedInt32Array()
 	var strand_vertices := PackedVector3Array()
@@ -562,14 +581,14 @@ static func _accent_web_meshes() -> Dictionary:
 	for bridge in [
 		{"a": Vector3(-1.76, 2.97, -3.46), "b": Vector3(-0.58, 2.97, -3.46), "c": Vector3(-1.18, 2.15, -2.53)},
 		{"a": Vector3(3.87, 2.97, 3.41), "b": Vector3(5.01, 2.97, 3.41), "c": Vector3(4.42, 2.14, 2.46)},
-		{"a": Vector3(7.20, 2.97, -3.46), "b": Vector3(8.52, 2.97, -3.46), "c": Vector3(7.86, 2.12, -2.35)},
-		{"a": Vector3(8.90, 2.97, -3.46), "b": Vector3(10.08, 2.97, -3.46), "c": Vector3(9.49, 2.15, -2.47)},
-		{"a": Vector3(10.96, 2.97, 3.41), "b": Vector3(12.22, 2.97, 3.41), "c": Vector3(11.59, 2.12, 2.35)},
+		{"a": Vector3(5.90, 2.97, -3.46), "b": Vector3(7.22, 2.97, -3.46), "c": Vector3(6.56, 2.12, -2.35)},
+		{"a": Vector3(0.40, 2.97, 0.27), "b": Vector3(1.58, 2.97, 0.27), "c": Vector3(0.99, 2.15, 1.27)},
+		{"a": Vector3(5.86, 2.97, 3.41), "b": Vector3(7.12, 2.97, 3.41), "c": Vector3(6.49, 2.12, 2.35)},
 	]:
 		var a: Vector3 = bridge.a
 		var b: Vector3 = bridge.b
 		var c: Vector3 = bridge.c
-		_append_web_card(card_vertices, card_uvs, card_indices, a, b, c)
+		_append_web_card(card_vertices, card_normals, card_uvs, card_indices, a, b, c, Vector3.DOWN)
 		_append_strand(strand_vertices, strand_indices, a, b, Vector3.UP, 0.005)
 		_append_strand(strand_vertices, strand_indices, a, c, Vector3.UP, 0.005)
 		_append_strand(strand_vertices, strand_indices, b, c, Vector3.UP, 0.005)
@@ -588,7 +607,7 @@ static func _accent_web_meshes() -> Dictionary:
 		var a: Vector3 = wrap.a
 		var b: Vector3 = wrap.b
 		var c: Vector3 = wrap.c
-		_append_web_card(card_vertices, card_uvs, card_indices, a, b, c)
+		_append_web_card(card_vertices, card_normals, card_uvs, card_indices, a, b, c, Vector3.BACK)
 		_append_strand(strand_vertices, strand_indices, a, b, Vector3(0, 0, 1), 0.004)
 		_append_strand(strand_vertices, strand_indices, b, c, Vector3(0, 0, 1), 0.004)
 		_append_strand(strand_vertices, strand_indices, c, a, Vector3(0, 0, 1), 0.004)
@@ -598,6 +617,7 @@ static func _accent_web_meshes() -> Dictionary:
 	var card_arrays := []
 	card_arrays.resize(Mesh.ARRAY_MAX)
 	card_arrays[Mesh.ARRAY_VERTEX] = card_vertices
+	card_arrays[Mesh.ARRAY_NORMAL] = card_normals
 	card_arrays[Mesh.ARRAY_TEX_UV] = card_uvs
 	card_arrays[Mesh.ARRAY_INDEX] = card_indices
 	var cards := ArrayMesh.new()
@@ -606,6 +626,7 @@ static func _accent_web_meshes() -> Dictionary:
 	var strand_arrays := []
 	strand_arrays.resize(Mesh.ARRAY_MAX)
 	strand_arrays[Mesh.ARRAY_VERTEX] = strand_vertices
+	strand_arrays[Mesh.ARRAY_NORMAL] = _strand_normals(strand_vertices, strand_indices)
 	strand_arrays[Mesh.ARRAY_INDEX] = strand_indices
 	var strands := ArrayMesh.new()
 	strands.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, strand_arrays)
@@ -613,7 +634,7 @@ static func _accent_web_meshes() -> Dictionary:
 	silk.resource_name = "Ceiling and furniture web strands"
 	silk.albedo_color = Color(0.57, 0.64, 0.64, 0.70)
 	silk.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	silk.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	silk.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	silk.cull_mode = BaseMaterial3D.CULL_DISABLED
 	strands.surface_set_material(0, silk)
 	return {"cards": cards, "strands": strands}
@@ -629,7 +650,8 @@ static func _photo_web_material() -> StandardMaterial3D:
 	# Scissor rejects low-alpha image haze, leaving open strands without a slab.
 	silk.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 	silk.alpha_scissor_threshold = 0.28
-	silk.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	silk.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	silk.roughness = 1.0
 	silk.cull_mode = BaseMaterial3D.CULL_DISABLED
 	return silk
 
@@ -648,7 +670,7 @@ static func _dense_silk_sites() -> Array[Dictionary]:
 				"horizontal": Vector3(1.04, 0, 0), "normal": normal,
 				"height": 0.70 + 0.12 * float((index + back) % 3)})
 	for face in range(2):
-		var z := -0.055 if face == 0 else 0.055
+		var z := -0.055 if face == 0 else 0.255
 		var normal := Vector3(0, 0, -1 if face == 0 else 1)
 		for index in range(6):
 			var x := 0.02 + float(index) * 1.23
@@ -729,18 +751,47 @@ static func _append_silk_quad(vertices: PackedVector3Array, normals: PackedVecto
 		Vector2(0.99, 0.98) if mirror_uv else Vector2(0.01, 0.98),
 		Vector2(0.01, 0.98) if mirror_uv else Vector2(0.99, 0.98),
 	]))
-	indices.append_array(PackedInt32Array([base, base + 1, base + 2,
-		base + 2, base + 1, base + 3]))
+	_append_facing_quad(indices, base, horizontal, vertical, normal)
 
 
-static func _append_web_card(vertices: PackedVector3Array, uvs: PackedVector2Array,
+static func _append_facing_quad(indices: PackedInt32Array, base: int,
+		u: Vector3, v: Vector3, normal: Vector3) -> void:
+	# Godot front faces wind clockwise. Match the geometric face to its lighting
+	# normal; disabling culling alone still flips a back face's lighting normal.
+	if u.cross(v).dot(normal) > 0.0:
+		indices.append_array(PackedInt32Array([base, base + 2, base + 1, base + 2, base + 3, base + 1]))
+	else:
+		indices.append_array(PackedInt32Array([base, base + 1, base + 2, base + 2, base + 1, base + 3]))
+
+
+static func _append_web_card(vertices: PackedVector3Array, normals: PackedVector3Array, uvs: PackedVector2Array,
 		indices: PackedInt32Array, top_left: Vector3, top_right: Vector3,
-		bottom_point: Vector3) -> void:
+		bottom_point: Vector3, facing: Vector3) -> void:
 	var base := vertices.size()
 	vertices.append_array(PackedVector3Array([top_left, top_right, bottom_point]))
+	var normal := (top_right - top_left).cross(bottom_point - top_left).normalized()
+	if normal.dot(facing) < 0.0:
+		normal = -normal
+	normals.append_array(PackedVector3Array([normal, normal, normal]))
 	uvs.append_array(PackedVector2Array([Vector2(0.02, 0.02), Vector2(0.98, 0.02), Vector2(0.5, 0.98)]))
-	indices.append_array(PackedInt32Array([base, base + 1, base + 2]))
+	if (top_right - top_left).cross(bottom_point - top_left).dot(normal) > 0.0:
+		indices.append_array(PackedInt32Array([base, base + 2, base + 1]))
+	else:
+		indices.append_array(PackedInt32Array([base, base + 1, base + 2]))
 
+
+static func _strand_normals(vertices: PackedVector3Array, indices: PackedInt32Array) -> PackedVector3Array:
+	var normals := PackedVector3Array()
+	normals.resize(vertices.size())
+	for i in range(0, indices.size(), 3):
+		var a := indices[i]
+		var b := indices[i + 1]
+		var c := indices[i + 2]
+		var normal := -(vertices[b] - vertices[a]).cross(vertices[c] - vertices[a]).normalized()
+		normals[a] = normal
+		normals[b] = normal
+		normals[c] = normal
+	return normals
 
 static func _append_strand(vertices: PackedVector3Array, indices: PackedInt32Array,
 		a: Vector3, b: Vector3, normal: Vector3, width: float) -> void:

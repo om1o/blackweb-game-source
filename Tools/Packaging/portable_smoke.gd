@@ -65,6 +65,10 @@ func _run() -> void:
 	var player: Node = game.get("player")
 	var spider: Node = game.get("spider")
 	_check("Player controller exists", player != null)
+	var candy: Node = player.get("_hand_candy") if player != null else null
+	_check("Original Blender candy and bitten variant load from the PCK", candy != null and candy.has_node("CandyBarBody/CandyReady") and candy.has_node("CandyBarBody/CandyBitten"))
+	var residue_texture := load("res://assets/generated/blood_goo_smears_v2.png") as Texture2D
+	_check("New transparent blood/goo atlas loads from its packed import", residue_texture != null and residue_texture.get_width() > 1000)
 	_check("Luke skeleton is preserved", _has_skeleton(player, 81))
 	_check("Spider skeleton is preserved", _has_skeleton(spider, 142))
 	_check("Interactive exit door exists", game.get("_exit_door") != null)
