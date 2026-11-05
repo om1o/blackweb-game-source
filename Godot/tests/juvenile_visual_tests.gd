@@ -15,6 +15,18 @@ func _check(condition: bool, message: String) -> void:
 		failures += 1
 		push_error(message)
 
+func _literock_faces_forward(juvenile: Node3D) -> bool:
+	var skeleton := juvenile.find_child("*Skeleton3D*", true, false) as Skeleton3D
+	if skeleton == null: return false
+	var head := skeleton.find_bone("head")
+	var abdomen := skeleton.find_bone("abdomen_01")
+	var fang := skeleton.find_bone("fang_L")
+	if mini(head, mini(abdomen, fang)) < 0: return false
+	var head_at := juvenile.to_local(skeleton.to_global(skeleton.get_bone_global_rest(head).origin))
+	var abdomen_at := juvenile.to_local(skeleton.to_global(skeleton.get_bone_global_rest(abdomen).origin))
+	var fang_at := juvenile.to_local(skeleton.to_global(skeleton.get_bone_global_rest(fang).origin))
+	return fang_at.z < head_at.z and head_at.z < abdomen_at.z
+
 func _run() -> void:
 	var player := Node3D.new()
 	player.position = Vector3(10, 0, 0)
@@ -39,10 +51,15 @@ func _run() -> void:
 		var skeleton := juvenile._visual_root.find_child("*Skeleton3D*", true, false) as Skeleton3D
 		_check(is_instance_valid(skeleton) and skeleton.get_bone_count() >= 40,
 			"Juvenile has a skinned multi-bone rig")
+		_check(_literock_faces_forward(juvenile),
+			"Literock head and fangs face actor-forward minus Z rather than chasing backwards")
 	juvenile.show()
 	juvenile._play_visual("idle")
 	_check(juvenile._visual_animation.is_playing(), "Passive early sighting resumes its idle animation")
 	juvenile.activate(player)
+	if literock_available:
+		juvenile.rotation.y = 0.70
+		_check(_literock_faces_forward(juvenile), "Activation and world turning preserve the Literock anatomical forward axis")
 	juvenile._play_visual("walk")
 	_check(juvenile._visual_animation.is_playing() and juvenile._visual_animation.current_animation == juvenile._visual_clips["walk"],
 		"Juvenile locomotion selects authored walk animation")
@@ -64,6 +81,9 @@ func _run() -> void:
 		juvenile._physics_process(0.30)
 		_check(juvenile._visual_root.rotation.z > 0.15,
 			"Model without an authored death clip visibly collapses")
+	if literock_available:
+		juvenile._on_stage_changed(MiniSpider.Progression.Stage.ENCOUNTER)
+		_check(_literock_faces_forward(juvenile), "Checkpoint revival restores the Literock facing correction after death posing")
 	juvenile.free()
 	var adult := AdultSpider.new()
 	adult.auto_bind_progression = false

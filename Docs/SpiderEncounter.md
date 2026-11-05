@@ -1,5 +1,7 @@
 # Spider encounter integration
 
+**Historical Unreal scaffolding.** The shipped game uses Godot. See [SpiderCombatPass.md](SpiderCombatPass.md) and [SpiderCombatSources.md](SpiderCombatSources.md) for the current implementation; the UE wiring below is retained as an earlier record.
+
 `ABWSpiderEncounter` is a floor-bound `ACharacter` with a standard `AAIController`. It requires the `AIModule` and `NavigationSystem` modules. Source implementation is complete; engine compilation and in-editor playtesting are still required.
 
 ## Scene wiring

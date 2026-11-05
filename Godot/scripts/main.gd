@@ -5,6 +5,7 @@ const InteractionScript = preload("res://scripts/interaction.gd")
 const ProgressionScript = preload("res://scripts/progression.gd")
 const SpiderScript = preload("res://scripts/spider.gd")
 const MiniSpiderScript = preload("res://scripts/mini_spider.gd")
+const SpiderProfile = preload("res://scripts/spider_profile.gd")
 const Props = preload("res://scripts/props.gd")
 const SoundScript = preload("res://scripts/soundscape.gd")
 const MaterialAdapter = preload("res://tools/recovered_materials.gd")
@@ -376,6 +377,7 @@ func _show_optional_clue(text: String) -> void:
 
 func _create_spider() -> void:
 	spider = SpiderScript.new()
+	SpiderProfile.apply_to(spider, "adult")
 	spider.name = "Spider"
 	spider.target = player
 	spider.progression = progression
@@ -384,6 +386,12 @@ func _create_spider() -> void:
 	spider.idle_animation = &"idle"
 	spider.walk_animation = &"walk"
 	spider.run_animation = &"run"
+	# Doorway-centred routes keep the adult inside the five retained rooms.
+	# Every route edge is swept against live collision, including cabinet/doors.
+	for z in [-2.0, 2.0]:
+		for x in [-2.2, -1.35, -0.20, 1.0, 2.65, 3.75, 4.9, 6.0]:
+			spider.navigation_points.append(Vector3(x, 0.45, z))
+	spider.navigation_points.append(Vector3(-2.2, 0.45, 0.0))
 	spider.position = _vec(_layout.get("spider", [0, 0, -6]))
 	if _layout.has("safe_exit"):
 		var safe := Marker3D.new()
@@ -409,6 +417,7 @@ func _create_mini_spiders() -> void:
 		mini.target = player
 		mini.progression = progression
 		mini.hit_damage = 4.0
+		SpiderProfile.apply_to(mini, "juvenile")
 		mini.position = Vector3(1.55, 0.44, -1.72) if index == 0 else Vector3(5.85, 0.44, 1.80)
 		add_child(mini)
 		mini.process_mode = Node.PROCESS_MODE_PAUSABLE

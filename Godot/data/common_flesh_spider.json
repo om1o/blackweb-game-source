@@ -20,9 +20,24 @@
     "beam_damage_per_second_at_full_intensity": 0.12,
     "beam_total_damage_cap": 3,
     "beam_slow_percent_at_full_intensity": 5,
-    "attack_telegraph": "Recovered walk/run movement plus authored procedural front-leg, pedipalp and fang posing, crouch/lean, dim shadowless red pulse and synthesized scratch before lunge.",
+    "bite_distance_m": 1.1,
+    "bite_damage": 18,
+    "bite_windup_s": 0.55,
+    "bite_duration_s": 0.45,
+    "bite_active_window_s": [0.12, 0.32],
+    "lunge_active_window_s": [0.10, 0.60],
+    "attack_half_angle_degrees": 50,
+    "hit_stagger_s": 0.32,
+    "stagger_resistance_s": 1.5,
+    "death_duration_s": 1.1,
+    "hearing_radius_m": 4.5,
+    "hearing_minimum_player_speed_m_s": 2.5,
+    "sight_angle_degrees": 240,
+    "last_known_memory_s": 4.5,
+    "navigation": "Five-room waypoint graph with capsule sweeps, floor probes and live closed-door rejection. Route decisions run at most every 0.35 seconds; static edge results expire after 0.6 seconds. No teleport or wall climbing.",
+    "attack_telegraph": "Recovered walk/run clips plus rig-specific front-leg, pedipalp and fang posing. Windup locks attack direction; a close stationary bite or a straight lunge has one physics-checked impact, followed by retreat/cooldown.",
     "attack_cues": "Original synthesized lunge rush and flesh impact; contact taps are motion-synced.",
-    "resolution": "Escape at existing safe-exit anchor; knife or flashlight cannot bypass route."
+    "resolution": "Escape at existing safe-exit anchor OR kill with weapon damage. 100 HP, zero armor: 25 worn-knife hits at 4 damage without prior damage. Flashlight remains nonlethal and capped at 3 total damage. Death cancels attacks, removes collision, plays a 1.1-second rig pose and unlocks the same exit while leaving a visible corpse."
   },
   "juvenile": {
     "runtime": "res://scripts/mini_spider.gd",
@@ -38,9 +53,14 @@
     "bite_damage_default": 6,
     "bite_damage_in_house": 4,
     "bite_cooldown_s": 1.6,
+    "bite_reach_m": 0.52,
+    "bite_half_angle_degrees": 55,
+    "bite_recovery_s": 0.5,
+    "hit_stagger_s": 0.22,
+    "corpse_hold_s": 1.5,
     "beam_slow_percent_at_full_intensity": 20,
     "beam_slow_duration_s": 0.42,
-    "attack_telegraph": "Authored Bite clip during the 0.28-second tell and body compression before contact; short original synthesized bite click.",
+    "attack_telegraph": "Authored 1-second Bite clip at 2.3x speed. Impact at 0.28 seconds, one hit only inside the committed 55-degree cone with current line of sight and vertical reach. A 0.5-second recovery preserves the clip ending. Knife hits cancel the windup and briefly stagger; three 4-damage hits kill a 12-HP juvenile.",
     "spawn": "One non-attacking sighting is visible in the supply room before the encounter; two combat juveniles occupy the supply and vault rooms when the encounter begins."
   }
 }

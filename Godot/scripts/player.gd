@@ -1327,6 +1327,7 @@ func _knife_strike() -> bool:
 	for group in [&"mini_spider", &"spider"]:
 		for candidate in get_tree().get_nodes_in_group(group):
 			if not is_instance_valid(candidate) or not candidate is Node3D or not candidate.visible or not candidate.has_method("take_damage"): continue
+			if candidate.has_method("is_alive") and not candidate.is_alive(): continue
 			var toward: Vector3 = candidate.global_position + Vector3.UP * 0.25 - origin
 			var length := toward.length()
 			if length >= distance or length < 0.01 or facing.dot(toward.normalized()) < 0.35: continue

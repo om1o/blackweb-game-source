@@ -8,6 +8,13 @@ const Progression = preload("res://scripts/progression.gd")
 const LITEROCK_VISUAL_PATH := "res://assets/third_party/literock/Giant_Spider_Lite_1K.glb"
 const FALLBACK_VISUAL_PATH := "res://assets/third_party/poly_pizza/quaternius_spider/quaternius_spider.glb"
 
+signal health_changed(current: float, maximum: float)
+signal combat_state_changed(next: int)
+signal bite_resolved(hit: bool)
+signal died
+
+enum CombatState { DORMANT, WAITING, PURSUING, WINDUP, RECOVERY, STAGGERED, DEAD }
+
 @export var target: Node3D
 @export var progression: Progression
 @export var auto_bind_progression := true
@@ -17,13 +24,22 @@ const FALLBACK_VISUAL_PATH := "res://assets/third_party/poly_pizza/quaternius_sp
 @export var armor := 0.0
 @export var awareness_radius := 8.0
 @export var bite_windup_seconds := 0.28
+@export var bite_reach := 0.52
+@export_range(0.0, 180.0) var bite_half_angle_degrees := 55.0
+@export var attack_cooldown_seconds := 1.6
+@export var bite_recovery_seconds := 0.50
+@export var hit_stagger_seconds := 0.22
+@export var corpse_hold_seconds := 1.50
 
 var health := 12.0
 var active := false
+var combat_state: CombatState = CombatState.DORMANT
 var light_slow_remaining := 0.0
 var light_speed_factor := 1.0
 var _attack_cooldown := 0.0
 var _bite_windup_remaining := 0.0
+var _bite_direction := Vector3.FORWARD
+var _stagger_remaining := 0.0
 var _body_visual: MeshInstance3D
 var _bite_audio: AudioStreamPlayer3D
 var _visual_root: Node3D
@@ -34,8 +50,10 @@ var _visual_is_literock := false
 var _visual_animation: AnimationPlayer
 var _visual_clips: Dictionary = {}
 var _death_remaining := 0.0
+var _spawn_transform := Transform3D.IDENTITY
 
 func _ready() -> void:
+	_spawn_transform = global_transform
 	add_to_group("mini_spider")
 	collision_layer = 4
 	collision_mask = 3
@@ -74,6 +92,10 @@ func _create_visual() -> void:
 				# a large house juvenile. The old CC0 fallback uses FBX units.
 				animated.scale = Vector3.ONE * (0.30 if _visual_is_literock else 0.055)
 				animated.position.y = 0.015 if _visual_is_literock else 0.11
+				# This rig's rest head/fangs point +Z; locomotion and committed
+				# attacks use actor-forward -Z. Keep the correction on this visual
+				# only, before capturing the pose restored by hit/death/reset code.
+				if _visual_is_literock: animated.rotation.y = PI
 				add_child(animated)
 				_visual_root = animated
 				_visual_rest_scale = animated.scale
@@ -124,36 +146,54 @@ func _create_visual() -> void:
 	add_child(legs)
 	_visual_root = body_instance
 	_visual_rest_scale = body_instance.scale
+	_visual_rest_position = body_instance.position
+	_visual_rest_rotation = body_instance.rotation
 
 func _play_visual(kind: String) -> void:
 	if not is_instance_valid(_visual_animation): return
 	var clip: StringName = _visual_clips.get(kind, &"")
 	if clip.is_empty() or not _visual_animation.has_animation(clip): return
+	# Literock's 1 s Bite finishes in ~0.435 s at this speed. The 0.28 s
+	# gameplay impact falls during fang closure; recovery preserves its ending.
 	_visual_animation.speed_scale = 2.3 if _visual_is_literock and kind == "attack" else 1.0
 	if _visual_animation.current_animation != clip or not _visual_animation.is_playing():
 		_visual_animation.play(clip, 0.08)
+
+func _set_combat_state(value: CombatState) -> void:
+	if combat_state == value: return
+	combat_state = value
+	combat_state_changed.emit(value)
 
 func _sync_stage() -> void:
 	if is_instance_valid(progression): _on_stage_changed(progression.stage)
 
 func _on_stage_changed(stage: int) -> void:
-	if stage == Progression.Stage.ENCOUNTER: activate(target)
+	if stage == Progression.Stage.ENCOUNTER:
+		global_transform = _spawn_transform
+		activate(target)
 	else: deactivate()
 
 func activate(player: Node3D = null) -> void:
 	if is_instance_valid(player): target = player
 	if not is_instance_valid(target): target = get_tree().get_first_node_in_group("player") as Node3D
 	if not is_instance_valid(target): return
+	velocity = Vector3.ZERO
 	health = maxf(1.0, max_health)
 	light_slow_remaining = 0.0
 	light_speed_factor = 1.0
 	_attack_cooldown = 0.0
 	_bite_windup_remaining = 0.0
+	_stagger_remaining = 0.0
 	_death_remaining = 0.0
 	active = true
 	collision_layer = 4
 	collision_mask = 3
 	show()
+	_restore_visual_pose()
+	if is_instance_valid(_bite_audio): _bite_audio.stop()
+	if is_instance_valid(_visual_animation): _visual_animation.stop()
+	_set_combat_state(CombatState.WAITING)
+	health_changed.emit(health, max_health)
 	_play_visual("idle")
 	set_physics_process(true)
 
@@ -161,12 +201,10 @@ func deactivate() -> void:
 	active = false
 	velocity = Vector3.ZERO
 	_bite_windup_remaining = 0.0
+	_stagger_remaining = 0.0
 	_death_remaining = 0.0
-	if is_instance_valid(_body_visual): _body_visual.scale = Vector3.ONE
-	if is_instance_valid(_visual_root):
-		_visual_root.scale = _visual_rest_scale
-		_visual_root.position = _visual_rest_position
-		_visual_root.rotation = _visual_rest_rotation
+	_set_combat_state(CombatState.DORMANT)
+	_restore_visual_pose()
 	if is_instance_valid(_visual_animation): _visual_animation.pause()
 	if is_instance_valid(_bite_audio): _bite_audio.stop()
 	collision_layer = 0
@@ -174,55 +212,99 @@ func deactivate() -> void:
 	hide()
 	set_physics_process(false)
 
+func _restore_visual_pose() -> void:
+	if is_instance_valid(_visual_root):
+		_visual_root.scale = _visual_rest_scale
+		_visual_root.position = _visual_rest_position
+		_visual_root.rotation = _visual_rest_rotation
+
 func _physics_process(delta: float) -> void:
 	if _death_remaining > 0.0:
 		_death_remaining -= delta
+		_move_grounded(Vector3.ZERO, delta)
 		if is_instance_valid(_visual_root) and not _visual_clips.has("death"):
-			var fall := clampf(1.0 - _death_remaining / 0.65, 0.0, 1.0)
+			var fall := clampf((maxf(0.65, corpse_hold_seconds) - _death_remaining) / 0.65, 0.0, 1.0)
 			_visual_root.rotation.z = _visual_rest_rotation.z + 0.40 * fall
 			_visual_root.position.y = _visual_rest_position.y - 0.07 * fall
 		if _death_remaining <= 0.0: deactivate()
 		return
-	if not active or not is_instance_valid(target): return
+	if not active: return
 	light_slow_remaining = maxf(0.0, light_slow_remaining - delta)
 	_attack_cooldown = maxf(0.0, _attack_cooldown - delta)
+	if _stagger_remaining > 0.0:
+		_stagger_remaining = maxf(0.0, _stagger_remaining - delta)
+		_set_combat_state(CombatState.STAGGERED)
+		_move_grounded(Vector3.ZERO, delta)
+		if is_instance_valid(_visual_root):
+			var recoil := sin(PI * _stagger_remaining / maxf(0.01, hit_stagger_seconds))
+			_visual_root.rotation.x = _visual_rest_rotation.x - 0.13 * recoil
+			_visual_root.position.y = _visual_rest_position.y + 0.025 * recoil
+		if _stagger_remaining <= 0.0: _restore_visual_pose()
+		return
+	if _bite_windup_remaining > 0.0:
+		_set_combat_state(CombatState.WINDUP)
+		_bite_windup_remaining = maxf(0.0, _bite_windup_remaining - delta)
+		_move_grounded(Vector3.ZERO, delta)
+		if _bite_windup_remaining <= 0.0:
+			_attack_cooldown = maxf(attack_cooldown_seconds, bite_recovery_seconds)
+			var hit := _can_bite_target(bite_reach) and _inside_committed_bite()
+			if hit and target.has_method("take_damage"):
+				target.call("take_damage", hit_damage)
+				if is_instance_valid(_bite_audio): _bite_audio.play()
+			bite_resolved.emit(hit)
+			_set_combat_state(CombatState.RECOVERY)
+		return
+	# Let the authored Bite finish and leave a punishable pause. Do not restart
+	# the clip every frame or replace it with Walk immediately after impact.
+	if _attack_cooldown > maxf(0.0, attack_cooldown_seconds - bite_recovery_seconds):
+		_set_combat_state(CombatState.RECOVERY)
+		_move_grounded(Vector3.ZERO, delta)
+		return
+	if not _target_can_fight():
+		_set_combat_state(CombatState.WAITING)
+		_move_grounded(Vector3.ZERO, delta)
+		_play_visual("idle")
+		return
 	var toward := target.global_position - global_position
 	toward.y = 0.0
-	if _bite_windup_remaining > 0.0:
-		_bite_windup_remaining = maxf(0.0, _bite_windup_remaining - delta)
-		if is_instance_valid(_body_visual): _body_visual.scale = Vector3(1.10, 0.80, 1.10)
-		if is_instance_valid(_visual_root) and not is_instance_valid(_body_visual):
-			_visual_root.scale = _visual_rest_scale * Vector3(1.08, 0.85, 1.08)
-		_play_visual("attack")
-		if _bite_windup_remaining <= 0.0:
-			if is_instance_valid(_body_visual): _body_visual.scale = Vector3.ONE
-			if is_instance_valid(_visual_root): _visual_root.scale = _visual_rest_scale
-			_attack_cooldown = 1.6
-			if _can_bite_target(0.52):
-				if target.has_method("take_damage"): target.call("take_damage", hit_damage)
-				_bite_audio.play()
-		velocity.x = move_toward(velocity.x, 0.0, 8.0 * delta)
-		velocity.z = move_toward(velocity.z, 0.0, 8.0 * delta)
-		velocity.y = -0.5 if is_on_floor() else velocity.y - 18.0 * delta
-		move_and_slide()
-		return
 	var factor := light_speed_factor if light_slow_remaining > 0.0 else 1.0
 	# A juvenile only pursues a visible target. Directly chasing through a room
 	# partition made it grind into the wall/furniture corner every physics tick.
 	# Keep gravity and collision running while it waits; an opening door or a
 	# player crossing its sightline immediately permits normal pursuit again.
 	var desired := toward.normalized() * walk_speed * factor if toward.length() < awareness_radius and _can_see_target() else Vector3.ZERO
-	velocity.x = move_toward(velocity.x, desired.x, 5.0 * delta)
-	velocity.z = move_toward(velocity.z, desired.z, 5.0 * delta)
-	velocity.y = -0.5 if is_on_floor() else velocity.y - 18.0 * delta
 	if desired.length_squared() > 0.001: rotation.y = lerp_angle(rotation.y, atan2(-desired.x, -desired.z), minf(1.0, delta * 7.0))
-	move_and_slide()
-	_play_visual("walk" if desired.length_squared() > 0.001 else "idle")
-	if _attack_cooldown <= 0.0 and _can_bite_target(0.50):
-		_bite_windup_remaining = bite_windup_seconds
+	_move_grounded(desired, delta)
+	_set_combat_state(CombatState.PURSUING if desired.length_squared() > 0.001 else CombatState.WAITING)
+	var actual_speed := Vector2(get_real_velocity().x, get_real_velocity().z).length()
+	_play_visual("walk" if actual_speed > 0.08 else "idle")
+	if actual_speed > 0.08 and is_instance_valid(_visual_animation):
+		_visual_animation.speed_scale = clampf(actual_speed / maxf(0.1, walk_speed), 0.35, 1.25)
+	if _attack_cooldown <= 0.0 and _can_bite_target(minf(0.50, bite_reach)):
+		_bite_direction = toward.normalized() if toward.length_squared() > 0.001 else -global_basis.z
+		rotation.y = atan2(-_bite_direction.x, -_bite_direction.z)
+		_bite_windup_remaining = maxf(0.01, bite_windup_seconds)
+		_set_combat_state(CombatState.WINDUP)
+		# Explicitly restart once per attack, even if a previous clip was paused.
+		if is_instance_valid(_visual_animation): _visual_animation.stop()
 		_play_visual("attack")
 
+func _move_grounded(desired: Vector3, delta: float) -> void:
+	var acceleration := 8.0 if desired.length_squared() < 0.001 else 5.0
+	velocity.x = move_toward(velocity.x, desired.x, acceleration * delta)
+	velocity.z = move_toward(velocity.z, desired.z, acceleration * delta)
+	velocity.y = -0.5 if is_on_floor() else velocity.y - 18.0 * delta
+	move_and_slide()
+
+func _inside_committed_bite() -> bool:
+	if not is_instance_valid(target): return false
+	var offset := target.global_position - global_position
+	offset.y = 0.0
+	if offset.length_squared() < 0.0001: return true
+	return _bite_direction.dot(offset.normalized()) >= cos(deg_to_rad(bite_half_angle_degrees))
+
 func _can_see_target() -> bool:
+	if not is_instance_valid(target): return false
 	var eye := global_position + Vector3.UP * 0.14
 	var target_feet := target.global_position + Vector3.UP * 0.14
 	var query := PhysicsRayQueryParameters3D.create(eye, target_feet, 1, [get_rid()])
@@ -230,8 +312,7 @@ func _can_see_target() -> bool:
 	return get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
 func _can_bite_target(reach: float) -> bool:
-	if not is_instance_valid(target): return false
-	if target.has_method("is_recovering") and target.call("is_recovering"): return false
+	if not _target_can_fight(): return false
 	# Feet-level bite path: use full 3D distance so jumping out of reach works,
 	# and check again at impact in case a door closes during the windup.
 	var bite_from := global_position + Vector3.UP * 0.14
@@ -241,26 +322,50 @@ func _can_bite_target(reach: float) -> bool:
 	query.hit_from_inside = true
 	return get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
+func _target_can_fight() -> bool:
+	if not is_instance_valid(target): return false
+	if target.has_method("is_recovering") and bool(target.call("is_recovering")): return false
+	var target_health: Variant = target.get("health")
+	if target_health is float or target_health is int:
+		return is_finite(float(target_health)) and float(target_health) > 0.0
+	return true
+
 func apply_flashlight_beam(intensity: float, _delta: float) -> void:
 	if not active or intensity <= 0.0: return
 	light_speed_factor = 1.0 - 0.20 * clampf(intensity, 0.0, 1.0)
 	light_slow_remaining = 0.42
 
+func is_alive() -> bool:
+	return active and health > 0.0
+
 func take_damage(amount: float) -> void:
-	if not active or amount <= 0.0: return
-	health = maxf(0.0, health - maxf(0.0, amount - armor))
+	if not active or not is_finite(amount) or amount <= 0.0: return
+	var received := maxf(0.0, amount - maxf(0.0, armor))
+	if received <= 0.0: return
+	health = maxf(0.0, health - received)
+	health_changed.emit(health, max_health)
+	_bite_windup_remaining = 0.0
+	_restore_visual_pose()
 	if health <= 0.0:
 		active = false
+		_set_combat_state(CombatState.DEAD)
 		collision_layer = 0
-		collision_mask = 0
+		# The corpse no longer blocks the player, but still settles on the floor.
+		collision_mask = 1
 		velocity = Vector3.ZERO
 		_play_visual("death")
-		_death_remaining = 0.65
+		_death_remaining = maxf(0.65, corpse_hold_seconds)
 		if is_instance_valid(_visual_animation) and _visual_clips.has("death"):
-			_death_remaining = maxf(0.65, _visual_animation.get_animation(_visual_clips["death"]).length)
+			_death_remaining = maxf(_death_remaining, _visual_animation.get_animation(_visual_clips["death"]).length)
 		elif is_instance_valid(_visual_animation):
 			_visual_animation.pause()
 		set_physics_process(true)
+		died.emit()
+	else:
+		_stagger_remaining = maxf(0.01, hit_stagger_seconds)
+		_attack_cooldown = maxf(_attack_cooldown, attack_cooldown_seconds)
+		_set_combat_state(CombatState.STAGGERED)
+		_play_visual("idle")
 
 func _make_bite_cue() -> AudioStreamWAV:
 	var count := 1800

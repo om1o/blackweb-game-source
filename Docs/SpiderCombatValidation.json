@@ -1,0 +1,68 @@
+{
+  "completed_utc": "2026-11-05T05:54:41.237Z",
+  "engine": "Godot 4.7.2 stable Windows",
+  "package": {
+    "bytes": 1011898676,
+    "files": 1786,
+    "sha256": "2D71AE5A33B3D9B0BA3FA9A55D51BB2FB9A980908A5FFDC03422107ACC2356F7",
+    "installed": "Playable/Blackweb.pck",
+    "matches_critical_source_hashes": true
+  },
+  "packaged_checks": {
+    "adult_combat_and_perception": 63,
+    "juvenile_combat": 31,
+    "navigation": 14,
+    "actual_house_combat": 11,
+    "rig_and_facing": 22,
+    "startup_and_dependencies": 31,
+    "all_passed": true
+  },
+  "additional_source_regressions": {
+    "spider_integration": 18,
+    "juvenile_occlusion": 9,
+    "juvenile_pursuit": 12,
+    "equipment": 53,
+    "five_room_traversal": 23,
+    "progression": 56,
+    "all_passed": true
+  },
+  "native_review": {
+    "captures": 8,
+    "failures": 0,
+    "staged": true,
+    "qa_fill": true,
+    "human_playtest": false,
+    "report": "Evidence/spider-combat-20261105-review.md",
+    "juvenile_facing_fixed": true
+  },
+  "route_query_measurement": {
+    "sample_count": 121,
+    "first_cold_us": 13350,
+    "warm": {
+      "max_us": 6668,
+      "mean_us": 2845.26666666667,
+      "median_us": 2506,
+      "min_us": 1889,
+      "p95_us": 4899,
+      "samples": 60
+    },
+    "invalidated": {
+      "max_us": 9891,
+      "mean_us": 4766.46666666667,
+      "median_us": 4336,
+      "min_us": 3860,
+      "p95_us": 6745,
+      "samples": 60
+    },
+    "controlled_benchmark": false,
+    "fps_measurement": false,
+    "alternative_astar_rejected": true
+  },
+  "limits": [
+    "Adult attacks and death remain procedural rig poses; death needs authored leg-curl polish.",
+    "No contact-aware leg IK or wall climbing.",
+    "Hearing approximates running footsteps from player speed and proximity.",
+    "Existing full ZIP remains the earlier snapshot.",
+    "An already-running game must be restarted to load this package."
+  ]
+}

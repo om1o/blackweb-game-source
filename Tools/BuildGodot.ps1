@@ -24,7 +24,10 @@ if ($Action -eq 'RecoverScene') {
     & $godotExecutable --headless --path $godotProject --script res://tools/build_house.gd -- --manifest=res://data/opening_components.json
     if ($LASTEXITCODE -ne 0) { throw 'House reconstruction is incomplete; read Godot/data/house_import_report.json.' }
 } else {
-    foreach ($test in @('res://tests/progression_tests.gd','res://tests/spider_tests.gd')) {
+    foreach ($test in @('res://tests/progression_tests.gd','res://tests/spider_tests.gd',
+        'res://tests/adult_combat_tests.gd','res://tests/juvenile_combat_tests.gd',
+        'res://tests/spider_navigation_tests.gd','res://tests/house_spider_combat_tests.gd',
+        'res://tests/juvenile_visual_tests.gd')) {
         & $godotExecutable --headless --path $godotProject --script $test
         if ($LASTEXITCODE -ne 0) { throw "Failed: $test" }
     }
