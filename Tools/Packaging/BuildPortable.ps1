@@ -141,6 +141,7 @@ if (-not $plan.fits) { throw 'Package would exceed the total project storage lim
 if ($PlanOnly) { return }
 $critical = @('res://project.godot','res://scripts/main.gd','res://scripts/player.gd','res://scripts/progression.gd','res://scripts/spider.gd','res://scripts/mini_spider.gd','res://scripts/house_dressing.gd','res://scripts/environment_surfaces.gd','res://scripts/modeled_silk.gd','res://scripts/tutorial_house.gd','res://tools/recovered_materials.gd','res://scenes/recovered_house.tscn','res://scenes/luke.tscn','res://scenes/spider_visual.tscn','res://data/house_layout.json','res://data/opening_components.json')
 $critical += @('res://scripts/spider_navigation.gd','res://scripts/spider_profile.gd','res://data/common_flesh_spider.json')
+$critical += @('res://scripts/inventory_grid.gd','res://scripts/status_hud.gd','res://scripts/tutorial_campaign.gd','res://scripts/field_overlay.gd','res://scripts/tutorial_intro.gd','res://scripts/tutorial_props.gd','res://scripts/tutorial_evidence.gd','res://scripts/tutorial_door.gd','res://scripts/tutorial_door_handle.gd','res://scripts/combat_effects.gd','res://scripts/soundscape.gd','res://scripts/item_audio.gd','res://data/phone_dialogue.json')
 $hashes = [ordered]@{}
 foreach ($resource in $critical) { $hashes[$resource] = (Get-FileHash -LiteralPath $inputFiles[$resource].source -Algorithm SHA256).Hash }
 $publicInfo = [ordered]@{

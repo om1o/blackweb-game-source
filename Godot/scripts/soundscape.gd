@@ -17,6 +17,8 @@ var _event: AudioStreamPlayer
 var _web_voice: AudioStreamPlayer
 var _mara_warning: AudioStreamPlayer
 var _phone_reply: AudioStreamPlayer
+var _voice_test: AudioStreamPlayer
+var _phone_dialogue: Dictionary = {}
 var _phone_timer := 1.2
 var _step_distance := 0.0
 var _step_streams: Array[AudioStream] = []
@@ -33,14 +35,19 @@ var _phone_reply_played := false
 var _phone_clock_elapsed := 0.0
 var _phone_clock_tick_usec := 0
 const WEB_REVEAL_POSITION := Vector3(-1.6, 0.44, -2.0)
-const WEB_VOICE_PATH := "res://assets/generated/luke_web_reveal_neural_v2.wav"
-const MARA_WARNING_PATH := "res://assets/generated/mara_phone_warning_neural_v1.wav"
-const PHONE_REPLY_PATH := "res://assets/generated/luke_phone_reply_neural_v1.wav"
+const PHONE_DIALOGUE_PATH := "res://data/phone_dialogue.json"
+const DIALOGUE_BUS := &"Dialogue"
+const WEB_VOICE_PATH := "res://assets/generated/luke_web_reveal_neural_v3.wav"
+const MICA_WARNING_PATH := "res://assets/generated/mica_phone_warning_neural_v1.wav"
+const PHONE_REPLY_PATH := "res://assets/generated/luke_mica_reply_neural_v1.wav"
+const VOICE_TEST_PATH := "res://assets/generated/luke_voice_check_neural_v1.wav"
 const STEP_PITCH := [0.985, 1.01, 0.995, 1.015]
 const STEP_GAIN := [-0.6, 0.2, -0.2, 0.5]
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
+	_load_phone_dialogue()
+	_ensure_dialogue_bus()
 	_room = AudioStreamPlayer.new()
 	_room.name = "OriginalMechanicalRoomHum"
 	_room.volume_db = -24.0
@@ -87,19 +94,31 @@ func _ready() -> void:
 	add_child(_event)
 	_web_voice = AudioStreamPlayer.new()
 	_web_voice.name = "LukeWebRevealVoice"
-	_web_voice.volume_db = -7.0
-	_web_voice.stream = _load_voice(WEB_VOICE_PATH)
+	_web_voice.bus = DIALOGUE_BUS
+	_web_voice.volume_db = 0.0
+	_web_voice.stream = _load_voice(_dialogue_path("web_reaction", WEB_VOICE_PATH))
 	add_child(_web_voice)
 	_mara_warning = AudioStreamPlayer.new()
-	_mara_warning.name = "MaraPhoneWarningVoice"
-	_mara_warning.volume_db = -6.0
-	_mara_warning.stream = _load_voice(MARA_WARNING_PATH, "Mara phone warning")
+	# Keep the private legacy field for existing QA callers; the caller is Mica.
+	_mara_warning.name = "MicaPhoneWarningVoice"
+	_mara_warning.bus = DIALOGUE_BUS
+	_mara_warning.volume_db = 0.0
+	_mara_warning.stream = _load_voice(_dialogue_path("warning", MICA_WARNING_PATH), "Mica phone warning")
 	add_child(_mara_warning)
 	_phone_reply = AudioStreamPlayer.new()
 	_phone_reply.name = "LukePhoneReplyVoice"
-	_phone_reply.volume_db = -7.0
-	_phone_reply.stream = _load_voice(PHONE_REPLY_PATH, "Luke phone reply")
+	_phone_reply.bus = DIALOGUE_BUS
+	_phone_reply.volume_db = 0.0
+	_phone_reply.stream = _load_voice(_dialogue_path("reply", PHONE_REPLY_PATH), "Luke phone reply")
 	add_child(_phone_reply)
+	_voice_test = AudioStreamPlayer.new()
+	_voice_test.name = "MenuVoiceCheck"
+	_voice_test.bus = DIALOGUE_BUS
+	_voice_test.volume_db = 0.0
+	_voice_test.process_mode = Node.PROCESS_MODE_ALWAYS
+	_voice_test.stream = _load_voice(_dialogue_path("voice_test", VOICE_TEST_PATH), "voice check")
+	add_child(_voice_test)
+	_voice_test.finished.connect(stop_voice_test)
 	if is_instance_valid(player):
 		player.recovery_changed.connect(_on_recovery)
 		_recovering = player.is_recovering()
@@ -114,6 +133,46 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_PAUSED or what == NOTIFICATION_UNPAUSED:
 		# A paused menu must not count toward the real-time message clock.
 		_phone_clock_tick_usec = Time.get_ticks_usec()
+	if what == NOTIFICATION_UNPAUSED:
+		stop_voice_test()
+
+func _load_phone_dialogue() -> void:
+	if FileAccess.file_exists(PHONE_DIALOGUE_PATH):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(PHONE_DIALOGUE_PATH))
+		if parsed is Dictionary:
+			_phone_dialogue = parsed
+
+func _dialogue_path(role: String, fallback: String) -> String:
+	return str(_phone_dialogue.get(role, {}).get("path", fallback))
+
+func _ensure_dialogue_bus() -> void:
+	if AudioServer.get_bus_index(DIALOGUE_BUS) >= 0: return
+	AudioServer.add_bus()
+	var index := AudioServer.bus_count - 1
+	AudioServer.set_bus_name(index, DIALOGUE_BUS)
+	AudioServer.set_bus_send(index, &"Master")
+	AudioServer.set_bus_volume_db(index, 0.0)
+	# Existing user bus settings are preserved; this only creates our new bus.
+
+func play_voice_test() -> bool:
+	if not is_instance_valid(_voice_test) or _voice_test.stream == null or _voice_test.playing: return false
+	# Menu-only: never interrupt an active gameplay line or consume its once flag.
+	if not get_tree().paused and is_instance_valid(player) and player.active: return false
+	for channel in [_mara_warning, _phone_reply, _web_voice]:
+		if is_instance_valid(channel): channel.stream_paused = true
+	_voice_test.play()
+	return true
+
+func stop_voice_test() -> void:
+	if is_instance_valid(_voice_test): _voice_test.stop()
+	for channel in [_mara_warning, _phone_reply, _web_voice]:
+		if is_instance_valid(channel): channel.stream_paused = false
+
+func get_audio_status() -> Dictionary:
+	var buses: Array[Dictionary] = []
+	for index in range(AudioServer.bus_count):
+		buses.append({"name": AudioServer.get_bus_name(index), "send": AudioServer.get_bus_send(index), "volume_db": AudioServer.get_bus_volume_db(index), "muted": AudioServer.is_bus_mute(index), "solo": AudioServer.is_bus_solo(index), "peak_left_db": AudioServer.get_bus_peak_volume_left_db(index, 0), "peak_right_db": AudioServer.get_bus_peak_volume_right_db(index, 0)})
+	return {"driver": AudioServer.get_driver_name(), "output_device": AudioServer.output_device, "output_devices": AudioServer.get_output_device_list(), "mix_rate": AudioServer.get_mix_rate(), "output_latency_seconds": AudioServer.get_output_latency(), "buses": buses, "dialogue_loaded": is_instance_valid(_mara_warning) and _mara_warning.stream != null and is_instance_valid(_phone_reply) and _phone_reply.stream != null, "voice_test_loaded": is_instance_valid(_voice_test) and _voice_test.stream != null, "voice_test_playing": is_instance_valid(_voice_test) and _voice_test.playing, "missing": _missing_audio.duplicate()}
 
 func _load_sound(sound_path: String, role: String) -> AudioStream:
 	if not sound_path.is_empty() and ResourceLoader.exists(sound_path):
@@ -142,7 +201,7 @@ func _load_voice(sound_path: String, role: String = "Luke web reveal neural voic
 	return null
 
 func get_audio_provenance() -> Dictionary:
-	return {"recovered": _recovered_audio.duplicate(true), "original_procedural": ["low mechanical room hum", "phone notification ping", "power-cut click"], "prototype_voice": {"path": WEB_VOICE_PATH, "source": "Locally generated Kokoro-82M neural voice, am_michael; synthetic placeholder, not an actor performance"}, "phone_dialogue": {"mara_path": MARA_WARNING_PATH, "luke_path": PHONE_REPLY_PATH, "source": "Local Kokoro-82M stock synthetic voices: af_heart and am_michael; no voice cloning", "policy": "Once per message attempt, aligned to message elapsed time and subtitle slots, no overlap with the web reaction"}, "missing": _missing_audio.duplicate(), "presence_policy": "Spatial, quiet, once per PRESENCE entry, at most 8 active seconds, stopped on POWER_LOSS.", "footstep_policy": "Recovered wood samples, grounded velocity-based stride distance, deterministic mild pitch/gain sequence.", "continuous_horror_score": false}
+	return {"recovered": _recovered_audio.duplicate(true), "original_procedural": ["low mechanical room hum", "phone notification ping", "power-cut click"], "prototype_voice": {"path": _dialogue_path("web_reaction", WEB_VOICE_PATH), "source": "Locally generated Kokoro-82M neural voice, am_michael; synthetic placeholder, not an actor performance"}, "phone_dialogue": {"mica_path": _dialogue_path("warning", MICA_WARNING_PATH), "luke_path": _dialogue_path("reply", PHONE_REPLY_PATH), "timeline": PHONE_DIALOGUE_PATH, "source": "Local Kokoro-82M stock synthetic voices: af_heart and am_michael; no voice cloning", "policy": "Once per message attempt, aligned to message elapsed time and subtitle slots, no overlap with the web reaction"}, "missing": _missing_audio.duplicate(), "presence_policy": "Spatial, quiet, once per PRESENCE entry, at most 8 active seconds, stopped on POWER_LOSS.", "footstep_policy": "Recovered wood samples, grounded velocity-based stride distance, deterministic mild pitch/gain sequence.", "continuous_horror_score": false}
 
 func _process(delta: float) -> void:
 	if not is_instance_valid(player) or not is_instance_valid(progression): return
@@ -158,13 +217,15 @@ func _process(delta: float) -> void:
 			_phone_reply.stop()
 			_phone_reply_played = false
 		return # A door opened during departure may finish naturally.
+	if _voice_test.playing: stop_voice_test()
 	if _stage == progression.Stage.MESSAGE:
 		_synchronize_phone_clock()
 		play_mara_warning()
 		play_phone_reply()
-		# End the phone channel at its subtitle boundary even if an audio
-		# driver trails the game clock slightly under load.
-		if _mara_warning.playing and progression._elapsed >= _mara_warning.stream.get_length():
+		# The recording ends naturally. Its complete duration is in the shared
+		# timeline; never cut it at a previous recording's hardcoded boundary.
+		# Some drivers retain playing=true for a frame after the final sample.
+		if _mara_warning.playing and _mara_warning.get_playback_position() >= _mara_warning.stream.get_length():
 			_mara_warning.stop()
 	if not _web_voice_played and _stage >= progression.Stage.PREPARATION and _stage < progression.Stage.POWER_LOSS and player.global_position.distance_to(WEB_REVEAL_POSITION) < 2.3:
 		play_web_reveal_voice()
@@ -203,7 +264,7 @@ func play_web_reveal_voice() -> bool:
 	_web_voice_played = true
 	_web_voice.play()
 	if is_instance_valid(progression):
-		progression.show_notice("Luke: Mara... these webs were not here yesterday.", 3.2)
+		progression.show_notice(str(_phone_dialogue.get("web_reaction", {}).get("subtitle", "Luke: Mica... these webs were not here yesterday.")), maxf(3.2, _web_voice.stream.get_length() + 0.2))
 	return true
 
 func _synchronize_phone_clock() -> void:
@@ -225,6 +286,8 @@ func _synchronize_phone_clock() -> void:
 		progression._update_message()
 
 func _phone_reply_start() -> float:
+	if _phone_dialogue.has("reply"):
+		return float(_phone_dialogue.reply.get("start_seconds", 0.0))
 	var start := 0.0
 	for index in range(mini(4, progression.mara_durations.size())):
 		start += maxf(0.5, float(progression.mara_durations[index]))
@@ -240,8 +303,8 @@ func play_mara_warning() -> bool:
 	if elapsed >= _mara_warning.stream.get_length():
 		_mara_warning_played = true
 		return false
-	# The generated three lines start at the existing 0, 3.5, and 7.5-second
-	# subtitle boundaries. Seeking preserves sync after a late active frame.
+	# The generated takes follow the shared JSON subtitle boundaries.
+	# Seeking preserves sync after a late active frame.
 	_web_voice.stop()
 	_mara_warning_played = true
 	_mara_warning.play(maxf(0.0, elapsed))

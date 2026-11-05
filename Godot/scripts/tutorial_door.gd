@@ -11,6 +11,8 @@ var door_label := "door"
 var opened := false
 var _hinge: Node3D
 var _tween: Tween
+var locked := false
+signal locked_interaction
 
 func _ready() -> void:
 	add_to_group("tutorial_door")
@@ -53,6 +55,9 @@ func _ready() -> void:
 		add_child(creak)
 
 func toggle() -> void:
+	if locked:
+		locked_interaction.emit()
+		return
 	if not is_instance_valid(_hinge): return
 	opened = not opened
 	if is_instance_valid(_tween): _tween.kill()

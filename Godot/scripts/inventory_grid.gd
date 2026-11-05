@@ -114,7 +114,7 @@ func equip_cell(cell_index: int, quick_index: int) -> bool:
 	if quick_index < 0 or quick_index >= QUICK_CAPACITY:
 		return false
 	var id := item_at(cell_index)
-	if id == &"" or count(id) <= 0:
+	if id == &"" or count(id) <= 0 or is_armor(id):
 		return false
 	var prior := equipped.find(id)
 	if prior == quick_index:
@@ -140,11 +140,46 @@ func snapshot() -> Array[Dictionary]:
 
 
 static func stack_limit(id: StringName) -> int:
-	if id in [&"flashlight", &"knife"]:
+	if id in [&"flashlight", &"knife"] or is_armor(id):
 		return 1
 	if str(id).begins_with("battery_"):
 		return 5
 	return 10
+
+
+static func is_armor(id: StringName) -> bool:
+	return id in [&"leather_shirt", &"leather_pants", &"leather_hood", &"leather_shoes"]
+
+
+## Validate into temporary cells so a malformed save cannot partially replace a bag.
+func restore_state(cells: Array, quick: Array) -> bool:
+	if cells.size() != CAPACITY or quick.size() != QUICK_CAPACITY: return false
+	var restored: Array[Dictionary] = []
+	for cell in cells:
+		if not cell is Dictionary: return false
+		if cell.is_empty():
+			restored.append({})
+			continue
+		var id := StringName(str(cell.get("id", "")))
+		var amount: Variant = cell.get("count")
+		if not _known_item(id) or not (amount is int or amount is float): return false
+		if not is_finite(float(amount)) or float(amount) != floorf(float(amount)) or amount < 1 or amount > stack_limit(id): return false
+		restored.append({"id": id, "count": int(amount)})
+	var restored_quick: Array[StringName] = []
+	for value in quick:
+		var id := StringName(str(value))
+		if not _known_item(id) or is_armor(id) or restored_quick.has(id): return false
+		# An exhausted consumable may remain assigned to a quick slot.
+		restored_quick.append(id)
+	slots = restored
+	equipped = restored_quick
+	return true
+
+
+static func _known_item(id: StringName) -> bool:
+	if id in [&"flashlight", &"knife", &"candy_bar", &"bandage", &"flare"] or is_armor(id): return true
+	var charge := str(id).trim_prefix("battery_")
+	return str(id).begins_with("battery_") and charge.is_valid_int() and int(charge) >= 1 and int(charge) <= 100
 
 
 static func display_name(id: StringName) -> String:

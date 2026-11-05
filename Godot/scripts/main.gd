@@ -20,6 +20,8 @@ const POWERED_AMBIENT := 0.075
 const BLACKOUT_AMBIENT := 0.018
 const PRACTICAL_DIM := 0.68
 const SupplyScript = preload("res://scripts/supply_pickup.gd")
+const CampaignScript = preload("res://scripts/tutorial_campaign.gd")
+const FieldOverlay = preload("res://scripts/field_overlay.gd")
 
 @export var qa_mode := false
 
@@ -63,32 +65,58 @@ var _storage_units: Array[BlackwebStorage] = []
 var _tutorial_doors: Array[Node3D] = []
 var _tutorial_evidence: Array[Node3D] = []
 var _sighting_spider: Node3D
+var campaign = CampaignScript.new()
+var field_overlay: BlackwebFieldOverlay
+var _loading_campaign := true
+var _save_queued := false
+var _intro: Node
 
 func _ready() -> void:
+	if qa_mode: print("JOURNEY LOAD: main ready")
 	_install_input()
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if not qa_mode: campaign.load_state()
 	progression = ProgressionScript.new()
+	progression.requires_vault = true
+	progression.auto_save = false
+	if not campaign.loaded.is_empty(): progression.auto_load = false
 	if qa_mode:
 		progression.auto_load = false
 		progression.auto_save = false
 	progression.name = "Progression"
 	add_child(progression)
+	if not campaign.loaded.is_empty() and not progression.restore_snapshot(campaign.loaded.story, false):
+		campaign.writes_blocked = true
+		progression.show_notice("Story save could not be read. Restart opening to create a new game.", 9.0)
+	# Legacy checkpoint loading is a one-time migration. Retries use this run's
+	# milestone, while the unified campaign owns durable saves from now on.
+	progression.auto_load = false
+	if campaign.writes_blocked:
+		progression.show_notice("This campaign needs a different version. Your save is protected; Restart opening creates a new game.", 9.0)
 	progression.process_mode = Node.PROCESS_MODE_PAUSABLE
 	_create_environment()
 	_loaded = _load_house()
+	if qa_mode: print("JOURNEY LOAD: house loaded")
 	_supply_table = _read_supply_table()
 	_supply_seed = 20261103 if qa_mode else randi()
+	if not campaign.loaded.is_empty(): _supply_seed = int(campaign.loaded.get("world", {}).get("seed", _supply_seed))
 	_create_hud()
+	if qa_mode: print("JOURNEY LOAD: HUD built")
 	if _loaded:
 		player = PlayerScript.new()
 		player.progression = progression
 		player.name = "Luke"
 		add_child(player)
+		if qa_mode: print("JOURNEY LOAD: player ready")
 		player.process_mode = Node.PROCESS_MODE_PAUSABLE
 		player.position = _vec(_layout.get("player", [0, 0.1, 0]))
 		player.spawn_transform = player.transform
 		player.set_view(float(_layout.get("player_yaw", 0)))
 		progression.player = player
+		if not campaign.loaded.is_empty():
+			if not player.restore_survival_state(campaign.loaded.survival):
+				campaign.writes_blocked = true
+				progression.show_notice("Inventory save could not be read. Restart opening to create a new game.", 9.0)
 		progression.checkpoint_restored.connect(player.restore_checkpoint)
 		progression.checkpoint_restored.connect(_reset_door)
 		player.focus_changed.connect(func(t: String): prompt_label.text = t)
@@ -102,18 +130,25 @@ func _ready() -> void:
 		status_hud.set_selected_slot(player.selected_quick_index)
 		status_hud.equip_requested.connect(func(cell_index: int, quick_index: int):
 			player.equip_inventory_cell(cell_index, quick_index))
+		status_hud.armor_equip_requested.connect(func(cell: int): player.equip_armor(cell))
+		status_hud.armor_remove_requested.connect(func(slot: StringName): player.unequip_armor(slot))
 		player.health_changed.connect(func(v: float):
-			status_hud.set_health(v))
+			status_hud.set_health(v)
+			_queue_campaign_save())
 		player.recovery_changed.connect(_on_recovery)
 		var model_path: String = _layout.get("player_model", "")
 		if not model_path.is_empty() and ResourceLoader.exists(model_path): player.attach_model(load(model_path))
+		if qa_mode: print("JOURNEY LOAD: body loaded")
 		_create_interactions()
 		_create_storage()
 		_create_supplies()
 		_create_evidence()
+		if qa_mode: print("JOURNEY LOAD: interactions ready")
+		_restore_world_claims()
 		_create_spider()
 		_create_mini_spiders()
 		_create_sighting_spider()
+		if qa_mode: print("JOURNEY LOAD: spiders ready")
 		var sounds := SoundScript.new()
 		sounds.name = "Soundscape"
 		sounds.player = player
@@ -128,7 +163,8 @@ func _ready() -> void:
 	progression.notice_changed.connect(func(t: String): notice.text = t)
 	progression.inventory_changed.connect(func():
 		objective.text = progression.objective()
-		status_hud.set_objective(objective.text))
+		status_hud.set_objective(objective.text)
+		_queue_campaign_save())
 	if is_instance_valid(player):
 		status_hud.set_flashlight(true, player._light_on)
 		status_hud.set_battery(player.battery_charge, player._light_on)
@@ -140,6 +176,13 @@ func _ready() -> void:
 	_on_stage(progression.stage)
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_loading_campaign = false
+	var autosave := Timer.new()
+	autosave.wait_time = 5.0
+	autosave.autostart = true
+	autosave.timeout.connect(_queue_campaign_save)
+	add_child(autosave)
+	if qa_mode: print("JOURNEY LOAD: complete")
 
 func _install_input() -> void:
 	var keys := {"move_forward": KEY_W, "move_back": KEY_S, "move_left": KEY_A, "move_right": KEY_D, "sprint": KEY_SHIFT, "crouch": KEY_C, "jump": KEY_SPACE, "interact": KEY_E, "flashlight": KEY_F, "pause_game": KEY_ESCAPE, "hud_1": KEY_F1, "hud_2": KEY_F2, "hud_3": KEY_F3, "hud_4": KEY_F4, "hotbar_1": KEY_1, "hotbar_2": KEY_2, "hotbar_3": KEY_3, "inventory_toggle": KEY_I}
@@ -242,6 +285,8 @@ func _create_interactions() -> void:
 		var interaction := InteractionScript.new()
 		interaction.kind = StringName(entry.kind)
 		interaction.label = entry.label
+		if interaction.kind == &"keys": interaction.label = "Take vault key"
+		if interaction.kind == &"flashlight": interaction.label = "Salvage spare flashlight cells"
 		interaction.progression = progression
 		if interaction.kind == &"exit": interaction.activation_handler = _leave_house
 		interaction.position = _vec(entry.position)
@@ -291,6 +336,10 @@ func _create_evidence() -> void:
 			"text": "PROJECT 08 / The altered spiders answer voices that no staff member can hear. The company ordered the records hidden before containment failed."},
 		{"name": "VaultCash", "kind": "cash", "title": "unmarked cash", "position": Vector3(5.35, 1.75, 2.82),
 			"text": "The company left unmarked cash beside the supplies. Someone was paid to keep this house quiet."},
+		{"name": "PlantCodeNote", "kind": "paper", "title": "Mica's hidden note", "position": Vector3(1.86, 1.0782, 3.48),
+			"text": "Luke,\n\nI couldn't leave this on the phone. Use the small key from the record-room shelf, then enter:\n\n0  4  1  7\n\nThe vault holds a leather shirt, pants, hood and shoes. Take them before you go.\n\nThe spiders in this house are ordinary animals. The company records describe something else.\n\n— Mica"},
+		{"name": "VaultFieldKit", "kind": "kit", "title": "leather field kit", "position": Vector3(6.55, 0.98, 3.3),
+			"text": "Four leather armor pieces."},
 	]:
 		var evidence: Node3D = EvidenceScript.new()
 		evidence.name = entry.name
@@ -302,15 +351,151 @@ func _create_evidence() -> void:
 		evidence.discovered.connect(_show_tutorial_evidence)
 		add_child(evidence)
 		_tutorial_evidence.append(evidence)
+	_create_clue_plant()
+	var case_body := StaticBody3D.new()
+	case_body.name = "LeatherKitCase"
+	case_body.position = Vector3(6.55, 0.68, 3.3)
+	add_child(case_body)
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(0.75, 0.48, 0.50)
+	shape.shape = box
+	case_body.add_child(shape)
+	var mesh := MeshInstance3D.new()
+	var case_mesh := BoxMesh.new()
+	case_mesh.size = box.size
+	mesh.mesh = case_mesh
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color("3d3429")
+	material.roughness = 0.93
+	mesh.material_override = material
+	case_body.add_child(mesh)
 
 func _show_tutorial_evidence(text: String, title: String) -> void:
-	subtitle.text = text
-	notice.text = "FOUND  /  " + title.to_upper()
-	if title != "unmarked cash": status_hud.set_record_found(true)
-	await get_tree().create_timer(8.0, false).timeout
-	if is_instance_valid(subtitle) and subtitle.text == text:
-		subtitle.text = progression.subtitle
-		notice.text = progression.notice
+	if title == "unmarked cash":
+		if campaign.collect_cash("VaultCash", 120):
+			get_node("VaultCash").set_taken(true)
+			progression.show_notice("+$120  /  WALLET $%d" % campaign.wallet, 4.0)
+			_update_inventory_hud()
+		return
+	if title == "leather field kit":
+		_open_field_modal()
+		field_overlay.show_armor(campaign.claimed)
+		return
+	if title == "Mica's hidden note": campaign.code_found = true
+	status_hud.set_record_found(true)
+	status_hud.set_vault_code_found(campaign.code_found)
+	_open_field_modal()
+	field_overlay.show_paper(title, text)
+	_queue_campaign_save()
+
+func _create_clue_plant() -> void:
+	var props_script = load("res://scripts/tutorial_props.gd")
+	if props_script == null: return
+	var plant: Node3D = props_script.make_plant()
+	plant.name = "MicasPlant"
+	# The pot stands on the floor beside the table; the code paper rests on its top.
+	plant.position = Vector3(2.28, 0.405, 3.50)
+	add_child(plant)
+	var kit: Node3D = props_script.make_leather_kit()
+	kit.name = "LeatherKitContents"
+	kit.position = Vector3(6.55, 0.925, 3.30)
+	add_child(kit)
+
+func _open_field_modal() -> void:
+	status_hud.hide_inventory()
+	var parent := field_overlay.get_parent()
+	parent.move_child(field_overlay, parent.get_child_count() - 1)
+	get_tree().paused = true
+	player.active = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	prompt_label.text = ""
+
+func _close_field_modal() -> void:
+	get_tree().paused = false
+	player.active = not _leaving
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_queue_campaign_save()
+
+func _inspect_vault() -> void:
+	_open_field_modal()
+	field_overlay.show_vault(progression.has_keys, campaign.code_found)
+
+func _submit_vault_code(code: String) -> void:
+	if not progression.has_keys:
+		field_overlay.set_message("The vault key is missing. Search the record-room shelf.")
+		return
+	if not campaign.try_unlock(code, progression.has_keys):
+		field_overlay.set_message("Code rejected. Check Mica's paper beside the plant.")
+		field_overlay.digits = ""
+		return
+	var vault := get_node_or_null("RearNorthDoor")
+	if vault != null:
+		vault.locked = false
+		if not vault.opened: vault.toggle()
+	progression.unlock_vault()
+	field_overlay.close_overlay()
+	progression.show_notice("VAULT OPEN  /  Leather field kit inside. Equip armor with I.", 6.0)
+	_queue_campaign_save()
+
+func _claim_armor(item: StringName) -> void:
+	if not campaign.vault_unlocked or not CampaignScript.ARMOR.has(item) or campaign.claimed.has(str(item)): return
+	var before := player.item_count(item)
+	if player.add_item(item, 1) <= before:
+		field_overlay.set_message("Backpack full. Leave a cell free and return for this piece.")
+		return
+	campaign.claimed[str(item)] = true
+	field_overlay.show_armor(campaign.claimed)
+	_update_inventory_hud()
+	_queue_campaign_save()
+
+func _test_voice_audio() -> void:
+	var sounds := get_node_or_null("Soundscape")
+	if sounds != null and sounds.play_voice_test():
+		menu_state.text = "VOICE TEST  /  MICA SHOULD BE AUDIBLE"
+	else: menu_state.text = "VOICE TEST UNAVAILABLE  /  CHECK AUDIO OUTPUT"
+
+func _queue_campaign_save() -> void:
+	if _loading_campaign or qa_mode or _save_queued: return
+	_save_queued = true
+	_save_campaign.call_deferred()
+
+func _save_campaign() -> void:
+	_save_queued = false
+	if _loading_campaign or qa_mode or not is_instance_valid(player) or player.health <= 0.0 or player.is_recovering(): return
+	var world := {"seed": _supply_seed, "pickups": {}, "storage": {}}
+	for pickup in _supply_pickups:
+		world.pickups[str(pickup.name)] = pickup.taken
+	for storage in _storage_units:
+		world.storage[str(storage.name)] = {"rolled": storage._loot_rolled, "searched": storage._searched_once,
+			"clue_shown": storage._clue_shown, "pending": storage._pending_loot.duplicate(true)}
+	if not campaign.save_state(progression.snapshot(), player.survival_snapshot(), world):
+		if not campaign.writes_blocked: push_warning("Campaign save failed; previous complete record is retained.")
+
+func _restore_world_claims() -> void:
+	if campaign.loaded.is_empty():
+		# Migrate a completed pre-vault checkpoint without removing owned progress.
+		campaign.vault_unlocked = progression.vault_unlocked
+		return
+	var world: Dictionary = campaign.loaded.get("world", {})
+	var pickups: Dictionary = world.get("pickups", {}) if world.get("pickups", {}) is Dictionary else {}
+	for pickup in _supply_pickups:
+		pickup.taken = bool(pickups.get(str(pickup.name), false))
+		pickup._refresh()
+	var fixtures: Dictionary = world.get("storage", {}) if world.get("storage", {}) is Dictionary else {}
+	for storage in _storage_units:
+		var state: Variant = fixtures.get(str(storage.name), {})
+		if not state is Dictionary: continue
+		storage._loot_rolled = bool(state.get("rolled", false))
+		storage._searched_once = bool(state.get("searched", false))
+		storage._clue_shown = bool(state.get("clue_shown", false))
+		if state.get("pending", []) is Array: storage._pending_loot = state.get("pending", []).duplicate(true)
+		storage._refresh_loot_visuals()
+	for evidence in _tutorial_evidence:
+		if evidence.evidence_type == "cash": evidence.set_taken(campaign.claimed.has(str(evidence.name)))
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST: _save_campaign()
 
 func _read_supply_table() -> Dictionary:
 	var path := "res://data/supply_spawns.json"
@@ -358,6 +543,10 @@ func _update_inventory_hud() -> void:
 	if is_instance_valid(player) and is_instance_valid(status_hud):
 		status_hud.set_inventory_counts(player.inventory_counts())
 		status_hud.set_inventory_model(player.inventory_slots(), player.equipped_items())
+		status_hud.set_armor_state(player.get_armor_state(), player.armor_reduction_percent())
+		status_hud.set_wallet(campaign.wallet)
+		status_hud.set_vault_code_found(campaign.code_found)
+		_queue_campaign_save()
 
 func _show_supply_notice(text: String) -> void:
 	notice.text = text
@@ -366,14 +555,7 @@ func _show_supply_notice(text: String) -> void:
 		notice.text = progression.notice
 
 func _show_optional_clue(text: String) -> void:
-	var readable := text.replace(" The altered", "\nThe altered")
-	subtitle.text = readable
-	notice.text = "EXPERIMENT RECORD FOUND  /  OPTIONAL CLUE"
-	status_hud.set_record_found(true)
-	await get_tree().create_timer(9.0, false).timeout
-	if is_instance_valid(subtitle) and subtitle.text == readable:
-		subtitle.text = progression.subtitle
-		notice.text = progression.notice
+	_show_tutorial_evidence(text, "Project 08 / drawer record")
 
 func _create_spider() -> void:
 	spider = SpiderScript.new()
@@ -540,7 +722,10 @@ func _create_hud() -> void:
 	var button_spacer := Control.new()
 	button_spacer.custom_minimum_size.y = 13
 	stack.add_child(button_spacer)
-	stack.add_child(_button("Exit game", func(): get_tree().quit()))
+	stack.add_child(_button("Test voice audio", _test_voice_audio))
+	stack.add_child(_button("Exit game", func():
+		_save_campaign()
+		get_tree().quit()))
 	stack.add_child(_label("ONE EXIT   /   THREE STARTER ITEMS   /   FIFTY INVENTORY SPACES", 12, Color(0.48, 0.56, 0.55)))
 	var briefing := PanelContainer.new()
 	briefing.position = Vector2(674, 114)
@@ -557,8 +742,8 @@ func _create_hud() -> void:
 	briefing_stack.add_theme_constant_override("separation", 17)
 	briefing_margin.add_child(briefing_stack)
 	briefing_stack.add_child(_label("FIELD NOTES   /   01", 14, Color(0.76, 0.62, 0.4)))
-	briefing_stack.add_child(_label("Mara's message broke off.\nSomething is inside.", 30, Color(0.91, 0.89, 0.82)))
-	briefing_stack.add_child(_label("Find the keys and a way through the front door.\nSearch drawers and cabinets for supplies.", 18, Color(0.65, 0.71, 0.7)))
+	briefing_stack.add_child(_label("Mica's message broke off.\nSomething is inside.", 30, Color(0.91, 0.89, 0.82)))
+	briefing_stack.add_child(_label("Find the vault key and Mica's hidden code.\nSearch drawers and cabinets for supplies.", 18, Color(0.65, 0.71, 0.7)))
 	briefing_stack.add_child(HSeparator.new())
 	briefing_stack.add_child(_label("MOVE     W A S D     /     MOUSE  LOOK     /     SHIFT  SPRINT\nCROUCH  C               /     SPACE  JUMP    /     E  INTERACT\nDRAW       1–3           /     LEFT CLICK  USE /     F  TORCH\nINVENTORY  I           /     ESC  PAUSE     /     F1–F4  HUD", 16, Color(0.72, 0.77, 0.73)))
 	briefing_stack.add_child(_label("Equipped items alone can be used. Change your three\nquick slots from the 50-space inventory.", 16, Color(0.76, 0.62, 0.4)))
@@ -568,6 +753,11 @@ func _create_hud() -> void:
 		menu.add_child(error)
 	else:
 		resume_button.grab_focus()
+	field_overlay = FieldOverlay.new()
+	root.add_child(field_overlay)
+	field_overlay.closed.connect(_close_field_modal)
+	field_overlay.code_submitted.connect(_submit_vault_code)
+	field_overlay.armor_claimed.connect(_claim_armor)
 
 func _menu_panel_style(fill: Color, edge: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
@@ -597,16 +787,39 @@ func _resume() -> void:
 	_started = true
 	menu.hide()
 	status_hud.hide_inventory()
+	if not qa_mode and not campaign.intro_seen and progression.stage == progression.Stage.NORMAL:
+		player.active = false
+		get_tree().paused = true
+		_intro = load("res://scripts/tutorial_intro.gd").new()
+		add_child(_intro)
+		_intro.finished.connect(_finish_intro)
+		if _intro.begin(player, status_hud.get_parent()): return
+		_finish_intro()
+		return
 	get_tree().paused = false
 	player.active = not _leaving
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
+func _finish_intro() -> void:
+	campaign.intro_seen = true
+	if is_instance_valid(_intro): _intro.queue_free()
+	_intro = null
+	_resume()
+	_queue_campaign_save()
+
 func _restart() -> void:
 	if not _loaded: return
+	_loading_campaign = true
+	campaign.reset()
 	progression.restart_opening()
 	player.restore_checkpoint()
 	player.reset_starting_inventory()
 	_reset_supplies()
+	for evidence in _tutorial_evidence: evidence.set_taken(false)
+	var vault := get_node_or_null("RearNorthDoor")
+	if vault != null: vault.locked = true
+	_loading_campaign = false
+	_update_inventory_hud()
 	status_hud.set_record_found(false)
 	heading.text = "BLACKWEB"
 	menu_state.text = "HOUSE TUTORIAL  /  A MESSAGE FROM GREYHAVEN"
@@ -615,7 +828,30 @@ func _restart() -> void:
 	restart_button.visible = true
 	_resume()
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.echo: return
+	if is_instance_valid(_intro):
+		if event.is_action_pressed("pause_game") or event.is_action_pressed("jump") or (event is InputEventKey and event.pressed and event.keycode in [KEY_ENTER, KEY_KP_ENTER]):
+			_intro.skip()
+			get_viewport().set_input_as_handled()
+		return
+	if is_instance_valid(field_overlay) and field_overlay.visible:
+		var handled := false
+		if event.is_action_pressed("pause_game") or (field_overlay.mode != "vault" and event.is_action_pressed("interact")):
+			field_overlay.close_overlay()
+			handled = true
+		elif field_overlay.mode == "vault" and event is InputEventKey and event.pressed:
+			if event.keycode in [KEY_ENTER, KEY_KP_ENTER]:
+				field_overlay.press_digit("ENTER")
+				handled = true
+			elif event.keycode == KEY_BACKSPACE:
+				field_overlay.press_digit("DEL")
+				handled = true
+			elif event.unicode >= 48 and event.unicode <= 57:
+				field_overlay.press_digit(String.chr(event.unicode))
+				handled = true
+		if handled: get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("inventory_toggle") and _started and not menu.visible:
 		_toggle_inventory()
 		get_viewport().set_input_as_handled()
@@ -646,6 +882,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			restart_button.visible = true
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			resume_button.grab_focus()
+			_queue_campaign_save()
 
 func _toggle_inventory() -> void:
 	status_hud.toggle_inventory()
@@ -740,6 +977,9 @@ func _create_tutorial_doors(house: Node3D) -> void:
 		door.creak_stream = creak
 		door.position = Vector3(float(entry.x), 1.40, float(entry.z))
 		add_child(door)
+		if door.door_label == "vault door":
+			door.locked = not (campaign.vault_unlocked or progression.vault_unlocked)
+			door.locked_interaction.connect(_inspect_vault)
 		_tutorial_doors.append(door)
 		progression.checkpoint_restored.connect(door.reset_closed)
 

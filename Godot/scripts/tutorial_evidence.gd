@@ -8,10 +8,11 @@ const PAPER_TEXTURE := "res://assets/recovered/Arachnophobia/Content/Megascans/D
 var evidence_type := "paper"
 var title := "Field paper"
 var record_text := ""
+var taken := false
 
 func _ready() -> void:
 	kind = &"tutorial_evidence"
-	label = "Read " + title if evidence_type == "paper" else "Inspect " + title
+	label = "Read " + title if evidence_type == "paper" else "Take " + title if evidence_type == "cash" else "Open " + title
 	super._ready()
 	var trigger := get_child(0) as CollisionShape3D
 	var box := BoxShape3D.new()
@@ -21,7 +22,16 @@ func _ready() -> void:
 	else: _make_paper()
 
 func interact() -> void:
+	if taken: return
 	discovered.emit(record_text, title)
+
+func prompt() -> String:
+	return "E / CLICK   ·   " + label
+
+func set_taken(value: bool) -> void:
+	taken = value
+	visible = not taken
+	collision_layer = 0 if taken else 8
 
 func _make_paper() -> void:
 	var paper := BoxMesh.new()

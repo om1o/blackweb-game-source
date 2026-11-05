@@ -15,36 +15,53 @@ setting, run "Launch Blackweb.cmd" --room-shadows from a command prompt.
 This costs performance. Native 1280x720 and 2x MSAA are retained.
 
 Controls: WASD move; mouse look; Shift sprint; C crouch; Space jump;
-E interact; 1-3 use the three equipped items; F toggles the flashlight
+E interact; 1-3 draw a quick item; left click uses it; F toggles the flashlight
 while equipped; I opens the 50-cell inventory; F1-F4 choose one of four
 status HUD layouts; Escape pauses or closes inventory. Sprinting and
 jumping use stamina. The Minimal HUD is selected by default. The three
 starter quick items are weak flashlight, worn knife and one candy bar.
 In the inventory, click an occupied backpack cell, then a quick-slot
 button to equip it. Only those three items can be used during play.
+The four armor slots are separate: select a leather piece, then click
+"Equip selected armor". Click a worn piece to remove it. A full leather
+shirt, pants, hood and shoes give 18% damage reduction; maximum HP is 100.
+Candy restores 30 health after the eating animation commits. At full health
+it is kept. Finish an active eating/reload action before changing equipment.
 
 Battery packs, bandages and flares can be found on house surfaces and by
 opening and searching the entry drawer and hall cabinet with E. Search
 each opened fixture once. Battery packs go into inventory and must be
 equipped and used to restore their listed +35% or +30% charge, including
-when found at full charge. Optional supplies do not gate the phone, keys,
-backup flashlight, encounter or exit. The drawer also contains an
-optional Project 08 record.
-Follow Mara's message, gather keys and the charged backup flashlight,
-survive the encounter, then leave through the opening door.
+when found at full charge. The drawer also contains an optional Project 08
+record. Papers open a paused close-up with large readable text; press E or
+Escape to close. A focused paper can also be opened with a left click.
+Follow Mica's call, take the vault key from the record-room shelf, and
+salvage cells from the spare flashlight. Her interrupted plant clue leads
+to the hidden code paper. Use both key and code at the reinforced vault
+door. Inside are four leather armor pieces and $120 for the persistent wallet.
+The code is recorded in inventory after you read the note. Survive the
+encounter and leave through the opening door. The house spiders are ordinary;
+the company records describe experiments elsewhere in the story.
+The eight-second arrival sequence can be skipped with Enter, Space or Escape.
+The pause menu includes "Test voice audio" for checking spoken output.
 
 The launcher stores saves and logs in this folder's UserData directory.
 It changes environment variables only for its own child process. Source-project
 saves are separate. Copy UserData too if transferring your progress. Use a
-writable folder. A new game replaces this portable copy's current checkpoint.
+writable folder. Story, health, battery, inventory, armor, wallet and loot
+claims are saved together in blackweb_campaign_v2.json with a previous valid
+backup. "Restart opening" deliberately resets the run. Existing old story
+checkpoints are migrated once. Restart a previously open game after updating
+the package so it loads the new version.
 
 This package plays the tutorial opening of the Blackweb game, which is still
-in development. Materials approximate the original shaders. Pickups lack
-authored hand animation. Some spider motions are procedural; authored creature
-clips are still needed. Plot milestones are saved, but optional supply counts
-and picked-up state currently reset after closing the app.
-Read the project Docs/Phase0Report.md, Docs/HouseDressing.md and
-Docs/SupplyPlacements.md for the measured baseline and remaining work.
+in development. Materials approximate the original shaders. Some pickups lack
+authored hand animation, and some creature motions are procedural. The leather
+kit and plant are prototype geometry; equipping armor does not replace Luke's
+visible clothing rig. Voices are stock synthetic performances. The arrival
+is an in-engine camera sequence; no Higgsfield video is included.
+Read Docs/VaultTutorialPass.md, Docs/NormalSpiderEffects.md and the earlier
+Docs/Phase0Report.md for implementation details and remaining work.
 
 Blackweb.pck contains scripts, scenes, recovered GLBs/JSON, imported textures
 and import mappings. Original PNG payloads stay in the source project, while

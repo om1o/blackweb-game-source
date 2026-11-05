@@ -13,6 +13,7 @@ func _ready() -> void:
 
 func prompt() -> String:
 	if not is_instance_valid(door): return ""
+	if door.locked: return "E   ·   Inspect vault lock"
 	return "E   ·   %s %s" % ["Close" if door.opened else "Open", door.door_label]
 
 func interact() -> void:

@@ -11,6 +11,7 @@ enum State { DORMANT, ANTICIPATION, STALKING, WINDUP, LUNGING, RETREATING, COOLD
 const Progression = preload("res://scripts/progression.gd")
 const ContactAudio = preload("res://scripts/spider_audio.gd")
 const Navigation = preload("res://scripts/spider_navigation.gd")
+const CombatEffects = preload("res://scripts/combat_effects.gd")
 
 @export var target: Node3D
 @export var progression: Progression
@@ -37,7 +38,7 @@ const Navigation = preload("res://scripts/spider_navigation.gd")
 @export var gravity := 18.0
 @export_enum("common", "armored", "anomalous") var spider_type := "common"
 @export var max_health := 100.0
-@export var armor := 0.0 # Reserved for future flesh-spider variants; common starts at zero.
+@export var armor := 0.0 # Reserved for future variants; ordinary house spiders have none.
 @export var bite_distance := 1.1
 @export var bite_damage := 18.0
 @export var bite_windup_seconds := 0.55
@@ -104,6 +105,8 @@ var _navigation = Navigation.new()
 var _route_direction := Vector3.ZERO
 var _route_remaining := 0.0
 var _pose_previous: Dictionary = {}
+var _combat_effects: CombatEffects
+var _hurt_bones: Dictionary = {}
 
 
 func _init() -> void:
@@ -141,6 +144,8 @@ func _ready() -> void:
 		_visual_rest_rotation = visual_root.rotation
 		_attack_skeleton = visual_root.find_child("*Skeleton3D*", true, false) as Skeleton3D
 		if is_instance_valid(_attack_skeleton):
+			for body_bone in ["Root", "Back"]:
+				_hurt_bones[body_bone] = _attack_skeleton.find_bone(body_bone)
 			if is_instance_valid(animation_player) and not idle_animation.is_empty() and animation_player.has_animation(idle_animation):
 				animation_player.play(idle_animation)
 				animation_player.advance(0.0)
@@ -163,6 +168,7 @@ func _ready() -> void:
 	_attack_tell_light.shadow_enabled = false
 	_attack_tell_light.visible = false
 	add_child(_attack_tell_light)
+	call_deferred("_prepare_combat_effects")
 	deactivate()
 	if auto_bind_progression:
 		if not is_instance_valid(progression):
@@ -207,6 +213,7 @@ func _on_stage_changed(new_stage: int) -> void:
 func activate(player: Node3D = null) -> void:
 	if is_instance_valid(player): target = player
 	if not is_instance_valid(target): return
+	if is_instance_valid(_combat_effects): _combat_effects.cancel_source(self)
 	velocity = Vector3.ZERO
 	_desired_velocity = Vector3.ZERO
 	_safe_elapsed = 0.0
@@ -237,6 +244,7 @@ func activate(player: Node3D = null) -> void:
 
 
 func deactivate() -> void:
+	if is_instance_valid(_combat_effects): _combat_effects.cancel_source(self)
 	velocity = Vector3.ZERO
 	_desired_velocity = Vector3.ZERO
 	_resolution_remaining = -1.0
@@ -412,8 +420,12 @@ func _resolve_attack_contact() -> void:
 	_hit_this_lunge = true
 	threatened_player.emit(target)
 	if is_instance_valid(target) and target.has_method("take_damage"):
+		var before_health: Variant = target.get("health")
 		target.call("take_damage", maxf(0.0, bite_damage if _attack_kind == &"bite" else hit_damage))
-	if is_instance_valid(_contact_audio): _contact_audio.play_impact()
+		var after_health: Variant = target.get("health")
+		if not (before_health is float or before_health is int) or (after_health is float or after_health is int) and float(after_health) < float(before_health):
+			_prepare_combat_effects()
+			_combat_effects.burst(self, target.global_position + Vector3.UP * 0.18, -_lunge_direction, &"contact")
 	# Finish the attack pose; the following recovery cannot deal contact damage.
 	_desired_velocity = Vector3.ZERO
 
@@ -470,13 +482,19 @@ func apply_flashlight_beam(intensity: float, delta: float) -> void:
 	_beam_slow_remaining = 0.25
 
 func take_damage(amount: float) -> void:
+	receive_hit(amount, global_position + Vector3.UP * 0.40, Vector3.UP)
+
+func receive_hit(amount: float, world_point: Vector3, world_normal: Vector3) -> void:
 	if not is_alive() or amount <= 0.0 or not is_finite(amount): return
+	if get_tree().paused: return
 	var damage := maxf(0.0, amount - maxf(0.0, armor))
 	if damage <= 0.0: return
 	health = maxf(0.0, health - damage)
 	health_changed.emit(health, max_health)
 	_hurt_remaining = 0.22
-	if is_instance_valid(_contact_audio): _contact_audio.play_impact()
+	_prepare_combat_effects()
+	var point := world_point if world_point.is_finite() else global_position + Vector3.UP * 0.40
+	_combat_effects.burst(self, point, world_normal, &"death" if health <= 0.0 else &"hit")
 	if health <= 0.0:
 		_resolution_remaining = -1.0
 		_hit_this_lunge = true
@@ -492,6 +510,23 @@ func take_damage(amount: float) -> void:
 
 func is_alive() -> bool:
 	return health > 0.0 and state not in [State.DORMANT, State.RESOLVED, State.DYING, State.DEAD]
+
+func _prepare_combat_effects() -> void:
+	if not is_instance_valid(_combat_effects): _combat_effects = CombatEffects.for_source(self)
+
+func get_hurt_spheres() -> Array[Dictionary]:
+	if not is_alive(): return []
+	var result: Array[Dictionary] = []
+	var body_scale := global_basis.get_scale().abs().max_axis_index()
+	var scale_factor := global_basis.get_scale().abs()[body_scale]
+	for data in [{"bone": "Root", "center": Vector3(0.0, 0.40, -0.175), "radius": 0.22},
+		{"bone": "Back", "center": Vector3(0.0, 0.434, 0.175), "radius": 0.25}]:
+		var center: Vector3 = to_global(data.center)
+		var bone: int = _hurt_bones.get(data.bone, -1)
+		if is_instance_valid(_attack_skeleton) and bone >= 0:
+			center = _attack_skeleton.to_global(_attack_skeleton.get_bone_global_pose(bone).origin)
+		result.append({"center": center, "radius": float(data.radius) * scale_factor})
+	return result
 
 
 func _sense_target(delta: float) -> void:
@@ -621,8 +656,10 @@ func _update_attack_tell() -> void:
 	if not is_instance_valid(_attack_tell_light): return
 	var windup := state == State.WINDUP
 	var lunging := state == State.LUNGING
-	_attack_tell_light.visible = windup or lunging
-	_attack_tell_light.light_energy = 0.26 + 0.16 * sin(_state_elapsed * 24.0) if windup else (0.38 if lunging else 0.0)
+	# Ordinary tutorial spiders communicate through posture and dry contact
+	# sounds. The legacy node stays dark for compatibility with old QA tools.
+	_attack_tell_light.visible = false
+	_attack_tell_light.light_energy = 0.0
 	if not is_instance_valid(visual_root): return
 	var offset := Vector3.ZERO
 	var scale_factor := Vector3.ONE

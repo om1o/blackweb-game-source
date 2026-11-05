@@ -5,6 +5,7 @@ extends CharacterBody3D
 ## The licensed Literock mesh is packaged with the game but omitted from Git.
 ## The CC0 model remains a source-checkout fallback.
 const Progression = preload("res://scripts/progression.gd")
+const CombatEffects = preload("res://scripts/combat_effects.gd")
 const LITEROCK_VISUAL_PATH := "res://assets/third_party/literock/Giant_Spider_Lite_1K.glb"
 const FALLBACK_VISUAL_PATH := "res://assets/third_party/poly_pizza/quaternius_spider/quaternius_spider.glb"
 
@@ -51,6 +52,9 @@ var _visual_animation: AnimationPlayer
 var _visual_clips: Dictionary = {}
 var _death_remaining := 0.0
 var _spawn_transform := Transform3D.IDENTITY
+var _combat_effects: CombatEffects
+var _hurt_skeleton: Skeleton3D
+var _hurt_bones: Dictionary = {}
 
 func _ready() -> void:
 	_spawn_transform = global_transform
@@ -66,6 +70,11 @@ func _ready() -> void:
 	collision.position.y = 0.135
 	add_child(collision)
 	_create_visual()
+	_hurt_skeleton = find_child("*Skeleton3D*", true, false) as Skeleton3D
+	if _visual_is_literock and is_instance_valid(_hurt_skeleton):
+		for bone_name in ["head", "abdomen_01", "abdomen_02"]:
+			_hurt_bones[bone_name] = _hurt_skeleton.find_bone(bone_name)
+	call_deferred("_prepare_combat_effects")
 	_bite_audio = AudioStreamPlayer3D.new()
 	_bite_audio.name = "JuvenileBiteCue"
 	_bite_audio.volume_db = -22.0
@@ -177,6 +186,7 @@ func activate(player: Node3D = null) -> void:
 	if is_instance_valid(player): target = player
 	if not is_instance_valid(target): target = get_tree().get_first_node_in_group("player") as Node3D
 	if not is_instance_valid(target): return
+	if is_instance_valid(_combat_effects): _combat_effects.cancel_source(self)
 	velocity = Vector3.ZERO
 	health = maxf(1.0, max_health)
 	light_slow_remaining = 0.0
@@ -198,6 +208,7 @@ func activate(player: Node3D = null) -> void:
 	set_physics_process(true)
 
 func deactivate() -> void:
+	if is_instance_valid(_combat_effects): _combat_effects.cancel_source(self)
 	active = false
 	velocity = Vector3.ZERO
 	_bite_windup_remaining = 0.0
@@ -249,8 +260,12 @@ func _physics_process(delta: float) -> void:
 			_attack_cooldown = maxf(attack_cooldown_seconds, bite_recovery_seconds)
 			var hit := _can_bite_target(bite_reach) and _inside_committed_bite()
 			if hit and target.has_method("take_damage"):
+				var before_health: Variant = target.get("health")
 				target.call("take_damage", hit_damage)
-				if is_instance_valid(_bite_audio): _bite_audio.play()
+				var after_health: Variant = target.get("health")
+				if not (before_health is float or before_health is int) or (after_health is float or after_health is int) and float(after_health) < float(before_health):
+					_prepare_combat_effects()
+					_combat_effects.burst(self, target.global_position + Vector3.UP * 0.14, -_bite_direction, &"contact", 0.55)
 			bite_resolved.emit(hit)
 			_set_combat_state(CombatState.RECOVERY)
 		return
@@ -339,11 +354,18 @@ func is_alive() -> bool:
 	return active and health > 0.0
 
 func take_damage(amount: float) -> void:
+	receive_hit(amount, global_position + Vector3.UP * 0.16, Vector3.UP)
+
+func receive_hit(amount: float, world_point: Vector3, world_normal: Vector3) -> void:
 	if not active or not is_finite(amount) or amount <= 0.0: return
+	if get_tree().paused: return
 	var received := maxf(0.0, amount - maxf(0.0, armor))
 	if received <= 0.0: return
 	health = maxf(0.0, health - received)
 	health_changed.emit(health, max_health)
+	_prepare_combat_effects()
+	var point := world_point if world_point.is_finite() else global_position + Vector3.UP * 0.16
+	_combat_effects.burst(self, point, world_normal, &"death" if health <= 0.0 else &"hit", 0.55)
 	_bite_windup_remaining = 0.0
 	_restore_visual_pose()
 	if health <= 0.0:
@@ -366,6 +388,24 @@ func take_damage(amount: float) -> void:
 		_attack_cooldown = maxf(_attack_cooldown, attack_cooldown_seconds)
 		_set_combat_state(CombatState.STAGGERED)
 		_play_visual("idle")
+
+func _prepare_combat_effects() -> void:
+	if not is_instance_valid(_combat_effects): _combat_effects = CombatEffects.for_source(self)
+
+func get_hurt_spheres() -> Array[Dictionary]:
+	if not is_alive(): return []
+	var head := to_global(Vector3(0.0, 0.16, -0.11))
+	var abdomen := to_global(Vector3(0.0, 0.163, 0.118))
+	if _visual_is_literock and is_instance_valid(_hurt_skeleton):
+		var head_bone: int = _hurt_bones.get("head", -1)
+		var rear_a: int = _hurt_bones.get("abdomen_01", -1)
+		var rear_b: int = _hurt_bones.get("abdomen_02", -1)
+		if head_bone >= 0: head = _hurt_skeleton.to_global(_hurt_skeleton.get_bone_global_pose(head_bone).origin)
+		if rear_a >= 0 and rear_b >= 0:
+			abdomen = _hurt_skeleton.to_global((_hurt_skeleton.get_bone_global_pose(rear_a).origin + _hurt_skeleton.get_bone_global_pose(rear_b).origin) * 0.5)
+	var actor_scale := global_basis.get_scale().abs()
+	var factor := actor_scale[actor_scale.max_axis_index()]
+	return [{"center": head, "radius": 0.095 * factor}, {"center": abdomen, "radius": 0.12 * factor}]
 
 func _make_bite_cue() -> AudioStreamWAV:
 	var count := 1800

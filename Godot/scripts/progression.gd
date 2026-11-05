@@ -21,14 +21,16 @@ const SAVE_VERSION := 1
 @export_range(3.0, 120.0) var encounter_seconds := 20.0
 @export var save_path := "user://blackweb_house_v1.json"
 @export var player: Node
+@export var requires_vault := false
+var vault_unlocked := false
 @export var mara_lines: Array[String] = [
-	"Mara: Luke? If you get this, stay home.",
-	"Mara: Something's happening in Greyhaven. The streets are—",
-	"Mara: Don't come looking for me. Please. I can hear—",
+	"Mica: Luke? It's Mica. You're home.",
+	"Mica: Listen carefully. The keys are for the vault.",
+	"Mica: I left the code by the plant—",
 	"[Connection lost]",
-	"Luke: Mara. Pick up. ...I'm coming.",
+	"Luke: Mica? ... Mica!",
 ]
-@export var mara_durations: Array[float] = [3.5, 4.0, 4.0, 2.0, 3.0]
+@export var mara_durations: Array[float] = [2.141, 2.827, 1.741, 1.2, 1.861]
 
 var stage: int = Stage.NORMAL
 var warning_heard := false
@@ -48,6 +50,7 @@ var _checkpoint: Dictionary = {}
 
 func _ready() -> void:
 	add_to_group("progression")
+	_load_phone_dialogue()
 	_checkpoint = snapshot()
 	if not auto_load or not load_checkpoint():
 		_publish_state(true)
@@ -85,7 +88,22 @@ func _player_recovering() -> bool:
 
 
 func prepared() -> bool:
-	return warning_heard and has_flashlight and has_keys
+	return warning_heard and has_flashlight and has_keys and (vault_unlocked or not requires_vault)
+
+func unlock_vault() -> void:
+	vault_unlocked = true
+	inventory_changed.emit()
+	if stage == Stage.PREPARATION and prepared(): _set_stage(Stage.PRESENCE)
+	else: _record_checkpoint()
+
+func _load_phone_dialogue() -> void:
+	var path := "res://data/phone_dialogue.json"
+	if not FileAccess.file_exists(path): return
+	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if not data is Dictionary or not data.get("lines") is Array or not data.get("durations") is Array: return
+	if data.lines.is_empty() or data.lines.size() != data.durations.size(): return
+	mara_lines.assign(data.lines)
+	mara_durations.assign(data.durations)
 
 
 func can_interact(kind: StringName) -> bool:
@@ -113,10 +131,11 @@ func interact(kind: StringName) -> bool:
 		&"flashlight", &"keys":
 			if kind == &"flashlight":
 				has_flashlight = true
-				show_notice("Flashlight ready.  F · Switch light")
+				if is_instance_valid(player) and player.has_method("add_battery"): player.add_battery(35.0)
+				show_notice("Spare flashlight cells fitted.  +35% charge", 4.0)
 			else:
 				has_keys = true
-				show_notice("Car keys.")
+				show_notice("Vault key. Find Mica's code beside the plant.", 5.0)
 			inventory_changed.emit()
 			if prepared():
 				_set_stage(Stage.PRESENCE)
@@ -178,25 +197,28 @@ func show_notice(text: String, duration: float = 3.0) -> void:
 
 func objective() -> String:
 	match stage:
-		Stage.NORMAL: return "A message from Mara"
+		Stage.NORMAL: return "A message from Mica"
 		Stage.MESSAGE: return ""
 		Stage.PREPARATION:
-			if not has_flashlight and not has_keys: return "Find the car keys and flashlight"
-			return "Find the flashlight" if has_keys else "Find the car keys"
+			if not has_keys: return "Find the vault key"
+			if not has_flashlight: return "Collect the spare flashlight battery"
+			if requires_vault and not vault_unlocked: return "Find the paper beside the plant. Open the vault."
+			return "Prepare to leave"
 		Stage.PRESENCE: return "Get ready to leave"
 		Stage.POWER_LOSS: return "Keep your light close"
 		Stage.ENCOUNTER: return "Keep your distance. Find room to move."
-		Stage.READY_TO_LEAVE: return "Leave the house. Find Mara."
+		Stage.READY_TO_LEAVE: return "Leave the house. Find Mica."
 		Stage.COMPLETE: return "GREYHAVEN\nEnd of the house opening"
 	return ""
 
 
 func interaction_hint(kind: StringName) -> String:
-	if kind == &"phone" and warning_heard: return "Mara isn't answering."
+	if kind == &"phone" and warning_heard: return "Mica isn't answering."
 	if kind == &"phone" and stage == Stage.MESSAGE: return ""
-	if not warning_heard: return "A message from Mara. I should listen."
+	if not warning_heard: return "A message from Mica. I should listen."
 	if kind == &"exit" or kind == &"exit_door":
-		if not has_keys: return "I need my car keys."
+		if not has_keys: return "Mica left a key for the vault."
+		if requires_vault and not vault_unlocked: return "I should check the vault before leaving."
 		if not has_flashlight: return "The flashlight. I'll need it."
 		if not encounter_survived: return "Something's between me and the way out."
 	return ""
@@ -205,7 +227,7 @@ func interaction_hint(kind: StringName) -> String:
 func snapshot() -> Dictionary:
 	return {"version": SAVE_VERSION, "stage": stage, "warning_heard": warning_heard,
 		"has_flashlight": has_flashlight, "has_keys": has_keys,
-		"encounter_survived": encounter_survived, "departed": departed}
+		"encounter_survived": encounter_survived, "departed": departed, "vault_unlocked": vault_unlocked}
 
 
 ## Invalid flag types are rejected. Inconsistent milestones are repaired toward a playable state.
@@ -231,6 +253,10 @@ func _normalized(data: Dictionary) -> Dictionary:
 		state.encounter_survived = false
 		state.departed = false
 		current = Stage.PREPARATION
+	elif requires_vault and not bool(state.get("vault_unlocked", current >= Stage.PRESENCE)):
+		state.encounter_survived = false
+		state.departed = false
+		current = Stage.PREPARATION
 	elif bool(state.encounter_survived):
 		current = Stage.COMPLETE if bool(state.departed) else Stage.READY_TO_LEAVE
 	else:
@@ -250,6 +276,8 @@ func restore_snapshot(data: Dictionary, notify: bool = true) -> bool:
 	has_keys = bool(state.has_keys)
 	encounter_survived = bool(state.encounter_survived)
 	departed = bool(state.departed)
+	# Older saves that already passed preparation keep their completed milestone.
+	vault_unlocked = bool(state.get("vault_unlocked", stage >= Stage.PRESENCE))
 	_elapsed = 0.0
 	_checkpoint = snapshot()
 	_set_subtitle(mara_lines[0] if stage == Stage.MESSAGE and not mara_lines.is_empty() else "")
@@ -324,6 +352,7 @@ func retry_checkpoint() -> void:
 func restart_opening() -> void:
 	# An explicit new game is the only operation that replaces an incompatible save.
 	save_writes_blocked = false
+	vault_unlocked = false
 	restore_snapshot({"version": SAVE_VERSION, "stage": Stage.NORMAL,
 		"warning_heard": false, "has_flashlight": false, "has_keys": false,
 		"encounter_survived": false, "departed": false})

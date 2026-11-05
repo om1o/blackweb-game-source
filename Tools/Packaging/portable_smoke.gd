@@ -116,20 +116,144 @@ func _run() -> void:
 		if not load(str(audio_path)) is AudioStream: bad_audio.append(str(audio_path))
 	_check("All six recovered audio clips load", audio_paths.size() == 6 and bad_audio.is_empty(), bad_audio)
 	var luke_voice := game.find_child("LukeWebRevealVoice", true, false) as AudioStreamPlayer
-	_check("Luke web-reveal neural voice loads in the packaged opening", luke_voice != null and luke_voice.stream != null and luke_voice.stream.get_length() > 3.0, luke_voice.stream.get_length() if luke_voice != null and luke_voice.stream != null else -1.0)
-	var mara_voice := game.find_child("MaraPhoneWarningVoice", true, false) as AudioStreamPlayer
+	var dialogue: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/phone_dialogue.json"))
+	_check("Luke web-reveal neural voice matches the packaged shared timeline", luke_voice != null and luke_voice.stream != null and is_equal_approx(luke_voice.stream.get_length(), float(dialogue.get("web_reaction", {}).get("duration_seconds", -1))), luke_voice.stream.get_length() if luke_voice != null and luke_voice.stream != null else -1.0)
+	var mara_voice := game.find_child("MicaPhoneWarningVoice", true, false) as AudioStreamPlayer
 	var phone_reply := game.find_child("LukePhoneReplyVoice", true, false) as AudioStreamPlayer
-	_check("Mara's warning and Luke's reply load in the packaged opening", mara_voice != null and mara_voice.stream != null and is_equal_approx(mara_voice.stream.get_length(), 11.5) and phone_reply != null and phone_reply.stream != null and phone_reply.stream.get_length() > 2.0)
+	_check("Mica's warning and Luke's reply match packaged metadata", mara_voice != null and mara_voice.stream != null and is_equal_approx(mara_voice.stream.get_length(), float(dialogue.get("warning", {}).get("duration_seconds", -1))) and phone_reply != null and phone_reply.stream != null and is_equal_approx(phone_reply.stream.get_length(), float(dialogue.get("reply", {}).get("duration_seconds", -1))))
 	game.call("_resume")
 	for tick in 5: await physics_frame
 	_check("Packed game resumes actual physics", not paused)
 	_check("QA run does not read or write player checkpoints", game.get("progression") != null and not bool(game.get("progression").get("auto_save")) and not bool(game.get("progression").get("auto_load")))
+	if player is CharacterBody3D: await _check_world_evidence(game, player)
 	game.process_mode = Node.PROCESS_MODE_DISABLED
 	_stop_audio(game)
 	game.queue_free()
 	for frame in 3: await process_frame
 	await create_timer(0.12).timeout
 	_finish()
+
+func _check_world_evidence(game: Node, player: CharacterBody3D) -> void:
+	# Use the assembled PCK collision, not direct interaction calls or an assigned
+	# focus target. A bounded grid proves a standing route from the real spawn.
+	player.set_physics_process(false)
+	game.get("progression").set_process(false)
+	for group in [&"spider", &"mini_spider"]:
+		for actor in get_nodes_in_group(group): actor.set_physics_process(false)
+	for door in game.get("_tutorial_doors"):
+		door.set("locked", false) # The keypad/unlock transaction has a separate suite.
+		if not bool(door.get("opened")): door.call("toggle")
+	await create_timer(0.72).timeout
+	await physics_frame
+	var space := player.get_world_3d().direct_space_state
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = player.get("_standing_capsule")
+	query.collision_mask = 1
+	query.exclude = [player.get_rid()]
+	var capsule: CollisionShape3D = player.get("_capsule_shape")
+	var cells: Dictionary = {}
+	var nearest := Vector2i.ZERO
+	var nearest_distance := INF
+	for x in range(37):
+		for z in range(23):
+			var feet := Vector3(-5.05 + x * 0.35, 0.425, -3.85 + z * 0.35)
+			query.transform = Transform3D(Basis.IDENTITY, feet + capsule.position)
+			query.motion = Vector3.ZERO
+			if not space.intersect_shape(query, 1).is_empty(): continue
+			var floor_hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(feet + Vector3.UP * 0.08, feet + Vector3.DOWN * 0.15, 1))
+			if floor_hit.is_empty() or floor_hit.normal.y < 0.75: continue
+			var cell := Vector2i(x, z)
+			cells[cell] = feet
+			var distance := feet.distance_squared_to(player.global_position)
+			if distance < nearest_distance:
+				nearest_distance = distance
+				nearest = cell
+	var connected: Array[Vector3] = []
+	var pending: Array[Vector2i] = []
+	var visited: Dictionary = {}
+	if cells.has(nearest):
+		query.transform = Transform3D(Basis.IDENTITY, player.global_position + capsule.position)
+		query.motion = cells[nearest] - player.global_position
+		var initial_sweep := space.cast_motion(query)
+		if not initial_sweep.is_empty() and initial_sweep[0] > 0.99:
+			pending.append(nearest)
+			visited[nearest] = true
+	var cursor := 0
+	while cursor < pending.size():
+		var cell := pending[cursor]
+		cursor += 1
+		connected.append(cells[cell])
+		for offset in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+			var next: Vector2i = cell + offset
+			if not cells.has(next) or visited.has(next): continue
+			query.transform = Transform3D(Basis.IDENTITY, cells[cell] + capsule.position)
+			query.motion = cells[next] - cells[cell]
+			var sweep := space.cast_motion(query)
+			if not sweep.is_empty() and sweep[0] > 0.99:
+				visited[next] = true
+				pending.append(next)
+	_check("Standing capsule connects spawn to supported house approaches", not connected.is_empty(), {"sampled_cells": 851, "connected_cells": connected.size()})
+	var camera: Camera3D = player.get("camera")
+	var original_pose := player.global_transform
+	var original_camera := camera.global_transform
+	var paper_focused := false
+	# Keep the paper last so its real focused object can receive the input event.
+	for name in ["VaultCash", "VaultFieldKit", "PlantCodeNote"]:
+		var evidence := game.get_node_or_null(NodePath(name)) as Node3D
+		var found := false
+		var approach := Vector3.ZERO
+		if evidence != null:
+			for feet in connected:
+				if feet.distance_to(evidence.global_position) >= 2.05: continue
+				var eye := feet + Vector3.UP * 1.48
+				var aim := evidence.global_position - eye
+				var pitch := atan2(aim.y, Vector2(aim.x, aim.z).length())
+				if pitch < -1.05 or pitch > 0.65: continue
+				player.global_position = feet
+				# Position the actual camera at a supported eye-height viewpoint;
+				# this tests focus/LOS, not SpringArm camera framing or rendered QA.
+				camera.global_position = eye
+				camera.look_at(evidence.global_position, Vector3.UP)
+				player.call("_update_focus")
+				if player.get("_focused") == evidence:
+					found = true
+					approach = feet
+					break
+		_check("Actual collision and focus rays can reach " + name, found, {"approach": str(approach), "target": str(evidence.global_position) if evidence != null else "missing"})
+		if name == "PlantCodeNote": paper_focused = found
+	var headless_input := DisplayServer.get_name() == "headless"
+	var input_check := ("E input" if headless_input else "Left click") + " on physically focused paper opens paused readable overlay"
+	if paper_focused:
+		player.set("active", true)
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		var interaction_event: InputEvent
+		if headless_input:
+			# Dummy display cannot capture the mouse. Exercise the real E route;
+			# only a native run can approve the production captured-click guard.
+			var key := InputEventKey.new()
+			key.keycode = KEY_E
+			key.physical_keycode = KEY_E
+			key.pressed = true
+			interaction_event = key
+		else:
+			var click := InputEventMouseButton.new()
+			click.button_index = MOUSE_BUTTON_LEFT
+			click.pressed = true
+			click.position = root.get_visible_rect().size * 0.5
+			interaction_event = click
+		Input.parse_input_event(interaction_event)
+		Input.flush_buffered_events()
+		await process_frame
+		var overlay: Control = game.get("field_overlay")
+		_check(input_check, overlay.visible and overlay.get("mode") == "paper" and paused and bool(game.get("campaign").get("code_found")))
+		interaction_event.set("pressed", false)
+		Input.parse_input_event(interaction_event)
+		if overlay.visible: overlay.call("close_overlay")
+	else:
+		_check(input_check, false, "No reachable physical paper focus was found")
+	player.global_transform = original_pose
+	camera.global_transform = original_camera
+	paused = false
 
 func _stop_audio(node: Node) -> void:
 	if node is AudioStreamPlayer or node is AudioStreamPlayer3D or node is AudioStreamPlayer2D: node.stop()

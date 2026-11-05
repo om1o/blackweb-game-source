@@ -41,6 +41,7 @@ var _battery_reported := 22.0
 var _flicker_clock := 0.0
 var _flicker_off_remaining := 0.0
 var _beam_scan_remaining := 0.0
+var _battery_warning_band := 1
 var _knife_cooldown := 0.0
 var _flare_remaining := 0.0
 var _flare_light: OmniLight3D
@@ -87,6 +88,7 @@ var _lens_on_material: StandardMaterial3D
 var _lens_off_material: StandardMaterial3D
 var _lens_glowing := false
 var inventory: BlackwebInventoryGrid = InventoryGrid.new()
+var _equipped_armor: Dictionary = {&"shirt": &"", &"pants": &"", &"hood": &"", &"shoes": &""}
 var selected_quick_index := 0
 var _animation: AnimationPlayer
 var _walk_clip := ""
@@ -112,6 +114,13 @@ const KNIFE_ACTION_DURATION := 0.68
 const KNIFE_REACH := 1.55
 const CANDY_HEAL_TIME := 0.78
 const CANDY_ACTION_DURATION := 1.16
+const CANDY_HEAL := 30.0
+const ARMOR_PIECES := {
+	&"leather_shirt": {"slot": &"shirt", "reduction": 6.0},
+	&"leather_pants": {"slot": &"pants", "reduction": 5.0},
+	&"leather_hood": {"slot": &"hood", "reduction": 4.0},
+	&"leather_shoes": {"slot": &"shoes", "reduction": 3.0},
+}
 const PALM_GRIP := Vector3(0.076, 0.025, -0.006)
 const CANDY_WRAPPER_CENTRE := 0.039
 const CANDY_EXPOSED_TIP := 0.0685
@@ -634,6 +643,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.is_action_pressed("hotbar_%d" % (quick_index + 1)):
 			select_quick_slot(quick_index)
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		if is_instance_valid(_focused) and _focused.kind == &"tutorial_evidence":
+			_focused.interact()
+			get_viewport().set_input_as_handled()
+			return
 		use_selected_item()
 
 func _physics_process(delta: float) -> void:
@@ -653,7 +666,7 @@ func _physics_process(delta: float) -> void:
 		_set_crouch(false)
 	var input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction := Basis(Vector3.UP, _yaw) * Vector3(input.x, 0, input.y)
-	var busy_with_supply := _action_kind in [&"battery", &"bandage", &"flare"]
+	var busy_with_supply := _action_kind in [&"candy_bar", &"battery", &"bandage", &"flare"]
 	var sprinting := Input.is_action_pressed("sprint") and input.length_squared() > 0.04 and is_on_floor() and not _crouching and stamina > 0.0 and not busy_with_supply
 	if sprinting:
 		stamina = maxf(0.0, stamina - STAMINA_DRAIN * delta)
@@ -724,12 +737,15 @@ func _set_focus_prompt(text: String) -> void:
 	focus_changed.emit(text)
 
 func flashlight_available() -> bool:
-	return true # Luke begins with a weak battery torch; the house pickup is a backup.
+	return item_count(&"flashlight") > 0
 
 func add_battery(amount: float) -> float:
-	if amount <= 0.0: return battery_charge
+	if amount <= 0.0 or not is_finite(amount): return battery_charge
 	battery_charge = clampf(battery_charge + amount, 0.0, 100.0)
 	_battery_reported = battery_charge
+	_flicker_clock = 0.0
+	_flicker_off_remaining = 0.0
+	_battery_warning_band = _battery_band()
 	battery_changed.emit(battery_charge)
 	return battery_charge
 
@@ -740,6 +756,7 @@ func add_item(id: StringName, count: int = 1) -> int:
 	return after
 
 func add_battery_pack(charge_points: float) -> bool:
+	if charge_points <= 0.0 or not is_finite(charge_points): return false
 	var points := clampi(roundi(charge_points), 1, 100)
 	var id := StringName("battery_%d" % points)
 	var before := item_count(id)
@@ -766,8 +783,106 @@ func inventory_slots() -> Array[Dictionary]:
 func equipped_items() -> Array[StringName]:
 	return inventory.equipped.duplicate()
 
+func get_armor_state() -> Dictionary:
+	var state := _equipped_armor.duplicate()
+	for slot in state:
+		if item_count(StringName(state[slot])) <= 0: state[slot] = &""
+	return state
+
+func armor_reduction_percent() -> float:
+	var reduction := 0.0
+	for id in get_armor_state().values():
+		if ARMOR_PIECES.has(id): reduction += float(ARMOR_PIECES[id].reduction)
+	return minf(18.0, reduction)
+
+func equip_armor(cell_index: int) -> bool:
+	if _action_kind != &"": return false
+	var id := inventory.item_at(cell_index)
+	if not ARMOR_PIECES.has(id) or item_count(id) <= 0: return false
+	_equipped_armor[ARMOR_PIECES[id].slot] = id
+	inventory_changed.emit()
+	_item_notice("%s equipped. Armor reduces damage by %d%%." % [InventoryGrid.display_name(id), roundi(armor_reduction_percent())])
+	return true
+
+func unequip_armor(slot: StringName) -> bool:
+	if _action_kind != &"" or not _equipped_armor.has(slot) or _equipped_armor[slot] == &"": return false
+	_equipped_armor[slot] = &""
+	inventory_changed.emit()
+	return true
+
+func restore_armor_state(state: Dictionary) -> bool:
+	# Equipment references existing inventory cells. Loading cannot create items
+	# or silently map one piece into a different armor slot.
+	var restored: Dictionary = {&"shirt": &"", &"pants": &"", &"hood": &"", &"shoes": &""}
+	for raw_slot in state:
+		var slot := StringName(str(raw_slot))
+		var id := StringName(str(state[raw_slot]))
+		if not restored.has(slot): return false
+		if id != &"" and (not ARMOR_PIECES.has(id) or ARMOR_PIECES[id].slot != slot or item_count(id) <= 0): return false
+		restored[slot] = id
+	_equipped_armor = restored
+	inventory_changed.emit()
+	return true
+
+func survival_snapshot() -> Dictionary:
+	return {"version": 1, "inventory": inventory.snapshot(),
+		"quick_slots": inventory.equipped.duplicate(), "armor": get_armor_state(),
+		"health": health, "battery": battery_charge,
+		"selected_quick_index": selected_quick_index, "flashlight_on": _light_on}
+
+func restore_survival_state(data: Dictionary) -> bool:
+	var saved_version: Variant = data.get("version")
+	if not (saved_version is int or saved_version is float) or float(saved_version) != 1.0: return false
+	if not data.get("inventory") is Array or not data.get("quick_slots") is Array or not data.get("armor") is Dictionary: return false
+	var saved_health: Variant = data.get("health")
+	var saved_battery: Variant = data.get("battery")
+	var saved_selection: Variant = data.get("selected_quick_index")
+	var saved_light: Variant = data.get("flashlight_on", true)
+	if not saved_light is bool: return false
+	if not (saved_health is int or saved_health is float) or not (saved_battery is int or saved_battery is float): return false
+	if not (saved_selection is int or saved_selection is float) or not is_finite(float(saved_selection)): return false
+	if float(saved_selection) != floorf(float(saved_selection)) or int(saved_selection) < 0 or int(saved_selection) >= 3: return false
+	if not is_finite(float(saved_health)) or float(saved_health) < 0.0 or float(saved_health) > 100.0: return false
+	if not is_finite(float(saved_battery)) or float(saved_battery) < 0.0 or float(saved_battery) > 100.0: return false
+	var restored_inventory := InventoryGrid.new()
+	if not restored_inventory.has_method("restore_state") or not restored_inventory.call("restore_state", data.inventory, data.quick_slots): return false
+	var restored_armor: Dictionary = {&"shirt": &"", &"pants": &"", &"hood": &"", &"shoes": &""}
+	for raw_slot in data.armor:
+		var slot := StringName(str(raw_slot))
+		var id := StringName(str(data.armor[raw_slot]))
+		if not restored_armor.has(slot): return false
+		if id != &"" and (not ARMOR_PIECES.has(id) or ARMOR_PIECES[id].slot != slot or restored_inventory.count(id) <= 0): return false
+		restored_armor[slot] = id
+	_cancel_item_action()
+	_recovery_generation += 1
+	inventory = restored_inventory
+	_equipped_armor = restored_armor
+	health = float(saved_health)
+	_recovering = health <= 0.0
+	battery_charge = float(saved_battery)
+	_battery_reported = battery_charge
+	selected_quick_index = int(saved_selection)
+	_light_on = saved_light and not _recovering and selected_quick_item() == &"flashlight" and is_item_equipped(&"flashlight") and battery_charge > 0.0
+	_flicker_clock = 0.0
+	_flicker_off_remaining = 0.0
+	_battery_warning_band = _battery_band()
+	_knife_cooldown = 0.0
+	_hurt_time = 0.0
+	_flare_remaining = 0.0
+	_clear_placed_flare()
+	if is_instance_valid(_flare_light): _flare_light.visible = false
+	if is_instance_valid(_item_audio): _item_audio.silence()
+	inventory_changed.emit()
+	health_changed.emit(health)
+	battery_changed.emit(battery_charge)
+	quick_slot_changed.emit(selected_quick_index)
+	flashlight_changed.emit(_light_on)
+	recovery_changed.emit(_recovering)
+	return true
+
 func equip_inventory_cell(cell_index: int, quick_index: int) -> bool:
 	if _action_kind != &"": return false
+	if ARMOR_PIECES.has(inventory.item_at(cell_index)): return false
 	var equipped := inventory.equip_cell(cell_index, quick_index)
 	if equipped:
 		if quick_index == selected_quick_index and selected_quick_item() != &"flashlight" and _light_on:
@@ -795,6 +910,8 @@ func select_quick_slot(quick_index: int) -> bool:
 	if _light_on != new_light_on:
 		_light_on = new_light_on
 		flashlight_changed.emit(_light_on)
+	_flicker_clock = 0.0
+	_flicker_off_remaining = 0.0
 	quick_slot_changed.emit(selected_quick_index)
 	return true
 
@@ -802,15 +919,36 @@ func use_selected_item() -> bool:
 	return use_quick_slot(selected_quick_index)
 
 func use_item(id: StringName) -> bool:
-	if not active or _recovering or _action_kind != &"" or not is_item_equipped(id): return false
+	if not active or _recovering: return false
+	if _action_kind != &"": return false
+	if not is_item_equipped(id):
+		_item_notice("Empty slot. Press I to equip an item in one of your three quick slots.")
+		return false
 	if str(id).begins_with("battery_"):
-		if battery_charge >= 99.9: return false
+		if not flashlight_available():
+			_item_notice("You need a flashlight before inserting a battery.")
+			return false
+		if battery_charge >= 99.9:
+			_item_notice("The flashlight battery is already full. Spare battery kept.")
+			return false
 		_start_item_action(&"battery", id)
-		_item_audio.play_cue(&"unwrap")
+		_light_on = false
+		lamp.visible = false
+		flashlight_changed.emit(false)
+		_item_audio.play_cue(&"battery_open")
+		_item_notice("Replacing battery... keep clear until the cell clicks into place.", 2.1)
 		return true
 	match id:
 		&"flashlight":
+			if battery_charge <= 0.0:
+				_light_on = false
+				_item_audio.play_cue(&"blocked")
+				_item_notice("Battery empty. Press I, equip a spare battery, then click to insert it.", 4.0)
+				flashlight_changed.emit(false)
+				return false
 			_light_on = not _light_on
+			_flicker_clock = 0.0
+			_flicker_off_remaining = 0.0
 			_item_audio.play_cue(&"switch")
 			flashlight_changed.emit(_light_on)
 			return true
@@ -822,22 +960,40 @@ func use_item(id: StringName) -> bool:
 			_action_effect_done = false
 			return true
 		&"candy_bar":
-			if health >= 100.0: return false
-			_action_kind = &"candy_bar"
-			_action_time = 0.0
-			_action_effect_done = false
+			if health >= 100.0:
+				_item_notice("Health is full (100/100). Candy heals up to 30 HP; bar kept.", 4.0)
+				return false
+			_start_item_action(&"candy_bar", id)
 			_item_audio.play_cue(&"unwrap")
+			_item_notice("Eating candy... heals up to 30 HP after the bite.", 1.6)
 			return true
 		&"bandage":
-			if health >= 100.0: return false
+			if health >= 100.0:
+				_item_notice("Health is full. Bandage kept.")
+				return false
 			_start_item_action(&"bandage", id)
 			_item_audio.play_cue(&"unwrap")
+			_item_notice("Applying bandage... keep clear until the wrap is secure.", 3.0)
 			return true
 		&"flare":
-			if _flare_remaining > 0.0: return false
+			if _flare_remaining > 0.0:
+				_item_notice("Your flare is still burning. Spare flare kept.")
+				return false
 			_start_item_action(&"flare", id)
 			return true
 	return false
+
+func _item_notice(message: String, seconds := 3.0) -> void:
+	if is_instance_valid(progression) and progression.has_method("show_notice"):
+		progression.show_notice(message, seconds)
+
+func _interrupt_supply_action() -> void:
+	if _action_kind not in [&"candy_bar", &"battery", &"bandage", &"flare"]: return
+	var committed := _action_effect_done
+	var name := InventoryGrid.display_name(_action_item_id)
+	_cancel_item_action()
+	if is_instance_valid(_item_audio): _item_audio.silence()
+	if not committed: _item_notice("Interrupted! %s kept; try again when clear." % name)
 
 func _start_item_action(kind: StringName, item_id: StringName) -> void:
 	if kind in [&"battery", &"bandage"] and _flare_remaining > 0.0:
@@ -896,12 +1052,14 @@ func reset_starting_inventory() -> void:
 	_cancel_item_action()
 	if is_instance_valid(_item_audio): _item_audio.silence()
 	inventory.reset()
+	_equipped_armor = {&"shirt": &"", &"pants": &"", &"hood": &"", &"shoes": &""}
 	selected_quick_index = 0
 	battery_charge = clampf(starting_battery_charge, 0.0, 100.0)
 	_battery_reported = battery_charge
 	_light_on = true
 	_flicker_clock = 0.0
 	_flicker_off_remaining = 0.0
+	_battery_warning_band = _battery_band()
 	_flare_remaining = 0.0
 	_clear_placed_flare()
 	if is_instance_valid(_flare_light): _flare_light.visible = false
@@ -911,7 +1069,7 @@ func reset_starting_inventory() -> void:
 	flashlight_changed.emit(_light_on)
 
 func _tick_item_action(delta: float) -> void:
-	if _action_kind == &"": return
+	if _action_kind == &"" or delta <= 0.0 or not is_finite(delta): return
 	var previous_time := _action_time
 	_action_time += delta
 	if _action_kind == &"knife" and previous_time < 0.14 and _action_time >= 0.14:
@@ -921,25 +1079,42 @@ func _tick_item_action(delta: float) -> void:
 		if _knife_strike(): _item_audio.play_cue(&"knife_hit")
 	elif not _action_effect_done and _action_kind == &"candy_bar" and _action_time >= CANDY_HEAL_TIME:
 		_action_effect_done = true
-		if item_count(&"candy_bar") > 0:
-			health = minf(100.0, health + 30.0)
-			inventory.remove(&"candy_bar")
+		if health >= 100.0:
+			_item_notice("Health is now full. Candy bar kept.")
+			_cancel_item_action()
+			return
+		if inventory.remove(_action_item_id):
+			var before := health
+			health = minf(100.0, health + CANDY_HEAL)
 			health_changed.emit(health)
 			inventory_changed.emit()
 			_item_audio.play_cue(&"eat")
+			_item_notice("Candy eaten: +%d HP (%d/100)." % [roundi(health - before), roundi(health)])
 	elif not _action_effect_done and _action_kind == &"battery" and _action_time >= BATTERY_INSERT_TIME:
 		_action_effect_done = true
+		if battery_charge >= 99.9 or not flashlight_available():
+			_item_notice("Replacement canceled. Spare battery kept.")
+			_cancel_item_action()
+			return
 		if inventory.remove(_action_item_id):
+			var before := battery_charge
 			add_battery(float(str(_action_item_id).trim_prefix("battery_")))
-			_item_audio.play_cue(&"switch")
+			_item_audio.play_cue(&"battery_insert")
 			inventory_changed.emit()
+			_item_notice("Battery inserted: +%d%%. Flashlight charge %d%%." % [roundi(battery_charge - before), roundi(battery_charge)])
 	elif not _action_effect_done and _action_kind == &"bandage" and _action_time >= BANDAGE_HEAL_TIME:
 		_action_effect_done = true
+		if health >= 100.0:
+			_item_notice("Health is now full. Bandage kept.")
+			_cancel_item_action()
+			return
 		if inventory.remove(_action_item_id):
+			var before := health
 			health = minf(100.0, health + 55.0)
 			health_changed.emit(health)
 			inventory_changed.emit()
 			_item_audio.play_cue(&"unwrap")
+			_item_notice("Bandage applied: +%d HP (%d/100)." % [roundi(health - before), roundi(health)])
 	elif not _action_effect_done and _action_kind == &"flare" and _action_time >= FLARE_IGNITE_TIME:
 		_action_effect_done = true
 		if inventory.remove(_action_item_id):
@@ -949,7 +1124,11 @@ func _tick_item_action(delta: float) -> void:
 			inventory_changed.emit()
 	var duration := _item_action_duration()
 	if _action_time >= duration:
+		var return_to_torch := _action_kind == &"battery" and _action_effect_done
 		_cancel_item_action()
+		if return_to_torch:
+			var torch_slot := inventory.equipped.find(&"flashlight")
+			if torch_slot >= 0: select_quick_slot(torch_slot)
 
 func _update_held_item_visuals(show_visual: bool, delta: float) -> void:
 	var held_item := selected_quick_item()
@@ -1269,7 +1448,14 @@ func _update_right_hand_grip() -> void:
 		var curled := Transform3D(base.basis * Basis(Vector3.BACK, curl * weight), base.origin)
 		_luke_skeleton.set_bone_global_pose_override(index, curled, 1.0, true)
 
+func _battery_band() -> int:
+	if battery_charge <= 0.0: return 3
+	if battery_charge <= 8.0: return 2
+	if battery_charge <= 25.0: return 1
+	return 0
+
 func _tick_equipment(delta: float) -> void:
+	if delta < 0.0 or not is_finite(delta): return
 	_knife_cooldown = maxf(0.0, _knife_cooldown - delta)
 	_flare_remaining = maxf(0.0, _flare_remaining - delta)
 	if _flare_remaining <= 0.0: _clear_placed_flare()
@@ -1277,7 +1463,19 @@ func _tick_equipment(delta: float) -> void:
 	var powered := _light_on and selected_quick_item() == &"flashlight" and _action_kind == &"" and is_item_equipped(&"flashlight") and battery_charge > 0.0
 	if powered:
 		battery_charge = maxf(0.0, battery_charge - BATTERY_DRAIN_PER_SECOND * delta)
-		if battery_charge <= 25.0:
+		var band := _battery_band()
+		if band > _battery_warning_band:
+			match band:
+				1: _item_notice("Flashlight battery is low. Keep a spare battery ready.")
+				2: _item_notice("Flashlight battery critical: 8% or less. Press I to equip a spare.", 4.0)
+				3: _item_notice("Flashlight battery empty. Equip a spare in I, then click to insert it.", 4.0)
+		_battery_warning_band = band
+		if battery_charge <= 0.0:
+			_light_on = false
+			flashlight_changed.emit(false)
+			_flicker_clock = 0.0
+			_flicker_off_remaining = 0.0
+		elif battery_charge <= 25.0:
 			_flicker_clock += delta
 			_flicker_off_remaining = maxf(0.0, _flicker_off_remaining - delta)
 			var interval := 1.55 if battery_charge <= 8.0 else 4.2
@@ -1288,8 +1486,14 @@ func _tick_equipment(delta: float) -> void:
 		else:
 			_flicker_clock = 0.0
 			_flicker_off_remaining = 0.0
+	else:
+		# A stored or switched-off torch does not drain, and its next use starts
+		# from a stable contact rather than resuming an old blackout.
+		_flicker_clock = 0.0
+		_flicker_off_remaining = 0.0
 	lamp.visible = powered and battery_charge > 0.0 and _flicker_off_remaining <= 0.0
-	lamp.light_energy = 1.85 if progression.has_flashlight else 1.45
+	var base_energy := 1.85 if is_instance_valid(progression) and progression.get("has_flashlight") == true else 1.45
+	lamp.light_energy = base_energy * lerpf(0.60, 1.0, clampf(battery_charge / 25.0, 0.0, 1.0))
 	_update_flashlight_lenses()
 	if absf(battery_charge - _battery_reported) >= 0.5 or (battery_charge <= 0.0 and _battery_reported > 0.0):
 		_battery_reported = battery_charge
@@ -1324,19 +1528,39 @@ func _knife_strike() -> bool:
 	var facing := -camera.global_basis.z
 	var closest: Node3D
 	var distance := KNIFE_REACH
+	var contact := Vector3.ZERO
+	var normal := Vector3.UP
 	for group in [&"mini_spider", &"spider"]:
 		for candidate in get_tree().get_nodes_in_group(group):
 			if not is_instance_valid(candidate) or not candidate is Node3D or not candidate.visible or not candidate.has_method("take_damage"): continue
 			if candidate.has_method("is_alive") and not candidate.is_alive(): continue
-			var toward: Vector3 = candidate.global_position + Vector3.UP * 0.25 - origin
-			var length := toward.length()
-			if length >= distance or length < 0.01 or facing.dot(toward.normalized()) < 0.35: continue
-			var ray := PhysicsRayQueryParameters3D.create(origin, candidate.global_position + Vector3.UP * 0.25, 1, [get_rid()])
-			if not get_world_3d().direct_space_state.intersect_ray(ray).is_empty(): continue
-			closest = candidate
-			distance = length
+			var spheres: Array = []
+			if candidate.has_method("get_hurt_spheres"):
+				var supplied: Variant = candidate.call("get_hurt_spheres")
+				if supplied is Array: spheres = supplied
+			if spheres.is_empty(): spheres = [{"center": candidate.global_position + Vector3.UP * 0.25, "radius": 0.05}]
+			for sphere in spheres:
+				if not sphere is Dictionary or not sphere.get("center") is Vector3: continue
+				var centre: Vector3 = sphere.center
+				var radius := float(sphere.get("radius", 0.0))
+				if not centre.is_finite() or not is_finite(radius) or radius <= 0.0: continue
+				var toward := centre - origin
+				var length := toward.length()
+				if length < 0.01 or facing.dot(toward / length) < 0.35: continue
+				var surface_distance := maxf(0.0, length - radius)
+				if surface_distance >= distance: continue
+				var point := origin + toward / length * surface_distance
+				var ray := PhysicsRayQueryParameters3D.create(origin, point, 1, [get_rid()])
+				if surface_distance > 0.001 and not get_world_3d().direct_space_state.intersect_ray(ray).is_empty(): continue
+				closest = candidate
+				distance = surface_distance
+				contact = point
+				normal = -toward / length
 	if is_instance_valid(closest):
-		closest.call("take_damage", KNIFE_DAMAGE)
+		if closest.has_method("receive_hit"):
+			closest.call("receive_hit", KNIFE_DAMAGE, contact, normal)
+		else:
+			closest.call("take_damage", KNIFE_DAMAGE)
 		return true
 	return false
 
@@ -1357,10 +1581,12 @@ func is_crouching() -> bool:
 	return _crouching
 
 func take_damage(amount: float) -> void:
-	if _recovering or not active or _hurt_time > 0.0: return
-	health = maxf(0.0, health - amount)
+	if _recovering or not active or _hurt_time > 0.0 or amount <= 0.0 or not is_finite(amount): return
+	var damage := amount * (1.0 - armor_reduction_percent() / 100.0)
+	health = maxf(0.0, health - damage)
 	_hurt_time = 0.65
 	health_changed.emit(health)
+	_interrupt_supply_action()
 	if health <= 0.0:
 		_cancel_item_action()
 		_recovering = true

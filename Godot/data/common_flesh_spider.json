@@ -1,6 +1,23 @@
 {
   "id": "common_flesh_spider",
-  "status": "Only implemented and placed archetype; juveniles are the same flesh-spider lineage. Other type names are future resistance placeholders, not authored enemy archetypes.",
+  "display_name": "House spider",
+  "status": "Only implemented tutorial archetype: ordinary house spiders in adult and juvenile sizes. Larger spider types remain future content.",
+  "presentation": {
+    "classification": "Ordinary spider",
+    "attack_light": false,
+    "effects": "Tiny muted ochre fluid specks on accepted weapon hits and death, subdued dust on accepted bite contact, and short original dry impact transients at the actual contact position. No supernatural attack glow.",
+    "shared_effect_slots": 4,
+    "particles_per_slot": 8,
+    "particle_lifetime_s": 0.34,
+    "particle_fixed_fps": 30,
+    "maximum_effect_audio_voices": 4,
+    "effect_cancellation": "Pause clears all effects; activation, deactivation and checkpoint retry clear only that enemy's effects. Idle pool processing is disabled. Full pools reuse the oldest slot.",
+    "effect_assets": "Original procedural quad particles and synthesized mono contact audio; no downloaded effects, textures, decals, lights, particle collision or shadows.",
+    "sources": [
+      "https://docs.godotengine.org/en/stable/classes/class_cpuparticles3d.html",
+      "https://docs.godotengine.org/en/stable/classes/class_physicsshapequeryparameters3d.html"
+    ]
+  },
   "adult": {
     "runtime": "res://scripts/spider.gd",
     "visual": "Recovered large spider scene loaded by main.gd",
@@ -36,7 +53,8 @@
     "last_known_memory_s": 4.5,
     "navigation": "Five-room waypoint graph with capsule sweeps, floor probes and live closed-door rejection. Route decisions run at most every 0.35 seconds; static edge results expire after 0.6 seconds. No teleport or wall climbing.",
     "attack_telegraph": "Recovered walk/run clips plus rig-specific front-leg, pedipalp and fang posing. Windup locks attack direction; a close stationary bite or a straight lunge has one physics-checked impact, followed by retreat/cooldown.",
-    "attack_cues": "Original synthesized lunge rush and flesh impact; contact taps are motion-synced.",
+    "attack_cues": "Original synthesized dry lunge rush, surface contacts and restrained impact transients. Leg contacts are motion-synced; the attack tell uses body and fang posture.",
+    "weapon_hurt_volumes": "Two pose-following body spheres at recovered rig Root and Back, radii 0.22 m and 0.25 m. Movement capsule remains radius 0.32 m and height 0.64 m; thin legs are not inflated into a body-sized target.",
     "resolution": "Escape at existing safe-exit anchor OR kill with weapon damage. 100 HP, zero armor: 25 worn-knife hits at 4 damage without prior damage. Flashlight remains nonlethal and capped at 3 total damage. Death cancels attacks, removes collision, plays a 1.1-second rig pose and unlocks the same exit while leaving a visible corpse."
   },
   "juvenile": {
@@ -44,6 +62,7 @@
     "visual": "Optimized Literock Giant Spider Lite 1K skinned GLB in the local game package; CC0 Quaternius source-checkout fallback, then code-native visual",
     "visual_animations": ["Idle", "Walk", "Run", "Bite"],
     "death_visual": "Short procedural collapse; the Literock Lite rig has no death clip",
+    "weapon_hurt_volumes": "Pose-following head sphere radius 0.095 m and abdomen midpoint sphere radius 0.12 m. Movement capsule remains radius 0.13 m and height 0.27 m; Literock forward correction is preserved.",
     "health": 12,
     "armor": 0,
     "awareness_radius_m": 8,

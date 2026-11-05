@@ -84,8 +84,32 @@ var _quick_buttons: Array[Button] = []
 var _inventory_capacity_label: Label
 var _inventory_hint: Label
 var _selected_cell := -1
+var armor_state: Dictionary = {}
+var armor_percent := 0.0
+var wallet := 0
+var vault_code_found := false
+var _armor_buttons: Dictionary = {}
+var _armor_equip_button: Button
+var _wallet_label: Label
 
 signal equip_requested(cell_index: int, quick_index: int)
+signal armor_equip_requested(cell_index: int)
+signal armor_remove_requested(slot: StringName)
+
+func set_armor_state(state: Dictionary, protection: float) -> void:
+	armor_state = state.duplicate()
+	armor_percent = protection
+	for slot in _armor_buttons:
+		_armor_buttons[slot].text = "%s\n%s" % [str(slot).to_upper(), "LEATHER · REMOVE" if str(armor_state.get(slot, "")) != "" else "EMPTY"]
+	_refresh_inventory()
+
+func set_wallet(amount: int) -> void:
+	wallet = amount
+	if is_instance_valid(_wallet_label): _wallet_label.text = "WALLET  $%d" % wallet
+
+func set_vault_code_found(found: bool) -> void:
+	vault_code_found = found
+	_refresh_inventory()
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -477,6 +501,28 @@ func _build_inventory() -> void:
 		grid.add_child(cell)
 		_inventory_cell_buttons.append(cell)
 	var information := HBoxContainer.new()
+	var armor_row := HBoxContainer.new()
+	armor_row.add_theme_constant_override("separation", 5)
+	stack.add_child(armor_row)
+	for slot in [&"shirt", &"pants", &"hood", &"shoes"]:
+		var piece := Button.new()
+		piece.custom_minimum_size = Vector2(150, 43)
+		piece.add_theme_font_size_override("font_size", 11)
+		piece.text = "%s\nEMPTY" % str(slot).to_upper()
+		piece.pressed.connect(func(): armor_remove_requested.emit(slot))
+		armor_row.add_child(piece)
+		_armor_buttons[slot] = piece
+	_armor_equip_button = Button.new()
+	_armor_equip_button.text = "EQUIP SELECTED ARMOR"
+	_armor_equip_button.custom_minimum_size = Vector2(215, 43)
+	_armor_equip_button.add_theme_font_size_override("font_size", 12)
+	_armor_equip_button.pressed.connect(func():
+		if _selected_cell >= 0: armor_equip_requested.emit(_selected_cell))
+	armor_row.add_child(_armor_equip_button)
+	_wallet_label = Label.new()
+	_wallet_label.text = "WALLET  $0"
+	_wallet_label.add_theme_font_size_override("font_size", 14)
+	armor_row.add_child(_wallet_label)
 	information.add_theme_constant_override("separation", 8)
 	stack.add_child(information)
 	_inventory_loadout = _inventory_panel(information, "01  /  LOADOUT")
@@ -494,7 +540,7 @@ func _build_inventory() -> void:
 
 func _inventory_panel(row: HBoxContainer, title: String) -> Label:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(238, 127)
+	panel.custom_minimum_size = Vector2(238, 108)
 	var style := _panel_style()
 	style.bg_color = Color(0.07, 0.10, 0.11, 0.92)
 	style.set_content_margin_all(9)
@@ -510,7 +556,7 @@ func _inventory_panel(row: HBoxContainer, title: String) -> Label:
 	stack.add_child(heading)
 	var body := Label.new()
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	body.custom_minimum_size = Vector2(212, 89)
+	body.custom_minimum_size = Vector2(212, 74)
 	body.add_theme_font_size_override("font_size", 11)
 	body.add_theme_color_override("font_color", Color(0.87, 0.86, 0.81))
 	stack.add_child(body)
@@ -520,8 +566,9 @@ func _refresh_inventory() -> void:
 	if not is_instance_valid(_inventory_loadout): return
 	_inventory_loadout.text = "1  %s\n2  %s\n3  %s\nOnly equipped items can be used." % [BlackwebInventoryGrid.display_name(equipped_items[0]), BlackwebInventoryGrid.display_name(equipped_items[1]), BlackwebInventoryGrid.display_name(equipped_items[2])]
 	_inventory_supplies.text = "Battery charge: %d%%\nPacks: %d  ·  Bandages: %d\nFlares: %d\nSelect cell → quick slot to equip." % [ceili(battery_charge), int(inventory_counts.get(&"battery", 0)), int(inventory_counts.get(&"bandage", 0)), int(inventory_counts.get(&"flare", 0))]
-	_inventory_condition.text = "Health: %d / 100\nStamina: %d / 100\nArmor: 0 / none\n%s" % [ceili(health), ceili(stamina), objective_text]
+	_inventory_condition.text = "Health: %d / 100\nStamina: %d / 100\nArmor: %d%% reduction\n%s" % [ceili(health), ceili(stamina), roundi(armor_percent), objective_text]
 	_inventory_records.text = "PROJECT 08\nPrisoner tissue was grafted to spiders; the altered subjects drew in a demonic presence." if record_found else "No field record found yet.\nSearch the house's drawers and cabinets."
+	if vault_code_found: _inventory_records.text = "MICA'S NOTE  /  VAULT 0417\nUse the small vault key.\nFour leather armor pieces inside.\nThe house spiders are ordinary."
 	for index in range(_quick_buttons.size()):
 		var id: StringName = equipped_items[index]
 		_quick_buttons[index].text = "%d    %s    /    %s" % [index + 1, BlackwebInventoryGrid.display_name(id), "x%d" % _equipped_count(index) if id not in [&"flashlight", &"knife"] else ("ON" if flashlight_on else "OFF") if id == &"flashlight" else "READY"]
@@ -540,6 +587,8 @@ func _refresh_inventory_grid() -> void:
 		else:
 			occupied += 1
 			var short_name := BlackwebInventoryGrid.display_name(id)
+			if BlackwebInventoryGrid.is_armor(id): short_name = "L." + str(id).trim_prefix("leather_").to_upper()
+			button.tooltip_text = BlackwebInventoryGrid.display_name(id)
 			button.text = "%02d  %s\nx%d%s" % [index + 1, short_name, count, "  [E]" if equipped_items.has(id) else ""]
 			button.modulate = Color(1.0, 0.88, 0.58) if index == _selected_cell else (Color(0.78, 0.94, 0.92) if equipped_items.has(id) else Color(0.92, 0.93, 0.88))
 	if is_instance_valid(_inventory_capacity_label):
@@ -553,6 +602,8 @@ func _select_cell(index: int) -> void:
 	else:
 		_selected_cell = index
 		_inventory_hint.text = "SELECTED %s   /   CLICK QUICK SLOT 1, 2, OR 3" % BlackwebInventoryGrid.display_name(StringName(str(inventory_slots[index].get("id", ""))))
+		if BlackwebInventoryGrid.is_armor(StringName(str(inventory_slots[index].get("id", "")))):
+			_inventory_hint.text = "SELECTED LEATHER ARMOR   /   CLICK EQUIP SELECTED ARMOR   /   CLICK A WORN PIECE TO REMOVE"
 	_refresh_inventory_grid()
 
 func _on_quick_button(quick_index: int) -> void:
@@ -563,8 +614,16 @@ func _on_quick_button(quick_index: int) -> void:
 		_selected_cell = -1
 		_inventory_hint.text = "ITEM USED   /   SELECT ANOTHER BACKPACK CELL"
 		return
+	if BlackwebInventoryGrid.is_armor(StringName(str(inventory_slots[_selected_cell].get("id", "")))):
+		_inventory_hint.text = "ARMOR USES ITS OWN SLOTS   /   CLICK EQUIP SELECTED ARMOR"
+		return
+	var requested_item := StringName(str(inventory_slots[_selected_cell].get("id", "")))
 	equip_requested.emit(_selected_cell, quick_index)
-	_inventory_hint.text = "EQUIPPED   /   PRESS %d TO DRAW, THEN LEFT CLICK TO USE" % (quick_index + 1)
+	# The controller updates this model synchronously only after a valid equip.
+	if quick_index >= 0 and quick_index < equipped_items.size() and equipped_items[quick_index] == requested_item:
+		_inventory_hint.text = "EQUIPPED   /   PRESS %d TO DRAW, THEN LEFT CLICK TO USE" % (quick_index + 1)
+	else:
+		_inventory_hint.text = "FINISH USING THE CURRENT ITEM   /   CLOSE INVENTORY, THEN TRY EQUIPPING AGAIN"
 
 func _panel_style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()

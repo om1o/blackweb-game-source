@@ -10,6 +10,9 @@ const CUE_DURATION := {
 	&"knife_hit": 0.11,
 	&"unwrap": 0.27,
 	&"eat": 0.23,
+	&"battery_open": 0.18,
+	&"battery_insert": 0.15,
+	&"blocked": 0.075,
 }
 
 var _voices: Array[AudioStreamPlayer] = []
@@ -67,6 +70,15 @@ func _synthesize(id: StringName, duration: float) -> AudioStreamWAV:
 				sample = high * envelope * crinkle * 0.44
 			&"eat":
 				sample = (low * 0.46 + high * 0.14) * envelope * (0.6 + 0.4 * sin(TAU * 11.0 * t))
+			&"battery_open":
+				var scrape := high * envelope * (0.2 + 0.18 * sin(TAU * 32.0 * t))
+				sample = scrape + low * 0.35 * exp(-75.0 * t)
+			&"battery_insert":
+				var latch := exp(-82.0 * t)
+				var spring := sin(TAU * 520.0 * t) * exp(-40.0 * t)
+				sample = high * latch * 0.44 + spring * 0.18
+			&"blocked":
+				sample = low * exp(-65.0 * t) * 0.48
 		data.encode_s16(index * 2, roundi(clampf(sample, -0.8, 0.8) * 32767.0))
 	var stream := AudioStreamWAV.new()
 	stream.format = AudioStreamWAV.FORMAT_16_BITS

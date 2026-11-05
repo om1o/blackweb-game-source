@@ -29,7 +29,7 @@
     1.9
   ],
   "tutorial": {
-    "rooms": ["Entry / Mara's phone", "Record room / keys and paper", "Supply room / juvenile sighting", "Infested room / adult encounter", "Vault / cabinet, cash and juvenile"],
+    "rooms": ["Entry / Mica's phone", "Record room / plant and hidden code", "Supply room / juvenile sighting", "Infested room / adult encounter", "Vault / leather armor, cash and juvenile"],
     "interior_doors": 4,
     "exterior_exits": 1,
     "bounds_meters": [-5.6, 7.8, -4.25, 4.25]
@@ -585,7 +585,7 @@
   "interactions": [
     {
       "kind": "phone",
-      "label": "Listen to Mara",
+      "label": "Listen to Mica",
       "position": [
         -3.6,
         1.068239858,
@@ -596,7 +596,7 @@
     },
     {
       "kind": "keys",
-      "label": "Take car keys",
+      "label": "Take vault key",
       "position": [
         0.45,
         1.451,
@@ -605,7 +605,7 @@
     },
     {
       "kind": "flashlight",
-      "label": "Take charged backup flashlight",
+      "label": "Salvage spare flashlight cells",
       "position": [
         -1.6,
         1.067239858,
