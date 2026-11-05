@@ -1,0 +1,163 @@
+{
+  "check_count": 28,
+  "checks": [
+    {
+      "label": "GLB imports as PackedScene",
+      "passed": true
+    },
+    {
+      "label": "exactly three semantic roots",
+      "passed": true
+    },
+    {
+      "label": "runtime has no studio cameras/lights/collisions",
+      "passed": true
+    },
+    {
+      "label": "WebRadialTorn exists",
+      "passed": true
+    },
+    {
+      "label": "WebRadialTorn root transform identity",
+      "passed": true
+    },
+    {
+      "label": "WebRadialTorn two mesh draws",
+      "passed": true
+    },
+    {
+      "label": "WebRadialTorn finite vertices and normals",
+      "passed": true
+    },
+    {
+      "label": "WebRadialTorn opaque silk material",
+      "passed": true
+    },
+    {
+      "label": "WebRadialTorn rough nonmetal material",
+      "passed": true
+    },
+    {
+      "label": "WebRadialTorn exact authored triangle count",
+      "passed": true
+    },
+    {
+      "label": "WebRadialTorn metre bounds and forward axes",
+      "passed": true
+    },
+    {
+      "label": "WebSaggingCanopy exists",
+      "passed": true
+    },
+    {
+      "label": "WebSaggingCanopy root transform identity",
+      "passed": true
+    },
+    {
+      "label": "WebSaggingCanopy two mesh draws",
+      "passed": true
+    },
+    {
+      "label": "WebSaggingCanopy finite vertices and normals",
+      "passed": true
+    },
+    {
+      "label": "WebSaggingCanopy opaque silk material",
+      "passed": true
+    },
+    {
+      "label": "WebSaggingCanopy rough nonmetal material",
+      "passed": true
+    },
+    {
+      "label": "WebSaggingCanopy exact authored triangle count",
+      "passed": true
+    },
+    {
+      "label": "WebSaggingCanopy metre bounds and forward axes",
+      "passed": true
+    },
+    {
+      "label": "WebFurnitureCocoon exists",
+      "passed": true
+    },
+    {
+      "label": "WebFurnitureCocoon root transform identity",
+      "passed": true
+    },
+    {
+      "label": "WebFurnitureCocoon two mesh draws",
+      "passed": true
+    },
+    {
+      "label": "WebFurnitureCocoon finite vertices and normals",
+      "passed": true
+    },
+    {
+      "label": "WebFurnitureCocoon opaque silk material",
+      "passed": true
+    },
+    {
+      "label": "WebFurnitureCocoon rough nonmetal material",
+      "passed": true
+    },
+    {
+      "label": "WebFurnitureCocoon exact authored triangle count",
+      "passed": true
+    },
+    {
+      "label": "WebFurnitureCocoon metre bounds and forward axes",
+      "passed": true
+    },
+    {
+      "label": "set stays below25000 triangles",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "total_triangles": 24628,
+  "variants": {
+    "WebFurnitureCocoon": {
+      "bounds_min": [
+        -0.790191769599915,
+        -0.0207027830183506,
+        -0.573498368263245
+      ],
+      "meshes": 2,
+      "size_metres": [
+        1.58038353919983,
+        1.04684412479401,
+        1.14049673080444
+      ],
+      "triangles": 9932
+    },
+    "WebRadialTorn": {
+      "bounds_min": [
+        -1.48193454742432,
+        -0.974634766578674,
+        -0.0666952580213547
+      ],
+      "meshes": 2,
+      "size_metres": [
+        2.74875211715698,
+        2.06594634056091,
+        0.134875059127808
+      ],
+      "triangles": 4438
+    },
+    "WebSaggingCanopy": {
+      "bounds_min": [
+        -1.3505140542984,
+        -0.562753558158875,
+        -0.950613081455231
+      ],
+      "meshes": 2,
+      "size_metres": [
+        2.70147728919983,
+        0.626528203487396,
+        1.90124940872192
+      ],
+      "triangles": 10258
+    }
+  }
+}

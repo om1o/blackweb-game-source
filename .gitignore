@@ -50,6 +50,12 @@ Playable/
 /Godot/validation/**/report.json
 /Godot/assets/generated/luke_web_reveal_v1.wav
 *.import
+# These authored import settings are part of the environment performance budget.
+# Retain them so a fresh source checkout also uses the 2K runtime limit/mipmaps.
+!Godot/assets/third_party/ambientcg/**/*.import
+!Godot/assets/third_party/texturecan/**/*.import
+!Godot/assets/generated/blood_variants_v3.png.import
+!Godot/assets/generated/goo_variants_v3.png.import
 *.tmp
 *.log
 /Tools/Recovery/NoFmod/bin/

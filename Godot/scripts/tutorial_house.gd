@@ -48,6 +48,7 @@ static func apply(house: Node3D) -> Dictionary:
 		house.remove_child(child)
 		child.queue_free()
 		removed += 1
+	_place_record_table(house)
 	var segments := 0
 	# Rear shell: one sealed wall, one and only one exterior exit remains at the front.
 	for end_z in [-2.0, 0.0, 2.0, 4.0]:
@@ -73,6 +74,23 @@ static func apply(house: Node3D) -> Dictionary:
 		segments += 1
 	return {"success": true, "removed": removed, "new_wall_segments": segments,
 		"room_count": 5, "bounds": [MIN_X, MAX_X, MIN_Z, MAX_Z]}
+
+
+static func _place_record_table(house: Node3D) -> void:
+	# This retained table crossed both new partitions in the compact layout.
+	# Its sibling collider stores world-baked vertices, so transform that body
+	# by the same old-to-new map rather than merely changing the visible mesh.
+	for child in house.get_children():
+		if not child is Node3D: continue
+		if not str(child.get_meta("ue_mesh_path", "")).contains("SM_Coffeetable"): continue
+		if child.position.distance_to(Vector3(2.670903, 0.4, 0.736698)) > 0.02: continue
+		var old_pose: Transform3D = child.transform
+		child.position = Vector3(1.65, 0.40, 2.94)
+		child.rotation.y = PI * 0.5
+		var collider := house.get_node_or_null(str(child.name) + "_Collision") as Node3D
+		if collider != null:
+			collider.transform = child.transform * old_pose.affine_inverse() * collider.transform
+		child.set_meta("tutorial_record_table", true)
 
 static func _add_wall(house: Node3D, template: Node3D, prefix: String, origin: Vector3, yaw: float, length: float, height: float = WALL_HEIGHT) -> void:
 	var visual: Node3D = template.duplicate()

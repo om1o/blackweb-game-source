@@ -78,7 +78,23 @@ func _run() -> void:
 	var supply_atlas := load("res://assets/generated/supply_labels_worn_v1.png") as Texture2D
 	_check("Worn supply label atlas resolves through its packed import", supply_atlas != null and supply_atlas.get_width() > 1000)
 	var residue_texture := load("res://assets/generated/blood_goo_smears_v2.png") as Texture2D
-	_check("New transparent blood/goo atlas loads from its packed import", residue_texture != null and residue_texture.get_width() > 1000)
+	_check("Preserved earlier transparent blood/goo atlas loads from its packed import", residue_texture != null and residue_texture.get_width() > 1000)
+	var new_environment := load("res://scripts/environment_surfaces.gd")
+	var blood := new_environment.blood_material() as StandardMaterial3D
+	var wall_goo := new_environment.goo_material(false) as ShaderMaterial
+	var floor_goo := new_environment.goo_material(true) as ShaderMaterial
+	_check("Dry blood and both wet residue materials load from the PCK", blood.albedo_texture != null
+		and wall_goo.get_shader_parameter("atlas") is Texture2D
+		and wall_goo.get_shader_parameter("detail_normal") is Texture2D
+		and floor_goo.get_shader_parameter("detail_normal") is Texture2D)
+	var modeled_webs := house.get_node_or_null("BlackwebModeledSilk")
+	_check("All six original modeled web placements load in the packaged house", modeled_webs != null and modeled_webs.get_child_count() == 6)
+	var orb_material := new_environment.orb_material() as ShaderMaterial
+	var pbr_maps_ok := true
+	for channel in ["silk_color", "silk_opacity", "silk_normal", "silk_roughness", "silk_ao"]:
+		var texture := orb_material.get_shader_parameter(channel) as Texture2D
+		pbr_maps_ok = pbr_maps_ok and texture != null and texture.get_width() == 2048
+	_check("Five cobweb PBR channels load at the 2048-pixel runtime limit", pbr_maps_ok)
 	_check("Luke skeleton is preserved", _has_skeleton(player, 81))
 	_check("Spider skeleton is preserved", _has_skeleton(spider, 142))
 	_check("Interactive exit door exists", game.get("_exit_door") != null)

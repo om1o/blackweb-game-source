@@ -28,6 +28,8 @@ const REMOVE_MESHES := {
 const PHOTO_WEB_TEXTURE := "res://assets/generated/corner_web_v1.png"
 const DENSE_SILK_TEXTURE := "res://assets/generated/ceiling_silk_v2.png"
 const RESIDUE_TEXTURE := "res://assets/generated/blood_goo_smears_v2.png"
+const EnvironmentSurfaces = preload("res://scripts/environment_surfaces.gd")
+const ModeledSilk = preload("res://scripts/modeled_silk.gd")
 const PAINTED_CABINET_SCENE := "res://assets/third_party/poly_haven/painted_wooden_cabinet/painted_wooden_cabinet_1k.gltf"
 const WORN_SHELF_SCENE := "res://assets/third_party/poly_haven/Shelf_01/Shelf_01_1k.gltf"
 const CAGED_LIGHT_SCENE := "res://assets/third_party/poly_haven/caged_hanging_light/caged_hanging_light_1k.gltf"
@@ -165,6 +167,7 @@ static func apply(house: Node3D) -> Dictionary:
 			caged_fixture_count = 1
 	else:
 		push_warning("CC0 caged fixture unavailable; house remains playable")
+	var modeled: Dictionary = ModeledSilk.apply(house)
 	return {"removed": removed, "removed_total": _sum_counts(removed), "web_fans": 7,
 		"web_triangles": webs.mesh.surface_get_array_index_len(0) / 3,
 		"radial_webs": _radial_web_sites().size(),
@@ -172,8 +175,10 @@ static func apply(house: Node3D) -> Dictionary:
 		"hanging_veils": _hanging_veil_sites().size(),
 		"hanging_veil_triangles": hanging_webs.mesh.surface_get_array_index_len(0) / 3,
 		"residue_decals": _residue_sites().size(),
-		"residue_triangles": residue.mesh.surface_get_array_index_len(0) / 3,
-		"residue_generated_atlas": ResourceLoader.exists(RESIDUE_TEXTURE),
+		"residue_triangles": _mesh_triangles(residue.mesh),
+		"residue_generated_atlas": ResourceLoader.exists(EnvironmentSurfaces.BLOOD_ATLAS) and ResourceLoader.exists(EnvironmentSurfaces.GOO_ATLAS),
+		"modeled_silk_instances": modeled.instances, "modeled_silk_triangles": modeled.triangles,
+		"pbr_orb_cards": modeled.pbr_orbs,
 		"dense_silk_cards": dense_silk_cards,
 		"photo_web_cards": photo_web_cards, "photo_web_triangles": photo_web_triangles,
 		"ceiling_sheet_cards": 5 if photo_web_cards > 0 else 0,
@@ -194,6 +199,13 @@ static func _sum_counts(counts: Dictionary) -> int:
 	for count in counts.values():
 		total += int(count)
 	return total
+
+
+static func _mesh_triangles(mesh: Mesh) -> int:
+	var count := 0
+	for surface in range(mesh.get_surface_count()):
+		count += mesh.surface_get_array_index_len(surface) / 3
+	return count
 
 
 static func _web_mesh() -> ArrayMesh:
@@ -463,45 +475,7 @@ static func _residue_sites() -> Array[Dictionary]:
 
 
 static func _residue_mesh() -> ArrayMesh:
-	var vertices := PackedVector3Array()
-	var normals := PackedVector3Array()
-	var uvs := PackedVector2Array()
-	var indices := PackedInt32Array()
-	for site in _residue_sites():
-		var center: Vector3 = site.center
-		var u: Vector3 = site.u
-		var v: Vector3 = site.v
-		var axis := u.cross(v).normalized()
-		var tilt: float = site.tilt
-		var rotation := Basis(axis, tilt)
-		u = rotation * u
-		v = rotation * v
-		var base := vertices.size()
-		vertices.append_array(PackedVector3Array([
-			center - u * 0.5 - v * 0.5, center + u * 0.5 - v * 0.5,
-			center - u * 0.5 + v * 0.5, center + u * 0.5 + v * 0.5,
-		]))
-		# Imported photo decals need surface normals for flashlight shading. The
-		# unlit fallback would otherwise turn both blood and goo pure black.
-		var outward: Vector3 = site.normal
-		normals.append_array(PackedVector3Array([outward, outward, outward, outward]))
-		var left: float = 0.01 if int(site.kind) == 0 else 0.51
-		var right: float = 0.49 if int(site.kind) == 0 else 0.99
-		uvs.append_array(PackedVector2Array([
-			Vector2(left, 0.98), Vector2(right, 0.98),
-			Vector2(left, 0.02), Vector2(right, 0.02),
-		]))
-		_append_facing_quad(indices, base, u, v, outward)
-	var arrays := []
-	arrays.resize(Mesh.ARRAY_MAX)
-	arrays[Mesh.ARRAY_VERTEX] = vertices
-	arrays[Mesh.ARRAY_NORMAL] = normals
-	arrays[Mesh.ARRAY_TEX_UV] = uvs
-	arrays[Mesh.ARRAY_INDEX] = indices
-	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	mesh.surface_set_material(0, _residue_material())
-	return mesh
+	return EnvironmentSurfaces.residue_mesh(_residue_sites())
 
 
 static func _residue_material() -> StandardMaterial3D:

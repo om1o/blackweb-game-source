@@ -1,0 +1,94 @@
+{
+  "scope": "Eleven new distinct, runtime-referenced environment-art payloads; excludes caches, alternate normal conventions, ZIPs, previous art, and duplicate files",
+  "source_bytes": 95030515,
+  "assets": [
+    {
+      "path": "res://assets/third_party/texturecan/cobweb_0015/others_0015_color_4k.jpg",
+      "bytes": 684837,
+      "sha256": "cfe6eeb562ca467f44bc918598040f034393b23c46f2ec3f365ee2296760feaa",
+      "runtime_max_dimension": 2048,
+      "mipmaps": true,
+      "runtime_compression": "Lossless"
+    },
+    {
+      "path": "res://assets/third_party/texturecan/cobweb_0015/others_0015_ao_4k.jpg",
+      "bytes": 1188848,
+      "sha256": "73d16de3b7b7d9fc86a223ad6d578dde0257142771b91b2ced200ad892be3058",
+      "runtime_max_dimension": 2048,
+      "mipmaps": true,
+      "runtime_compression": "Lossless"
+    },
+    {
+      "path": "res://assets/third_party/texturecan/cobweb_0015/others_0015_normal_opengl_4k.png",
+      "bytes": 21869617,
+      "sha256": "84345f13674b6e1d9b95fccdb706467c819504da9f3dd8b6a107c78a790f4cd0",
+      "runtime_max_dimension": 2048,
+      "mipmaps": true,
+      "runtime_compression": "VRAM RGTC normal map"
+    },
+    {
+      "path": "res://assets/third_party/texturecan/cobweb_0015/others_0015_opacity_4k.jpg",
+      "bytes": 477507,
+      "sha256": "29e9e64124a2efceccd663681a863c40b26bef9854c1a6d80d1eb3c6591a55f8",
+      "runtime_max_dimension": 2048,
+      "mipmaps": true,
+      "runtime_compression": "Lossless"
+    },
+    {
+      "path": "res://assets/third_party/texturecan/cobweb_0015/others_0015_roughness_4k.jpg",
+      "bytes": 805743,
+      "sha256": "eea5701729c9bf542fdc96d97aa04e8e9b049c602f344bf3858be9c019a51778",
+      "runtime_max_dimension": 2048,
+      "mipmaps": true,
+      "runtime_compression": "Lossless"
+    },
+    {
+      "path": "res://assets/third_party/ambientcg/Leaking012C/Leaking012C_4K-PNG_NormalGL.png",
+      "bytes": 33237390,
+      "sha256": "6625abb9e987761f1ae671fec3cb67593f39fbdd36eba91212471a87d276075c",
+      "runtime_max_dimension": 2048,
+      "mipmaps": true,
+      "runtime_compression": "VRAM RGTC normal map"
+    },
+    {
+      "path": "res://assets/third_party/ambientcg/Leaking012C/Leaking012C_4K-PNG_Roughness.png",
+      "bytes": 4612801,
+      "sha256": "de1480e499597c53ada7eca5d90c3b3e6a690422b2ccfba1a41637b8b3d7dd75",
+      "runtime_max_dimension": 2048,
+      "mipmaps": true,
+      "runtime_compression": "Lossless"
+    },
+    {
+      "path": "res://assets/third_party/ambientcg/Leaking019C/Leaking019C_4K-PNG_NormalGL.png",
+      "bytes": 27995821,
+      "sha256": "ea49eb6c8061a7501bb4b392e95f65de93e9a3b60b66b492442f1d2119e0fdf4",
+      "runtime_max_dimension": 2048,
+      "mipmaps": true,
+      "runtime_compression": "VRAM RGTC normal map"
+    },
+    {
+      "path": "res://assets/third_party/ambientcg/Leaking019C/Leaking019C_4K-PNG_Roughness.png",
+      "bytes": 1247662,
+      "sha256": "256d6b1d65d2f98a37c156fe291ce7c39452075c650b1ba664111be6b13d260b",
+      "runtime_max_dimension": 2048,
+      "mipmaps": true,
+      "runtime_compression": "Lossless"
+    },
+    {
+      "path": "res://assets/generated/blood_variants_v3.png",
+      "bytes": 1710462,
+      "sha256": "9780da9837c8c8a6788993dba176adcc5f425f9505dc77752059f6b9ab651e5c",
+      "runtime_max_dimension": 2048,
+      "mipmaps": true,
+      "runtime_compression": "Lossless"
+    },
+    {
+      "path": "res://assets/generated/goo_variants_v3.png",
+      "bytes": 1199827,
+      "sha256": "65b26853959ac75e8dc29581c054e352158834a693c75195703d1718ce526e17",
+      "runtime_max_dimension": 2048,
+      "mipmaps": true,
+      "runtime_compression": "Lossless"
+    }
+  ]
+}

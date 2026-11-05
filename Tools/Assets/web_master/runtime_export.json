@@ -1,0 +1,36 @@
+{
+  "roots": [
+    "WebRadialTorn",
+    "WebSaggingCanopy",
+    "WebFurnitureCocoon"
+  ],
+  "nodes": [
+    "WebRadialTorn",
+    "Radial_AnchorBundles",
+    "Radial_TornSpiral",
+    "WebSaggingCanopy",
+    "Canopy_LoadThreads",
+    "Canopy_TangledSheet",
+    "WebFurnitureCocoon",
+    "Cocoon_AnchorThreads",
+    "Cocoon_IrregularWrap"
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "WebSilkRough",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.5699999928474426,
+          0.5849999785423279,
+          0.5350000262260437,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 0.8399999737739563
+      }
+    }
+  ],
+  "bytes": 471596,
+  "meshBuffersUnchanged": true
+}

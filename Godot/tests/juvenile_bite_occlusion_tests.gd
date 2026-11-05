@@ -92,4 +92,5 @@ func _run() -> void:
 	await create_timer(0.25).timeout
 	world.queue_free()
 	await process_frame
+	await create_timer(0.12).timeout
 	quit(0 if failures.is_empty() else 1)

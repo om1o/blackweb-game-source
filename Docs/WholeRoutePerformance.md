@@ -1,5 +1,7 @@
 # Five-room traversal and native performance
 
+This is the historical pre-environment-v3 measurement. The later [pre-compression run](WholeRouteEnvironmentV3Performance.md) and [latest RGTC full-route measurement](WholeRouteRgtcPerformance.md) record this pass's performance and limits; the original frame statistics below are preserved.
+
 Measured 2026-11-05 UTC on the current source checkout, based on commit `c423a22b5b73dac5cf68d1cf845cfd10453593ea` plus the action, supply, voice, and furniture fixes. This is **not a measurement of the old portable PCK**. Runtime script hashes are inside `tutorial-route-native-960.json`; the fuller file list is `tutorial-route-source-manifest.json`.
 
 ## Result
@@ -41,7 +43,9 @@ Follow-up source checks passed: compact layout **39/39**, juvenile bite occlusio
 
 First compare the same workload using the installed Radeon adapter through Windows' per-app graphics preference, retaining the present artwork. Windows supports choosing a high-performance GPU per application and requires restarting it for the setting to take effect; verify Godot's adapter string before comparing. No adapter preference was changed by this audit. [Microsoft graphics preference instructions](https://support.microsoft.com/en-au/windows/hardware/display-graphics/optimizations-for-windowed-games-in-windows-11).
 
-Profile the vault's CPU/physics work as well: its sampled physics median was about 17 ms, versus roughly 6–8 ms in the other rooms. This monitor alone does not establish a CPU or GPU bottleneck. If a GPU capture identifies transparent fill-rate pressure, test tighter web-card bounds or selective alpha-scissor materials on opaque strands; preserve translucent veil webs unless visual comparison supports the change. Transparent overlap can be expensive, and alpha-scissor changes edge appearance. [Godot GPU optimization](https://docs.godotengine.org/en/stable/tutorials/performance/gpu_optimization.html), [Godot material transparency](https://docs.godotengine.org/en/stable/tutorials/3d/standard_material_3d.html).
+The vault's recorded physics-monitor median of about 17 ms (versus roughly 6–8 ms elsewhere) was a median of repeated **cached one-second maxima**, not the median duration of individual physics ticks. Godot publishes the interval's largest physics duration and then resets that maximum. It cannot by itself establish the room's average physics cost or a CPU/GPU bottleneck. [Godot main-loop implementation](https://github.com/godotengine/godot/blob/master/main/main.cpp).
+
+The [causal follow-up](VaultPursuitPerformance.md) measured actor callbacks directly and found a juvenile repeatedly pushing through the partition into a coffee-table collider. Visible-target pursuit removed that contact loop; a controlled vault A/B/A comparison improved frame median by 10.19% and p95 by 14.61% while preserving collision, gravity and nearby attacks. These targeted results are separate from the historical full-route statistics above. Further graphics changes require measurement and visual comparison; alpha-scissor can reduce transparent overlap but changes edges. [Godot GPU optimization](https://docs.godotengine.org/en/stable/tutorials/performance/gpu_optimization.html), [Godot material transparency](https://docs.godotengine.org/en/stable/tutorials/3d/standard_material_3d.html).
 
 ## Reproduce
 

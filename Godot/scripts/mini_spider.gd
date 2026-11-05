@@ -207,7 +207,11 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 	var factor := light_speed_factor if light_slow_remaining > 0.0 else 1.0
-	var desired := toward.normalized() * walk_speed * factor if toward.length() < awareness_radius else Vector3.ZERO
+	# A juvenile only pursues a visible target. Directly chasing through a room
+	# partition made it grind into the wall/furniture corner every physics tick.
+	# Keep gravity and collision running while it waits; an opening door or a
+	# player crossing its sightline immediately permits normal pursuit again.
+	var desired := toward.normalized() * walk_speed * factor if toward.length() < awareness_radius and _can_see_target() else Vector3.ZERO
 	velocity.x = move_toward(velocity.x, desired.x, 5.0 * delta)
 	velocity.z = move_toward(velocity.z, desired.z, 5.0 * delta)
 	velocity.y = -0.5 if is_on_floor() else velocity.y - 18.0 * delta
@@ -217,6 +221,13 @@ func _physics_process(delta: float) -> void:
 	if _attack_cooldown <= 0.0 and _can_bite_target(0.50):
 		_bite_windup_remaining = bite_windup_seconds
 		_play_visual("attack")
+
+func _can_see_target() -> bool:
+	var eye := global_position + Vector3.UP * 0.14
+	var target_feet := target.global_position + Vector3.UP * 0.14
+	var query := PhysicsRayQueryParameters3D.create(eye, target_feet, 1, [get_rid()])
+	query.hit_from_inside = true
+	return get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
 func _can_bite_target(reach: float) -> bool:
 	if not is_instance_valid(target): return false

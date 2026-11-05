@@ -139,7 +139,7 @@ $plan = [ordered]@{ input_files = $entries.Count; input_bytes = $inputBytes; run
 $plan | ConvertTo-Json
 if (-not $plan.fits) { throw 'Package would exceed the total project storage limit.' }
 if ($PlanOnly) { return }
-$critical = @('res://project.godot','res://scripts/main.gd','res://scripts/player.gd','res://scripts/progression.gd','res://scripts/spider.gd','res://tools/recovered_materials.gd','res://scenes/recovered_house.tscn','res://scenes/luke.tscn','res://scenes/spider_visual.tscn','res://data/house_layout.json','res://data/opening_components.json')
+$critical = @('res://project.godot','res://scripts/main.gd','res://scripts/player.gd','res://scripts/progression.gd','res://scripts/spider.gd','res://scripts/mini_spider.gd','res://scripts/house_dressing.gd','res://scripts/environment_surfaces.gd','res://scripts/modeled_silk.gd','res://scripts/tutorial_house.gd','res://tools/recovered_materials.gd','res://scenes/recovered_house.tscn','res://scenes/luke.tscn','res://scenes/spider_visual.tscn','res://data/house_layout.json','res://data/opening_components.json')
 $hashes = [ordered]@{}
 foreach ($resource in $critical) { $hashes[$resource] = (Get-FileHash -LiteralPath $inputFiles[$resource].source -Algorithm SHA256).Hash }
 $publicInfo = [ordered]@{

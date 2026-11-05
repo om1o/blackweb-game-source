@@ -15,21 +15,22 @@ func _initialize() -> void:
 	var accents: Dictionary = Dressing._accent_web_meshes()
 	_check_lit_surface(accents.cards, "furniture/ceiling wraps")
 	_check_lit_surface(accents.strands, "wrap strands")
-	var arrays := residue.surface_get_arrays(0)
-	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL] if arrays[Mesh.ARRAY_NORMAL] != null else PackedVector3Array()
-	var uvs: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
 	var floor_count := 0
 	var upright_drips := true
 	var floor_visible := true
-	for i in range(0, vertices.size(), 4):
-		if normals[i].dot(Vector3.UP) > 0.99:
-			floor_count += 1
-			for j in range(4):
-				floor_visible = floor_visible and vertices[i + j].y > 0.40 and vertices[i + j].y < 0.43
-		else:
-			# Image V increases downwards; drips must descend on vertical walls.
-			upright_drips = upright_drips and vertices[i].y < vertices[i + 2].y and uvs[i].y > uvs[i + 2].y
+	for surface in range(residue.get_surface_count()):
+		var arrays := residue.surface_get_arrays(surface)
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+		var uvs: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
+		for i in range(0, vertices.size(), 4):
+			if normals[i].dot(Vector3.UP) > 0.99:
+				floor_count += 1
+				for j in range(4):
+					floor_visible = floor_visible and vertices[i + j].y > 0.40 and vertices[i + j].y < 0.43
+			else:
+				# Image V increases downwards; drips must descend on vertical walls.
+				upright_drips = upright_drips and vertices[i].y < vertices[i + 2].y and uvs[i].y > uvs[i + 2].y
 	_check(floor_count == 16 and floor_visible, "all 16 floor stains sit above the recovered floor")
 	_check(upright_drips, "wall atlas drips point down")
 	for mesh in [residue, Dressing._web_mesh(), Dressing._radial_web_mesh(),
@@ -41,7 +42,11 @@ func _initialize() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 func _check_lit_surface(mesh: ArrayMesh, label: String) -> void:
-	var arrays := mesh.surface_get_arrays(0)
+	for surface in range(mesh.get_surface_count()):
+		_check_surface(mesh, surface, label + " surface " + str(surface))
+
+func _check_surface(mesh: ArrayMesh, surface: int, label: String) -> void:
+	var arrays := mesh.surface_get_arrays(surface)
 	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL] if arrays[Mesh.ARRAY_NORMAL] != null else PackedVector3Array()
 	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
@@ -55,9 +60,20 @@ func _check_lit_surface(mesh: ArrayMesh, label: String) -> void:
 			valid = valid and absf(normals[a].length() - 1.0) < 0.001
 			valid = valid and clockwise_normal.dot(normals[a]) > 0.999
 	_check(valid, label + " normals match clockwise front faces")
-	var material := mesh.surface_get_material(0) as StandardMaterial3D
-	_check(material != null and material.shading_mode == BaseMaterial3D.SHADING_MODE_PER_PIXEL,
-		label + " responds to room and flashlight lighting")
+	var material := mesh.surface_get_material(surface)
+	var lit := false
+	if material is StandardMaterial3D:
+		lit = material.shading_mode == BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	elif material is ShaderMaterial:
+		lit = material.shader != null and not material.shader.code.contains("unshaded")
+	_check(lit, label + " responds to room and flashlight lighting")
+	if arrays[Mesh.ARRAY_TANGENT] != null:
+		var tangents: PackedFloat32Array = arrays[Mesh.ARRAY_TANGENT]
+		var valid_basis := tangents.size() == vertices.size() * 4
+		for i in range(vertices.size()):
+			var tangent := Vector3(tangents[i * 4], tangents[i * 4 + 1], tangents[i * 4 + 2])
+			valid_basis = valid_basis and absf(tangent.dot(normals[i])) < 0.001 and absf(tangent.length() - 1.0) < 0.001
+		_check(valid_basis, label + " has orthonormal normal-map tangents")
 
 func _check(passed: bool, label: String) -> void:
 	checks += 1

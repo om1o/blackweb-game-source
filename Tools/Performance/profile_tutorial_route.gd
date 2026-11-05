@@ -1,10 +1,8 @@
 extends SceneTree
-## External, read-only workload against the frozen PCK. Writes Evidence only.
+## External, read-only workload against source or a named PCK. Writes Evidence only.
 ## --main-pack <Blackweb.pck> --script <absolute script> -- --output=<absolute JSON>
 ## --validate-route disables rendering evidence, not collision or encounter AI.
 
-const PACKAGE_SHA256 := "07D1DD7391E7580878F10ABE4A2B6049DC708415F1412E5F0CEF432F020FB979"
-const SOURCE_COMMIT := "c423a22b5b73dac5cf68d1cf845cfd10453593ea"
 const DIRECTIONS := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 var game: Node3D
 var cells: Dictionary = {}
@@ -14,6 +12,7 @@ var mini_spiders: Array = []
 var output_path := "D:/GameProjects/BlackwebHouseRebuild-20261103/Evidence/tutorial-route-performance.json"
 var validation := false
 var concurrent_game_pid := 0
+var source_commit := "not supplied; see runtime file hashes"
 var measuring := false
 var previous_usec := 0
 var started_usec := 0
@@ -30,6 +29,7 @@ func _run() -> void:
 		if arg.begins_with("--output="): output_path = arg.trim_prefix("--output=")
 		if arg == "--validate-route": validation = true
 		if arg.begins_with("--concurrent-game-pid="): concurrent_game_pid = int(arg.trim_prefix("--concurrent-game-pid="))
+		if arg.begins_with("--source-commit="): source_commit = arg.trim_prefix("--source-commit=")
 	if not output_path.replace("\\", "/").begins_with("D:/GameProjects/BlackwebHouseRebuild-20261103/Evidence/"):
 		printerr("Output must remain inside this project's Evidence directory")
 		quit(3)
@@ -94,9 +94,13 @@ func _run() -> void:
 	game.progression._set_stage(game.progression.Stage.ENCOUNTER)
 	for index in 180: await physics_frame
 	var from_package := OS.get_cmdline_args().has("--main-pack")
+	var package_sha256 := "not applicable; source checkout"
+	if from_package:
+		var pack_index := OS.get_cmdline_args().find("--main-pack")
+		package_sha256 = FileAccess.get_sha256(OS.get_cmdline_args()[pack_index + 1])
 	var source_hashes: Dictionary = {}
-	for source_file in ["main.gd", "player.gd", "tutorial_house.gd", "mini_spider.gd", "house_dressing.gd"]:
-		source_hashes[source_file] = FileAccess.get_sha256("res://scripts/" + source_file)
+	for source_file in ["main.gd", "player.gd", "tutorial_house.gd", "mini_spider.gd", "spider.gd", "house_dressing.gd", "environment_surfaces.gd", "modeled_silk.gd", "house_batching.gd", "locomotion_pose.gd", "props.gd", "supply_models.gd", "storage.gd"]:
+		if FileAccess.file_exists("res://scripts/" + source_file): source_hashes[source_file] = FileAccess.get_sha256("res://scripts/" + source_file)
 	report.metadata = {
 		"utc": Time.get_datetime_string_from_system(true), "process_id": OS.get_process_id(),
 		"validation_only": validation, "engine": Engine.get_version_info(),
@@ -107,22 +111,24 @@ func _run() -> void:
 		"vsync_mode": DisplayServer.window_get_vsync_mode(), "max_fps": Engine.max_fps,
 		"msaa_3d": root.msaa_3d, "render_scale_3d": root.scaling_3d_scale,
 		"runtime_origin": "frozen PCK" if from_package else "current source checkout with uncommitted changes",
-		"package_sha256": PACKAGE_SHA256 if from_package else "not applicable; source checkout",
-		"base_source_commit": SOURCE_COMMIT, "runtime_script_sha256": source_hashes,
+		"package_sha256": package_sha256,
+		"base_source_commit": source_commit, "runtime_script_sha256": source_hashes,
 		"concurrent_game_pid": concurrent_game_pid, "other_processes_left_untouched_by_harness": true,
 		"health_budget_at_setup": 1000, "health_at_sample_start": game.player.health, "battery_at_sample_start": game.player.battery_charge,
 		"valid_grid_cells": cells.size(), "precomputed_segments": paths.size(),
-		"sampling": "Monotonic process_frame intervals; includes automation and sample-collection CPU overhead. Physics/draw values are sampled Godot monitors, not isolated GPU timers. No timed screenshots, logging, file I/O, graph/path construction, teleports, healing, or performance configuration changes.",
+		"sampling": "Monotonic process_frame intervals; includes automation and sample-collection CPU overhead. Physics monitor is a cached one-second maximum, not an individual physics tick; draw values are supplemental monitors, not isolated GPU timers. No timed screenshots, logging, file I/O, graph/path construction, teleports, healing, or performance configuration changes.",
 		"workload": "Four interior doors opened in setup; real encounter activated; 1000 HP prevents checkpoint reload; original 22-point starter battery, normal collision/AI/damage/animations; controller walk, room camera pans and knife actions.",
 		"limitations": ["Another native game is present; shared renderer contention applies." if concurrent_game_pid > 0 else "No other Godot renderer was observed at launch; desktop apps and ordinary OS scheduling still share the device.", "One scripted route is not a sustained thermal benchmark, narrative playthrough, or minimum-spec certification.", "Frame intervals include VSync/presentation pacing and CPU/GPU scheduling, not GPU execution time.", "Headless runs validate traversal only and must never be reported as rendering performance."]
 	}
 	print("ROUTE_PROFILE_READY pid=", OS.get_process_id(), " validation=", validation, " adapter=", report.metadata.adapter)
 	if not validation:
 		await RenderingServer.frame_post_draw
-		root.get_texture().get_image().save_png(output_path.trim_suffix(".json") + "-start.png")
+		var start_image := root.get_texture().get_image()
+		report.metadata.framebuffer_image_size_at_start = [start_image.get_width(), start_image.get_height()]
+		start_image.save_png(output_path.trim_suffix(".json") + "-start.png")
 	for index in 60: await physics_frame
-	# The first native viewport texture query can precede a pending window
-	# resize. Record the settled target again after drawing and warm-up.
+	# Keep the getter as diagnostic metadata; framebuffer readback dimensions
+	# above are authoritative when this getter reports an outdated backing size.
 	report.metadata.viewport_texture_size_at_measurement_start = [root.get_texture().get_width(), root.get_texture().get_height()]
 	process_frame.connect(_sample_frame)
 	started_usec = Time.get_ticks_usec()
@@ -142,7 +148,9 @@ func _run() -> void:
 	report.metadata.viewport_texture_size_at_measurement_end = [root.get_texture().get_width(), root.get_texture().get_height()]
 	if not validation:
 		await RenderingServer.frame_post_draw
-		root.get_texture().get_image().save_png(output_path.trim_suffix(".json") + "-end.png")
+		var end_image := root.get_texture().get_image()
+		report.metadata.framebuffer_image_size_at_end = [end_image.get_width(), end_image.get_height()]
+		end_image.save_png(output_path.trim_suffix(".json") + "-end.png")
 	_finish()
 
 func _build_graph() -> void:
@@ -357,6 +365,13 @@ func _finish() -> void:
 	file.close()
 	print("ROUTE_PROFILE_RESULT ", JSON.stringify({"complete": report.complete, "failures": report.failures, "summary": report.summary, "output": output_path}))
 	if is_instance_valid(game):
+		game.process_mode = Node.PROCESS_MODE_DISABLED
+		_stop_audio(game)
 		game.queue_free()
 		await process_frame
+		await create_timer(0.12).timeout
 	quit(0 if report.complete else 2)
+
+func _stop_audio(node: Node) -> void:
+	if node is AudioStreamPlayer or node is AudioStreamPlayer2D or node is AudioStreamPlayer3D: node.stop()
+	for child in node.get_children(): _stop_audio(child)

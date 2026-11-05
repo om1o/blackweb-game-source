@@ -1,0 +1,19 @@
+{
+  "created_utc_date": "2026-11-05",
+  "generator": "OpenAI Imagegen via Codex built-in image generation",
+  "project": "Blackweb",
+  "assets": [
+    {
+      "path": "blood_variants_v3.png",
+      "source_file": "exec-1110524d-6400-40b1-a4a0-14f65272b633.png",
+      "purpose": "Four original alpha-cutout dry blood variants: wall smear, impact, floor pool, dragging trail",
+      "dimensions": [1254, 1254]
+    },
+    {
+      "path": "goo_variants_v3.png",
+      "source_file": "exec-8e91fb45-afb9-4a80-abd4-edda4465a3e2.png",
+      "purpose": "Four original alpha-cutout black residue variants: wall leak, filament patch, floor pool, dragging trail"
+    }
+  ],
+  "notes": "Brand-new fictional environmental art. No third-party reference images. Runtime material applies color tint, normal and roughness response; image pixels are preserved. Source generation files remain in the Codex generated_images directory."
+}

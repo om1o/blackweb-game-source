@@ -84,7 +84,38 @@ func _run() -> void:
 		var west := Vector3(door.global_position.x - 0.6, 0.425, door.global_position.z)
 		var east := Vector3(door.global_position.x + 0.6, 0.425, door.global_position.z)
 		_check(_reachable(west, 0.45) and _reachable(east, 0.45), "Both sides of %s join the full-body route" % door.name)
+	_check_record_table()
 	_finish()
+
+func _check_record_table() -> void:
+	var house := game.get_node("RecoveredHouse")
+	var table: Node3D
+	for child in house.get_children():
+		if child.has_meta("tutorial_record_table"): table = child
+	_check(table != null, "Retained record table is identified for compact-room placement")
+	if table == null: return
+	var visible_bounds := AABB()
+	var first := true
+	for mesh in table.find_children("*", "MeshInstance3D", true, false):
+		var bounds: AABB = mesh.global_transform * mesh.mesh.get_aabb()
+		visible_bounds = bounds if first else visible_bounds.merge(bounds)
+		first = false
+	_check(not first and visible_bounds.position.x > -0.59 and visible_bounds.end.x < 3.19
+		and visible_bounds.position.z > 0.23 and visible_bounds.end.z < 3.70,
+		"Record table visual stays entirely between the new room partitions")
+	var body := house.get_node_or_null(str(table.name) + "_Collision") as StaticBody3D
+	var collision_bounds := AABB()
+	first = true
+	if body != null:
+		for shape in body.find_children("*", "CollisionShape3D", true, false):
+			if not shape.shape is ConcavePolygonShape3D: continue
+			for vertex in shape.shape.get_faces():
+				var point: Vector3 = shape.global_transform * vertex
+				collision_bounds = AABB(point, Vector3.ZERO) if first else collision_bounds.expand(point)
+				first = false
+	_check(not first and collision_bounds.position.distance_to(visible_bounds.position) < 0.01
+		and collision_bounds.end.distance_to(visible_bounds.end) < 0.01,
+		"Rotated table collision matches the visible table bounds")
 
 func _nearest(point: Vector3) -> Vector2i:
 	var best := Vector2i.ZERO

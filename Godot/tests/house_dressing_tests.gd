@@ -29,7 +29,7 @@ func _run() -> void:
 		"SM_Trashcan": 7,
 	}
 	var passed: bool = removed == expected and int(report.removed_total) == 260
-	passed = passed and house.get_child_count() == before - 260 + 11
+	passed = passed and house.get_child_count() == before - 260 + 13
 	var webs: MeshInstance3D = house.get_node_or_null("BlackwebCornerWebs")
 	passed = passed and webs != null and webs.mesh != null
 	if webs != null and webs.mesh != null:
@@ -66,8 +66,8 @@ func _run() -> void:
 	passed = passed and residue != null and residue.mesh != null
 	if residue != null and residue.mesh != null:
 		passed = passed and int(report.residue_decals) == 150
-		passed = passed and residue.mesh.get_surface_count() == 1
-		passed = passed and residue.mesh.surface_get_array_index_len(0) == 900
+		passed = passed and residue.mesh.get_surface_count() == 3
+		passed = passed and HouseDressing._mesh_triangles(residue.mesh) == 300
 		var residue_arrays := residue.mesh.surface_get_arrays(0)
 		passed = passed and residue_arrays[Mesh.ARRAY_NORMAL].size() == residue_arrays[Mesh.ARRAY_VERTEX].size()
 		passed = passed and residue.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -76,6 +76,15 @@ func _run() -> void:
 		passed = passed and residue_material != null and residue_material.albedo_texture != null
 		if residue_material != null:
 			passed = passed and residue_material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		for surface in [1, 2]:
+			var wet_material := residue.mesh.surface_get_material(surface) as ShaderMaterial
+			passed = passed and wet_material != null and wet_material.get_shader_parameter("detail_normal") is Texture2D
+	var modeled := house.get_node_or_null("BlackwebModeledSilk")
+	passed = passed and modeled != null and int(report.modeled_silk_instances) == 6
+	passed = passed and int(report.pbr_orb_cards) == 3
+	if modeled != null:
+		passed = passed and modeled.find_children("*", "CollisionShape3D", true, false).is_empty()
+		passed = passed and modeled.find_children("*", "Light3D", true, false).is_empty()
 	var photo_webs: MeshInstance3D = house.get_node_or_null("BlackwebPhotoWebs")
 	var dense_silk: MeshInstance3D = house.get_node_or_null("BlackwebDenseSilkCurtains")
 	passed = passed and dense_silk != null and int(report.dense_silk_cards) == 112

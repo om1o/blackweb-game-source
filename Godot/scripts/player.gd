@@ -58,6 +58,7 @@ var _arm_pose_weight := 0.0
 var _hand_knife: Node3D
 var _view_knife: Node3D
 var _knife_wrist_override_applied := false
+var _item_wrist_override_applied := false
 var _knife_chest_bone := -1
 var _knife_chest_override_applied := false
 var _hand_candy: Node3D
@@ -111,6 +112,9 @@ const KNIFE_ACTION_DURATION := 0.68
 const KNIFE_REACH := 1.55
 const CANDY_HEAL_TIME := 0.78
 const CANDY_ACTION_DURATION := 1.16
+const PALM_GRIP := Vector3(0.076, 0.025, -0.006)
+const CANDY_WRAPPER_CENTRE := 0.039
+const CANDY_EXPOSED_TIP := 0.0685
 const BATTERY_INSERT_TIME := 1.05
 const BATTERY_ACTION_DURATION := 1.65
 const BANDAGE_HEAL_TIME := 2.25
@@ -532,7 +536,9 @@ func _candy_raise_amount() -> float:
 func _candy_mouth_world() -> Vector3:
 	var head_index := _luke_skeleton.find_bone("Bip01 Head")
 	var head_world := _luke_skeleton.to_global(_luke_skeleton.get_bone_global_pose(head_index).origin)
-	return head_world - camera.global_basis.z * 0.09 + camera.global_basis.x * 0.025 - Vector3.UP * 0.045
+	# Calibrated against the visible lip line on the recovered rig. Use Luke's
+	# anatomical facing, not the independent camera pitch.
+	return head_world - visual.global_basis.z.normalized() * 0.09 + visual.global_basis.x.normalized() * 0.025 + Vector3.UP * 0.01
 
 func _set_candy_bitten(model: Node3D, bitten: bool) -> void:
 	var ready := model.get_node_or_null("CandyBarBody/CandyReady") as Node3D
@@ -957,16 +963,10 @@ func _update_held_item_visuals(show_visual: bool, delta: float) -> void:
 	var aim := _light_on and battery_charge > 0.0
 	if is_instance_valid(_hand_flashlight):
 		_hand_flashlight.visible = holding_torch
-		_hand_flashlight.position = _hand_flashlight.position.lerp(Vector3(0.065, 0.012, -0.01) if aim else Vector3(0.05, -0.01, -0.04), lift)
-		# The torch's -Z axis is its lens direction. Resolve the camera aim in
-		# hand space so turning or pitching never leaves the barrel pointing away
-		# from the actual light cone.
-		var hand_rotation := _hand_mount.global_basis.orthonormalized().get_rotation_quaternion()
-		var camera_rotation := camera.global_basis.orthonormalized().get_rotation_quaternion()
-		# A small outward cant leaves the cylindrical body readable from the
-		# over-shoulder camera while keeping the view inside the beam cone.
-		var beam_rotation := hand_rotation.inverse() * camera_rotation * Quaternion(Vector3.UP, -0.30)
-		_hand_flashlight.quaternion = _hand_flashlight.quaternion.slerp(beam_rotation, lift)
+		# Keep the barrel fixed inside the palm. The wrist follows the beam;
+		# rotating only the model slid the torch through stationary fingers.
+		_hand_flashlight.position = PALM_GRIP
+		_hand_flashlight.rotation = Vector3(0.0, PI, 0.0)
 	if is_instance_valid(_view_flashlight):
 		_view_flashlight.visible = fallback and holding_torch
 		_view_flashlight.position = _view_flashlight.position.lerp(Vector3(0.37, -0.23, -0.65) if aim else Vector3(0.39, -0.38, -0.54), lift)
@@ -986,21 +986,10 @@ func _update_held_item_visuals(show_visual: bool, delta: float) -> void:
 	if is_instance_valid(_hand_candy):
 		_hand_candy.visible = holding_candy or eating
 		_set_candy_bitten(_hand_candy, eating and _action_effect_done)
-		_hand_candy.position = Vector3.ZERO
+		_hand_candy.position = PALM_GRIP
+		_hand_candy.rotation = Vector3(0.0, -PI * 0.5, 0.0)
 		var candy_body := _hand_candy.get_node_or_null("CandyBarBody") as Node3D
-		if candy_body: candy_body.position.x = lerpf(0.115, 0.075, raise)
-		if is_instance_valid(_hand_mount) and is_instance_valid(_luke_skeleton):
-			var grip_offset_world := camera.global_basis.x * lerpf(0.025, 0.012, raise) - Vector3.UP * 0.012
-			_hand_candy.position = _hand_mount.global_basis.inverse() * grip_offset_world
-			var head_index := _luke_skeleton.find_bone("Bip01 Head")
-			if head_index >= 0:
-				var mouth_world := _candy_mouth_world()
-				var to_mouth := mouth_world - _hand_candy.global_position
-				var ready_world := (Vector3.UP * 0.7 - camera.global_basis.z * 0.6 + camera.global_basis.x * 0.2).normalized()
-				var bar_direction := ready_world.lerp(to_mouth.normalized(), raise) if to_mouth.length_squared() > 0.000001 else ready_world
-				if bar_direction.length_squared() > 0.000001:
-					var hand_local := (_hand_mount.global_basis.inverse() * bar_direction).normalized()
-					_hand_candy.quaternion = Quaternion(Vector3.RIGHT, hand_local)
+		if candy_body: candy_body.position.x = CANDY_WRAPPER_CENTRE
 	if is_instance_valid(_view_candy):
 		_view_candy.visible = fallback and (holding_candy or eating)
 		_set_candy_bitten(_view_candy, eating and _action_effect_done)
@@ -1021,10 +1010,11 @@ func _update_right_arm_pose(delta: float) -> void:
 	if _knife_chest_override_applied:
 		_luke_skeleton.set_bone_global_pose_override(_knife_chest_bone, Transform3D.IDENTITY, 0.0, false)
 		_knife_chest_override_applied = false
-	if _knife_wrist_override_applied:
+	if _knife_wrist_override_applied or _item_wrist_override_applied:
 		_luke_skeleton.set_bone_global_pose_override(_right_hand_bone, Transform3D.IDENTITY, 0.0, false)
 		_knife_wrist_override_applied = false
-	var wanted := 1.0 if _light_on or selected_quick_item() == &"knife" or selected_quick_item() == &"candy_bar" or _action_kind != &"" or _holding_supply() else 0.0
+		_item_wrist_override_applied = false
+	var wanted := 1.0 if selected_quick_item() in [&"flashlight", &"knife", &"candy_bar"] or _action_kind != &"" or _holding_supply() else 0.0
 	_arm_pose_weight = move_toward(_arm_pose_weight, wanted, delta * 4.5)
 	_luke_skeleton.set_bone_global_pose_override(_right_upper_bone, Transform3D.IDENTITY, 0.0, false)
 	_luke_skeleton.set_bone_global_pose_override(_right_forearm_bone, Transform3D.IDENTITY, 0.0, false)
@@ -1049,6 +1039,8 @@ func _update_right_arm_pose(delta: float) -> void:
 	var shoulder_world := _luke_skeleton.to_global(shoulder)
 	var facing := -camera.global_basis.z.normalized()
 	var right := camera.global_basis.x.normalized()
+	var contact_item := &"candy_bar" if _action_kind == &"candy_bar" or (_action_kind == &"" and selected_quick_item() == &"candy_bar") else (&"flashlight" if _action_kind == &"" and selected_quick_item() == &"flashlight" else &"")
+	var contact_basis := _item_grip_world_basis(contact_item)
 	# Solve the hand target in camera/world space. The source mesh's +Z is
 	# forward; the old fixed -Z target pulled the arm behind Luke's shoulder.
 	var target_world := shoulder_world + facing * 0.16 + right * 0.30 - Vector3.UP * 0.04
@@ -1057,13 +1049,9 @@ func _update_right_arm_pose(delta: float) -> void:
 		target_world = shoulder_world + right * slash_offset.x + Vector3.UP * slash_offset.y + facing * slash_offset.z
 	elif _action_kind == &"candy_bar":
 		var lift := _candy_raise_amount()
-		var head_index := _luke_skeleton.find_bone("Bip01 Head")
-		var head_world := _luke_skeleton.to_global(_luke_skeleton.get_bone_global_pose(head_index).origin) if head_index >= 0 else shoulder_world + Vector3.UP * 0.2
-		var mouth_world := head_world + facing * 0.09 + right * 0.025 - Vector3.UP * 0.045
-		# Hold the wrapper beside the mouth; the exposed end reaches the lips.
-		# Sending the palm itself to the mouth hid the bar inside Luke's face.
-		var bite_grip := mouth_world + right * 0.13 + facing * 0.025 - Vector3.UP * 0.01
-		target_world = (shoulder_world + facing * 0.19 + right * 0.22 - Vector3.UP * 0.18).lerp(bite_grip, lift)
+		var local_tip := PALM_GRIP + Basis(Vector3.UP, -PI * 0.5) * Vector3(CANDY_WRAPPER_CENTRE + CANDY_EXPOSED_TIP, 0.0, 0.0)
+		var bite_wrist := _candy_mouth_world() - contact_basis * local_tip
+		target_world = (shoulder_world + facing * 0.19 + right * 0.22 - Vector3.UP * 0.18).lerp(bite_wrist, lift)
 	elif _action_kind == &"battery":
 		var tail := _reload_torch_center_world() - _reload_torch_direction() * 0.12
 		var approach := smoothstep(0.42, BATTERY_INSERT_TIME, _action_time)
@@ -1106,7 +1094,22 @@ func _update_right_arm_pose(delta: float) -> void:
 		var wrist_rotation := Quaternion(desired_local, -0.55) * Quaternion(current_axis, desired_local)
 		_luke_skeleton.set_bone_global_pose_override(_right_hand_bone, Transform3D(Basis(wrist_rotation) * hand_pose.basis, adjusted_hand), _arm_pose_weight, true)
 		_knife_wrist_override_applied = true
+	elif contact_item != &"":
+		var contact_local := (_luke_skeleton.global_basis.inverse() * contact_basis).orthonormalized()
+		_luke_skeleton.set_bone_global_pose_override(_right_hand_bone, Transform3D(contact_local, adjusted_hand), _arm_pose_weight, true)
+		_item_wrist_override_applied = true
 	_update_right_hand_grip()
+
+func _item_grip_world_basis(item: StringName) -> Basis:
+	var facing := -camera.global_basis.z.normalized()
+	var right := camera.global_basis.x.normalized()
+	var shaft := (camera.global_basis * Basis(Vector3.UP, -0.30) * Vector3.FORWARD).normalized()
+	if item == &"candy_bar":
+		var ready := (Vector3.UP * 0.70 + facing * 0.60 + right * 0.20).normalized()
+		var biting := (-right * 0.96 - facing * 0.10 + Vector3.UP * 0.24).normalized()
+		shaft = ready.slerp(biting, _candy_raise_amount()).normalized()
+	var fingers := (Vector3.UP - shaft * Vector3.UP.dot(shaft)).normalized()
+	return Basis(fingers, shaft.cross(fingers).normalized(), shaft)
 
 func _holding_supply() -> bool:
 	var item := selected_quick_item()
@@ -1258,7 +1261,7 @@ func _update_right_hand_grip() -> void:
 	for grip_bone in _right_grip_fingers:
 		var index: int = grip_bone.index
 		var curl: float = grip_bone.curl
-		if selected_quick_item() == &"knife" or _action_kind == &"knife":
+		if selected_quick_item() in [&"knife", &"flashlight", &"candy_bar"] or _action_kind in [&"knife", &"candy_bar"]:
 			var bone_name := _luke_skeleton.get_bone_name(index)
 			if bone_name == "Bip01 R Finger0": curl = 0.60
 			elif bone_name == "Bip01 R Finger01": curl = 0.70
