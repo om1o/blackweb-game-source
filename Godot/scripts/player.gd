@@ -14,6 +14,7 @@ const ItemAudio = preload("res://scripts/item_audio.gd")
 const InventoryGrid = preload("res://scripts/inventory_grid.gd")
 const LocomotionPose = preload("res://scripts/locomotion_pose.gd")
 const CandyWrapperTexture = preload("res://assets/generated/candy_wrapper_aged_v1.png")
+const SupplyModels = preload("res://scripts/supply_models.gd")
 
 var progression: Node
 var camera: Camera3D
@@ -63,8 +64,21 @@ var _hand_candy: Node3D
 var _view_candy: Node3D
 var _hand_flare: Node3D
 var _view_flare: Node3D
+var _left_hand_mount: BoneAttachment3D
+var _left_arm_bones: Array[int] = []
+var _left_grip_fingers: Array[Dictionary] = []
+var _hand_battery: Node3D
+var _view_battery: Node3D
+var _hand_bandage: Node3D
+var _view_bandage: Node3D
+var _hand_bandage_roll: Node3D
+var _reload_flashlight: Node3D
+var _hand_unlit_flare: Node3D
+var _view_unlit_flare: Node3D
+var _placed_flare: Node3D
 var _item_audio: ItemAudio
 var _action_kind: StringName = &""
+var _action_item_id: StringName = &""
 var _action_time := 0.0
 var _action_effect_done := false
 var _lens_meshes: Array[MeshInstance3D] = []
@@ -97,6 +111,12 @@ const KNIFE_ACTION_DURATION := 0.68
 const KNIFE_REACH := 1.55
 const CANDY_HEAL_TIME := 0.78
 const CANDY_ACTION_DURATION := 1.16
+const BATTERY_INSERT_TIME := 1.05
+const BATTERY_ACTION_DURATION := 1.65
+const BANDAGE_HEAL_TIME := 2.25
+const BANDAGE_ACTION_DURATION := 2.8
+const FLARE_IGNITE_TIME := 0.5
+const FLARE_ACTION_DURATION := 0.95
 const REAL_FLASHLIGHT_PATH := "res://assets/third_party/poly_haven/small_plastic_torch/small_plastic_torch_1k.gltf"
 const REAL_KNIFE_PATH := "res://assets/third_party/poly_haven/fish_knife/fish_knife_1k.gltf"
 
@@ -191,6 +211,16 @@ func _ready() -> void:
 	_view_flare.rotation = Vector3(-0.2, 0.25, -0.12)
 	camera.add_child(_view_flare)
 	_view_flare.hide()
+	_view_battery = _make_supply_model("BatteryCell")
+	_view_battery.name = "VisibleCameraBattery"
+	camera.add_child(_view_battery)
+	_view_bandage = _make_supply_model("BandagePack")
+	_view_bandage.name = "VisibleCameraBandage"
+	camera.add_child(_view_bandage)
+	_view_unlit_flare = _make_supply_model("FlareStick")
+	_view_unlit_flare.name = "VisibleCameraUnlitFlare"
+	camera.add_child(_view_unlit_flare)
+	for supply in [_view_battery, _view_bandage, _view_unlit_flare]: supply.hide()
 
 func attach_model(scene: PackedScene, model_scale := 1.0) -> void:
 	var model := scene.instantiate()
@@ -256,11 +286,33 @@ func attach_model(scene: PackedScene, model_scale := 1.0) -> void:
 			_hand_candy.position = Vector3.ZERO
 			hand.add_child(_hand_candy)
 			_hand_candy.hide()
+			_hand_battery = _make_supply_model("BatteryCell")
+			_hand_battery.name = "HeldBatteryCell"
+			_hand_bandage = _make_supply_model("BandagePack")
+			_hand_bandage.name = "HeldBandagePack"
+			_hand_bandage_roll = _make_supply_model("BandageRoll")
+			_hand_bandage_roll.name = "HeldGauzeRoll"
+			_hand_unlit_flare = _make_supply_model("FlareStick")
+			_hand_unlit_flare.name = "HeldUnlitFlare"
+			for supply in [_hand_battery, _hand_bandage, _hand_bandage_roll, _hand_unlit_flare]:
+				hand.add_child(supply)
+				supply.hide()
 		if skeleton.find_bone("Bip01 L Hand") >= 0:
 			var left_hand := BoneAttachment3D.new()
 			left_hand.name = "LeftHandFlareMount"
 			left_hand.bone_name = "Bip01 L Hand"
 			skeleton.add_child(left_hand)
+			_left_hand_mount = left_hand
+			for bone_name in ["Bip01 L UpperArm", "Bip01 L Forearm", "Bip01 L Hand"]:
+				_left_arm_bones.append(skeleton.find_bone(bone_name))
+			for finger in range(5):
+				for segment in ["", "1", "2"]:
+					var bone_index := skeleton.find_bone("Bip01 L Finger%d%s" % [finger, segment])
+					if bone_index >= 0: _left_grip_fingers.append({"index": bone_index, "curl": 0.8 if finger > 0 else -0.5})
+			_reload_flashlight = _make_flashlight_model()
+			_reload_flashlight.name = "SupportedReloadFlashlight"
+			left_hand.add_child(_reload_flashlight)
+			_reload_flashlight.hide()
 			_hand_flare = _make_flare_model()
 			_hand_flare.name = "HeldFlare"
 			_hand_flare.position = Vector3(-0.02, -0.06, -0.10)
@@ -501,6 +553,7 @@ func _add_candy_piece(parent: Node3D, piece_name: String, size: Vector3, offset:
 
 func _make_flare_model() -> Node3D:
 	var model := Node3D.new()
+	var imported := SupplyModels.make_variant("FlareStick")
 	var casing := StandardMaterial3D.new()
 	casing.albedo_color = Color(0.52, 0.12, 0.08)
 	casing.roughness = 0.85
@@ -519,7 +572,13 @@ func _make_flare_model() -> Node3D:
 	shaft.material_override = casing
 	shaft.rotation.x = PI * 0.5
 	shaft.position.z = -0.07
-	model.add_child(shaft)
+	if imported != null:
+		imported.rotation.x = -PI * 0.5
+		imported.position.z = -0.07
+		model.add_child(imported)
+		shaft.free()
+	else:
+		model.add_child(shaft)
 	var tip_mesh := SphereMesh.new()
 	tip_mesh.radius = 0.025
 	tip_mesh.height = 0.05
@@ -532,6 +591,18 @@ func _make_flare_model() -> Node3D:
 	tip.position.z = -0.18
 	model.add_child(tip)
 	return model
+
+func _make_supply_model(variant: String) -> Node3D:
+	var imported := SupplyModels.make_variant(variant)
+	if imported != null: return imported
+	# Missing optional art must not break inventory or use actions.
+	var fallback := Node3D.new()
+	var mesh := MeshInstance3D.new()
+	var shape := BoxMesh.new()
+	shape.size = Vector3(0.10, 0.025, 0.065) if variant.begins_with("Bandage") else Vector3(0.015, 0.05, 0.015)
+	mesh.mesh = shape
+	fallback.add_child(mesh)
+	return fallback
 
 func _update_flashlight_lenses() -> void:
 	var glowing := lamp.visible
@@ -576,7 +647,8 @@ func _physics_process(delta: float) -> void:
 		_set_crouch(false)
 	var input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction := Basis(Vector3.UP, _yaw) * Vector3(input.x, 0, input.y)
-	var sprinting := Input.is_action_pressed("sprint") and input.length_squared() > 0.04 and is_on_floor() and not _crouching and stamina > 0.0
+	var busy_with_supply := _action_kind in [&"battery", &"bandage", &"flare"]
+	var sprinting := Input.is_action_pressed("sprint") and input.length_squared() > 0.04 and is_on_floor() and not _crouching and stamina > 0.0 and not busy_with_supply
 	if sprinting:
 		stamina = maxf(0.0, stamina - STAMINA_DRAIN * delta)
 		_stamina_recovery_delay = 0.55
@@ -587,11 +659,12 @@ func _physics_process(delta: float) -> void:
 		_stamina_reported = stamina
 		stamina_changed.emit(stamina)
 	var speed := 1.05 if _crouching else (3.2 if sprinting else 2.0)
+	if busy_with_supply: speed *= 0.55
 	if _hurt_time > 0.0: speed *= 0.55
 	velocity.x = move_toward(velocity.x, direction.x * speed, delta * 10.0)
 	velocity.z = move_toward(velocity.z, direction.z * speed, delta * 10.0)
 	if not is_on_floor(): velocity.y -= 18.0 * delta
-	elif Input.is_action_just_pressed("jump") and not _crouching and stamina >= JUMP_COST:
+	elif Input.is_action_just_pressed("jump") and not _crouching and stamina >= JUMP_COST and not busy_with_supply:
 		velocity.y = JUMP_SPEED
 		stamina -= JUMP_COST
 		_stamina_reported = stamina
@@ -612,6 +685,7 @@ func _physics_process(delta: float) -> void:
 	_locomotion_pose.apply(delta, _crouching, not is_on_floor(), velocity.y, -camera.global_basis.z)
 	_tick_item_action(delta)
 	if _light_on or selected_quick_item() == &"knife" or _action_kind != &"": visual.rotation.y = lerp_angle(visual.rotation.y, _yaw, minf(1.0, delta * 8.0))
+	_update_left_supply_arm()
 	_update_right_arm_pose(delta)
 	# Keep the camera from showing the inside of Luke when a wall shortens the arm.
 	var show_visual := camera.global_position.distance_to(global_position + Vector3.UP * 1.3) > 0.58
@@ -687,6 +761,7 @@ func equipped_items() -> Array[StringName]:
 	return inventory.equipped.duplicate()
 
 func equip_inventory_cell(cell_index: int, quick_index: int) -> bool:
+	if _action_kind != &"": return false
 	var equipped := inventory.equip_cell(cell_index, quick_index)
 	if equipped:
 		if quick_index == selected_quick_index and selected_quick_item() != &"flashlight" and _light_on:
@@ -724,10 +799,8 @@ func use_item(id: StringName) -> bool:
 	if not active or _recovering or _action_kind != &"" or not is_item_equipped(id): return false
 	if str(id).begins_with("battery_"):
 		if battery_charge >= 99.9: return false
-		if not inventory.remove(id): return false
-		add_battery(float(str(id).trim_prefix("battery_")))
-		_item_audio.play_cue(&"switch")
-		inventory_changed.emit()
+		_start_item_action(&"battery", id)
+		_item_audio.play_cue(&"unwrap")
 		return true
 	match id:
 		&"flashlight":
@@ -751,25 +824,70 @@ func use_item(id: StringName) -> bool:
 			return true
 		&"bandage":
 			if health >= 100.0: return false
-			health = minf(100.0, health + 55.0)
-			inventory.remove(id)
-			health_changed.emit(health)
-			inventory_changed.emit()
+			_start_item_action(&"bandage", id)
+			_item_audio.play_cue(&"unwrap")
 			return true
 		&"flare":
 			if _flare_remaining > 0.0: return false
-			inventory.remove(id)
-			_flare_remaining = 10.0
-			_flare_light.visible = true
-			_item_audio.play_cue(&"switch")
-			inventory_changed.emit()
+			_start_item_action(&"flare", id)
 			return true
 	return false
 
-func reset_starting_inventory() -> void:
-	_action_kind = &""
+func _start_item_action(kind: StringName, item_id: StringName) -> void:
+	if kind in [&"battery", &"bandage"] and _flare_remaining > 0.0:
+		_place_burning_flare()
+	_action_kind = kind
+	_action_item_id = item_id
 	_action_time = 0.0
 	_action_effect_done = false
+
+func _place_burning_flare() -> void:
+	if is_instance_valid(_placed_flare): return
+	var forward_drop := global_position - camera.global_basis.z.slide(Vector3.UP).normalized() * 0.3
+	var held_position := _hand_flare.global_position if is_instance_valid(_hand_flare) else global_position + Vector3.UP
+	var ray_height := maxf(global_position.y + 0.25, held_position.y) + 0.1
+	var surface: Dictionary = {}
+	# A supply action can begin during a jump. Land on world collision rather
+	# than using Luke's airborne feet as an imaginary floor. Prefer the forward
+	# drop, with the surface directly below Luke as a nearby fallback.
+	for candidate in [forward_drop, global_position]:
+		var from := Vector3(candidate.x, ray_height, candidate.z)
+		var query := PhysicsRayQueryParameters3D.create(from, from + Vector3.DOWN * 12.0, 1, [get_rid()])
+		surface = get_world_3d().direct_space_state.intersect_ray(query)
+		if not surface.is_empty() and surface.normal.y > 0.5: break
+		surface = {}
+	if surface.is_empty(): return
+	var end: Vector3 = surface.position + Vector3.UP * 0.04
+	_placed_flare = _make_flare_model()
+	_placed_flare.name = "PlacedBurningFlare"
+	add_child(_placed_flare)
+	_placed_flare.top_level = true
+	_placed_flare.global_position = held_position
+	_placed_flare.global_rotation = Vector3(0.0, _yaw + 0.4, 0.0)
+	var fall := create_tween()
+	fall.tween_property(_placed_flare, "global_position", end, 0.23).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+func _clear_placed_flare() -> void:
+	if is_instance_valid(_placed_flare): _placed_flare.queue_free()
+	_placed_flare = null
+
+func _cancel_item_action() -> void:
+	_action_kind = &""
+	_action_item_id = &""
+	_action_time = 0.0
+	_action_effect_done = false
+
+func _item_action_duration() -> float:
+	match _action_kind:
+		&"knife": return KNIFE_ACTION_DURATION
+		&"candy_bar": return CANDY_ACTION_DURATION
+		&"battery": return BATTERY_ACTION_DURATION
+		&"bandage": return BANDAGE_ACTION_DURATION
+		&"flare": return FLARE_ACTION_DURATION
+	return 0.0
+
+func reset_starting_inventory() -> void:
+	_cancel_item_action()
 	if is_instance_valid(_item_audio): _item_audio.silence()
 	inventory.reset()
 	selected_quick_index = 0
@@ -779,6 +897,7 @@ func reset_starting_inventory() -> void:
 	_flicker_clock = 0.0
 	_flicker_off_remaining = 0.0
 	_flare_remaining = 0.0
+	_clear_placed_flare()
 	if is_instance_valid(_flare_light): _flare_light.visible = false
 	inventory_changed.emit()
 	quick_slot_changed.emit(selected_quick_index)
@@ -802,11 +921,29 @@ func _tick_item_action(delta: float) -> void:
 			health_changed.emit(health)
 			inventory_changed.emit()
 			_item_audio.play_cue(&"eat")
-	var duration := KNIFE_ACTION_DURATION if _action_kind == &"knife" else CANDY_ACTION_DURATION
+	elif not _action_effect_done and _action_kind == &"battery" and _action_time >= BATTERY_INSERT_TIME:
+		_action_effect_done = true
+		if inventory.remove(_action_item_id):
+			add_battery(float(str(_action_item_id).trim_prefix("battery_")))
+			_item_audio.play_cue(&"switch")
+			inventory_changed.emit()
+	elif not _action_effect_done and _action_kind == &"bandage" and _action_time >= BANDAGE_HEAL_TIME:
+		_action_effect_done = true
+		if inventory.remove(_action_item_id):
+			health = minf(100.0, health + 55.0)
+			health_changed.emit(health)
+			inventory_changed.emit()
+			_item_audio.play_cue(&"unwrap")
+	elif not _action_effect_done and _action_kind == &"flare" and _action_time >= FLARE_IGNITE_TIME:
+		_action_effect_done = true
+		if inventory.remove(_action_item_id):
+			_flare_remaining = 10.0
+			_flare_light.visible = true
+			_item_audio.play_cue(&"switch")
+			inventory_changed.emit()
+	var duration := _item_action_duration()
 	if _action_time >= duration:
-		_action_kind = &""
-		_action_time = 0.0
-		_action_effect_done = false
+		_cancel_item_action()
 
 func _update_held_item_visuals(show_visual: bool, delta: float) -> void:
 	var held_item := selected_quick_item()
@@ -869,10 +1006,11 @@ func _update_held_item_visuals(show_visual: bool, delta: float) -> void:
 		_set_candy_bitten(_view_candy, eating and _action_effect_done)
 		_view_candy.position = Vector3(0.41 - 0.12 * raise, -0.37 + 0.26 * raise, -0.54 - 0.16 * raise)
 		_view_candy.rotation = Vector3(-0.15 - 0.4 * raise, -0.25, 0.17 + 0.14 * raise)
-	if is_instance_valid(_hand_flare): _hand_flare.visible = _flare_remaining > 0.0
-	if is_instance_valid(_view_flare): _view_flare.visible = _flare_remaining > 0.0 and (not show_visual or not is_instance_valid(_hand_flare))
+	if is_instance_valid(_hand_flare): _hand_flare.visible = _flare_remaining > 0.0 and not is_instance_valid(_placed_flare)
+	if is_instance_valid(_view_flare): _view_flare.visible = _flare_remaining > 0.0 and not is_instance_valid(_placed_flare) and (not show_visual or not is_instance_valid(_hand_flare))
+	_update_supply_visuals(show_visual)
 	if is_instance_valid(_grip_fill):
-		_grip_fill.visible = show_visual and (holding_torch or holding_knife or holding_candy or striking or eating)
+		_grip_fill.visible = show_visual and (holding_torch or holding_knife or holding_candy or striking or eating or _holding_supply())
 		_grip_fill.light_energy = 0.55 if aim and holding_torch else 0.30
 	var visible_torch := _hand_flashlight if show_visual and is_instance_valid(_hand_flashlight) else _view_flashlight
 	if holding_torch and is_instance_valid(visible_torch):
@@ -886,7 +1024,7 @@ func _update_right_arm_pose(delta: float) -> void:
 	if _knife_wrist_override_applied:
 		_luke_skeleton.set_bone_global_pose_override(_right_hand_bone, Transform3D.IDENTITY, 0.0, false)
 		_knife_wrist_override_applied = false
-	var wanted := 1.0 if _light_on or selected_quick_item() == &"knife" or selected_quick_item() == &"candy_bar" or _action_kind != &"" else 0.0
+	var wanted := 1.0 if _light_on or selected_quick_item() == &"knife" or selected_quick_item() == &"candy_bar" or _action_kind != &"" or _holding_supply() else 0.0
 	_arm_pose_weight = move_toward(_arm_pose_weight, wanted, delta * 4.5)
 	_luke_skeleton.set_bone_global_pose_override(_right_upper_bone, Transform3D.IDENTITY, 0.0, false)
 	_luke_skeleton.set_bone_global_pose_override(_right_forearm_bone, Transform3D.IDENTITY, 0.0, false)
@@ -926,6 +1064,17 @@ func _update_right_arm_pose(delta: float) -> void:
 		# Sending the palm itself to the mouth hid the bar inside Luke's face.
 		var bite_grip := mouth_world + right * 0.13 + facing * 0.025 - Vector3.UP * 0.01
 		target_world = (shoulder_world + facing * 0.19 + right * 0.22 - Vector3.UP * 0.18).lerp(bite_grip, lift)
+	elif _action_kind == &"battery":
+		var tail := _reload_torch_center_world() - _reload_torch_direction() * 0.12
+		var approach := smoothstep(0.42, BATTERY_INSERT_TIME, _action_time)
+		var insert_hand := tail - _reload_torch_direction() * lerpf(0.13, 0.035, approach)
+		target_world = target_world.lerp(insert_hand, _supply_action_lift())
+	elif _action_kind == &"bandage":
+		var wrap := clampf((_action_time - 0.5) / 1.65, 0.0, 1.0) * TAU * 2.0
+		var contact := _bandage_contact_world() + facing * (0.025 * cos(wrap)) + Vector3.UP * (0.025 * sin(wrap))
+		target_world = target_world.lerp(contact + right * 0.060 + Vector3.UP * 0.055, _supply_action_lift())
+	elif _action_kind == &"flare":
+		target_world = target_world.lerp(_left_supply_target() + facing * 0.035 + right * 0.055, _supply_action_lift())
 	var target := _luke_skeleton.to_local(target_world)
 	var to_target := target - shoulder
 	if to_target.length_squared() < 0.000001: return
@@ -958,6 +1107,124 @@ func _update_right_arm_pose(delta: float) -> void:
 		_luke_skeleton.set_bone_global_pose_override(_right_hand_bone, Transform3D(Basis(wrist_rotation) * hand_pose.basis, adjusted_hand), _arm_pose_weight, true)
 		_knife_wrist_override_applied = true
 	_update_right_hand_grip()
+
+func _holding_supply() -> bool:
+	var item := selected_quick_item()
+	return _action_kind in [&"battery", &"bandage", &"flare"] or (item_count(item) > 0 and (str(item).begins_with("battery_") or item in [&"bandage", &"flare"]))
+
+func _supply_action_lift() -> float:
+	var duration := _item_action_duration()
+	return smoothstep(0.0, 0.4, _action_time) * (1.0 - smoothstep(duration - 0.3, duration, _action_time))
+
+func _left_supply_target() -> Vector3:
+	var shoulder := global_position + Vector3.UP * (1.25 if not _crouching else 0.83)
+	if _left_arm_bones.size() == 3 and _left_arm_bones[0] >= 0:
+		shoulder = _luke_skeleton.to_global(_luke_skeleton.get_bone_global_pose(_left_arm_bones[0]).origin)
+	var facing := -camera.global_basis.z.normalized()
+	var right := camera.global_basis.x.normalized()
+	# Work beside the right side of the torso so the shoulder camera can see
+	# both hands. A centre-chest target hid the complete action behind Luke.
+	return shoulder + facing * 0.20 + right * 0.48 - Vector3.UP * 0.18
+
+func _reload_torch_direction() -> Vector3:
+	return (Vector3.UP * 0.84 - camera.global_basis.z * 0.54).normalized()
+
+func _reload_torch_center_world() -> Vector3:
+	var hand_position := _left_supply_target()
+	if is_instance_valid(_left_hand_mount): hand_position = _left_hand_mount.global_position
+	return hand_position - camera.global_basis.z * 0.025
+
+func _bandage_contact_world() -> Vector3:
+	if _left_arm_bones.size() != 3: return _left_supply_target()
+	var elbow := _luke_skeleton.to_global(_luke_skeleton.get_bone_global_pose(_left_arm_bones[1]).origin)
+	var wrist := _luke_skeleton.to_global(_luke_skeleton.get_bone_global_pose(_left_arm_bones[2]).origin)
+	return elbow.lerp(wrist, 0.78) + Vector3.UP * 0.025
+
+func _update_left_supply_arm() -> void:
+	if not is_instance_valid(_luke_skeleton) or _left_arm_bones.size() != 3 or _left_arm_bones.has(-1): return
+	for bone in _left_arm_bones:
+		_luke_skeleton.set_bone_global_pose_override(bone, Transform3D.IDENTITY, 0.0, false)
+	for finger in _left_grip_fingers:
+		_luke_skeleton.set_bone_global_pose_override(finger.index, Transform3D.IDENTITY, 0.0, false)
+	var busy := _action_kind in [&"battery", &"bandage", &"flare"]
+	var holding_lit_flare := _flare_remaining > 0.0 and not is_instance_valid(_placed_flare)
+	if not busy and not holding_lit_flare: return
+	var weight := _supply_action_lift() if busy else 1.0
+	if holding_lit_flare: weight = 1.0
+	var upper := _luke_skeleton.get_bone_global_pose(_left_arm_bones[0])
+	var lower := _luke_skeleton.get_bone_global_pose(_left_arm_bones[1])
+	var hand := _luke_skeleton.get_bone_global_pose(_left_arm_bones[2])
+	var a := lower.origin.distance_to(upper.origin)
+	var b := hand.origin.distance_to(lower.origin)
+	if a < 0.02 or b < 0.02: return
+	var target_world := _left_supply_target()
+	if holding_lit_flare and not busy:
+		target_world = _luke_skeleton.to_global(upper.origin) - camera.global_basis.x * 0.17 - camera.global_basis.z * 0.25 - Vector3.UP * 0.06
+	var to_target := _luke_skeleton.to_local(target_world) - upper.origin
+	var reach := clampf(to_target.length(), 0.08, a + b - 0.015)
+	var direction := to_target.normalized()
+	var along := (a * a - b * b + reach * reach) / (2.0 * reach)
+	var height := sqrt(maxf(0.0, a * a - along * along))
+	var guide := _luke_skeleton.global_basis.inverse() * (Vector3.DOWN - camera.global_basis.x * 0.35)
+	var bend := guide - direction * guide.dot(direction)
+	if bend.length_squared() < 0.000001: return
+	var elbow := upper.origin + direction * along + bend.normalized() * height
+	var adjusted_hand := upper.origin + direction * reach
+	var upper_turn := Quaternion((lower.origin - upper.origin).normalized(), (elbow - upper.origin).normalized())
+	var lower_turn := Quaternion((hand.origin - lower.origin).normalized(), (adjusted_hand - elbow).normalized())
+	_luke_skeleton.set_bone_global_pose_override(_left_arm_bones[0], Transform3D(Basis(upper_turn) * upper.basis, upper.origin), weight, true)
+	_luke_skeleton.set_bone_global_pose_override(_left_arm_bones[1], Transform3D(Basis(lower_turn) * lower.basis, elbow), weight, true)
+	if _action_kind != &"bandage":
+		for finger in _left_grip_fingers:
+			var base := _luke_skeleton.get_bone_global_pose(finger.index)
+			_luke_skeleton.set_bone_global_pose_override(finger.index, Transform3D(base.basis * Basis(Vector3.BACK, float(finger.curl)), base.origin), weight, true)
+
+func _update_supply_visuals(show_visual: bool) -> void:
+	var held := selected_quick_item()
+	var battery := (_action_kind == &"battery" and not _action_effect_done) or (_action_kind == &"" and str(held).begins_with("battery_") and item_count(held) > 0)
+	var bandage := _action_kind == &"" and held == &"bandage" and item_count(held) > 0
+	var wrapping := _action_kind == &"bandage"
+	var unlit_flare := (_action_kind == &"flare" and not _action_effect_done) or (_action_kind == &"" and _flare_remaining <= 0.0 and held == &"flare" and item_count(held) > 0)
+	var fallback := not show_visual or not is_instance_valid(_hand_mount)
+	if is_instance_valid(_hand_battery):
+		_hand_battery.visible = battery
+		_hand_battery.position = Vector3(0.075, 0.012, 0.0)
+		var direction := _reload_torch_direction() if _action_kind == &"battery" else Vector3.UP
+		_hand_battery.quaternion = Quaternion(Vector3.UP, (_hand_mount.global_basis.inverse() * direction).normalized())
+	if is_instance_valid(_hand_bandage):
+		_hand_bandage.visible = bandage
+		_hand_bandage.position = Vector3(0.075, 0.015, 0.0)
+		var right := camera.global_basis.x.normalized()
+		var back := camera.global_basis.z.normalized()
+		_hand_bandage.global_basis = Basis(right, back, right.cross(back))
+	if is_instance_valid(_hand_bandage_roll):
+		_hand_bandage_roll.visible = wrapping
+		_hand_bandage_roll.global_position = _hand_mount.global_position - camera.global_basis.z * 0.035 + Vector3.UP * 0.015
+		_hand_bandage_roll.global_basis = Basis(Quaternion(Vector3.RIGHT, camera.global_basis.x.normalized()))
+	if is_instance_valid(_hand_unlit_flare):
+		_hand_unlit_flare.visible = unlit_flare
+		_hand_unlit_flare.position = Vector3(0.075, 0.015, 0.0)
+		_hand_unlit_flare.quaternion = Quaternion(Vector3.UP, (_hand_mount.global_basis.inverse() * Vector3.UP).normalized())
+	if is_instance_valid(_reload_flashlight):
+		_reload_flashlight.visible = _action_kind == &"battery"
+		if _reload_flashlight.visible:
+			_reload_flashlight.global_position = _reload_torch_center_world()
+			_reload_flashlight.global_basis = Basis(Quaternion(Vector3.FORWARD, _reload_torch_direction()))
+	if is_instance_valid(_placed_flare) and _flare_remaining > 0.0:
+		_flare_light.global_position = _placed_flare.to_global(Vector3(0, 0, -0.18)) + Vector3.UP * 0.04
+	elif is_instance_valid(_hand_flare) and _flare_remaining > 0.0:
+		_hand_flare.position = Vector3(-0.055, 0.015, 0.0)
+		_hand_flare.quaternion = Quaternion(Vector3.FORWARD, (_left_hand_mount.global_basis.inverse() * (Vector3.UP - camera.global_basis.x * 0.3).normalized()).normalized())
+		_flare_light.global_position = _hand_flare.to_global(Vector3(0, 0, -0.18))
+	if is_instance_valid(_view_battery):
+		_view_battery.visible = fallback and battery
+		_view_battery.position = Vector3(0.38, -0.30, -0.48)
+	if is_instance_valid(_view_bandage):
+		_view_bandage.visible = fallback and (bandage or wrapping)
+		_view_bandage.position = Vector3(0.34 - 0.10 * _supply_action_lift() if wrapping else 0.34, -0.29, -0.50)
+	if is_instance_valid(_view_unlit_flare):
+		_view_unlit_flare.visible = fallback and unlit_flare
+		_view_unlit_flare.position = Vector3(0.36, -0.32, -0.50)
 
 func _knife_pose_sample(time: float) -> Dictionary:
 	# Camera-space X/right, Y/up, Z/forward. A short raised windup leads into
@@ -1002,6 +1269,7 @@ func _update_right_hand_grip() -> void:
 func _tick_equipment(delta: float) -> void:
 	_knife_cooldown = maxf(0.0, _knife_cooldown - delta)
 	_flare_remaining = maxf(0.0, _flare_remaining - delta)
+	if _flare_remaining <= 0.0: _clear_placed_flare()
 	_flare_light.visible = _flare_remaining > 0.0
 	var powered := _light_on and selected_quick_item() == &"flashlight" and _action_kind == &"" and is_item_equipped(&"flashlight") and battery_charge > 0.0
 	if powered:
@@ -1090,6 +1358,7 @@ func take_damage(amount: float) -> void:
 	_hurt_time = 0.65
 	health_changed.emit(health)
 	if health <= 0.0:
+		_cancel_item_action()
 		_recovering = true
 		_recovery_generation += 1
 		var generation := _recovery_generation
@@ -1099,9 +1368,7 @@ func take_damage(amount: float) -> void:
 
 func restore_checkpoint() -> void:
 	_recovery_generation += 1
-	_action_kind = &""
-	_action_time = 0.0
-	_action_effect_done = false
+	_cancel_item_action()
 	global_transform = spawn_transform
 	velocity = Vector3.ZERO
 	health = 100.0

@@ -81,10 +81,14 @@ func _run() -> void:
 	check(game.status_hud._slot_labels[2].text.contains("USED"), "HUD reflects eaten candy")
 	player.add_item(&"bandage", 1)
 	var bandage_cell := _find_cell(player, &"bandage")
-	check(not player.use_item(&"bandage") and player.equip_inventory_cell(bandage_cell, 2) and player.use_quick_slot(2) and is_equal_approx(player.health, 100.0), "Findable bandage must be equipped to heal and is consumed")
+	check(not player.use_item(&"bandage") and player.equip_inventory_cell(bandage_cell, 2) and player.use_quick_slot(2) and is_equal_approx(player.health, 80.0), "Equipped bandage begins an action without instant healing")
+	for frame in range(175): await physics_frame
+	check(is_equal_approx(player.health, 100.0) and player.item_count(&"bandage") == 0, "Bandage heals and consumes one pack after wrapping the forearm")
 	player.add_item(&"flare", 1)
 	var flare_cell := _find_cell(player, &"flare")
-	check(not player.use_item(&"flare") and player.equip_inventory_cell(flare_cell, 2) and player.use_quick_slot(2) and player._flare_light.visible, "Findable flare must be equipped to create short-lived light")
+	check(not player.use_item(&"flare") and player.equip_inventory_cell(flare_cell, 2) and player.use_quick_slot(2) and not player._flare_light.visible, "Equipped flare begins an ignition action before it burns")
+	for frame in range(60): await physics_frame
+	check(player._flare_light.visible and player.item_count(&"flare") == 0, "Flare ignition consumes one stick and creates short-lived light")
 	game.status_hud.toggle_inventory()
 	check(game.status_hud.is_inventory_open() and game.status_hud._inventory_loadout.text.contains("WORN KNIFE"), "I overlay exposes the starter loadout")
 	check(game.status_hud._inventory_condition.text.contains("Health: 100") and game.status_hud._inventory_supplies.text.contains("Battery charge"), "Inventory's condition and supplies panels reflect live values")

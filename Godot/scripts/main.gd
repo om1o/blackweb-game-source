@@ -215,6 +215,16 @@ func _load_house() -> bool:
 			prop.position = _vec(entry.position)
 			prop.rotation.y = float(entry.get("yaw", 0))
 			prop.scale *= float(entry.get("scale", 1.0))
+			if model.ends_with("/SM_Coffeetable.glb") and prop.position.distance_to(Vector3(-1.6, 0.4, -2.0)) < 0.01:
+				# The old mansion placement fills the new supply-room doorway:
+				# a center ray passes, but Luke's standing capsule cannot enter.
+				# Keep the table as entry-room dressing beside the west wall.
+				prop.position = Vector3(-4.2, 0.4, -2.0)
+			elif model.ends_with("/SM_Couch.glb"):
+				# Leave standing-body clearance between the sofa front and the
+				# opened supply door, while keeping the sofa inside the south wall.
+				prop.position = Vector3(1.2, 0.4, -3.10)
+				prop.scale *= 0.90
 			_apply_prop_materials(prop, model)
 			for mesh in prop.find_children("*", "MeshInstance3D", true, false):
 				if mesh.mesh: mesh.create_trimesh_collision()

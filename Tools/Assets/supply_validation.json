@@ -1,0 +1,159 @@
+{
+  "checks": [
+    {
+      "label": "BatteryCell shared factory returns model",
+      "passed": true
+    },
+    {
+      "label": "BatteryCell centre transform reset",
+      "passed": true
+    },
+    {
+      "label": "BatteryCell label atlas crop on BatteryLabel",
+      "passed": true
+    },
+    {
+      "label": "BatteryCell label UV survives export",
+      "passed": true
+    },
+    {
+      "label": "BatteryCell finite geometry",
+      "passed": true
+    },
+    {
+      "label": "BatteryCell no studio camera or lights",
+      "passed": true
+    },
+    {
+      "label": "BatteryCell authored dimensions in metres",
+      "passed": true
+    },
+    {
+      "label": "BandagePack shared factory returns model",
+      "passed": true
+    },
+    {
+      "label": "BandagePack centre transform reset",
+      "passed": true
+    },
+    {
+      "label": "BandagePack label atlas crop on BandageLabel",
+      "passed": true
+    },
+    {
+      "label": "BandagePack label UV survives export",
+      "passed": true
+    },
+    {
+      "label": "BandagePack finite geometry",
+      "passed": true
+    },
+    {
+      "label": "BandagePack no studio camera or lights",
+      "passed": true
+    },
+    {
+      "label": "BandagePack authored dimensions in metres",
+      "passed": true
+    },
+    {
+      "label": "FlareStick shared factory returns model",
+      "passed": true
+    },
+    {
+      "label": "FlareStick centre transform reset",
+      "passed": true
+    },
+    {
+      "label": "FlareStick label atlas crop on FlareLabel",
+      "passed": true
+    },
+    {
+      "label": "FlareStick label UV survives export",
+      "passed": true
+    },
+    {
+      "label": "FlareStick finite geometry",
+      "passed": true
+    },
+    {
+      "label": "FlareStick no studio camera or lights",
+      "passed": true
+    },
+    {
+      "label": "FlareStick authored dimensions in metres",
+      "passed": true
+    },
+    {
+      "label": "BandageRoll shared factory returns model",
+      "passed": true
+    },
+    {
+      "label": "BandageRoll centre transform reset",
+      "passed": true
+    },
+    {
+      "label": "BandageRoll finite geometry",
+      "passed": true
+    },
+    {
+      "label": "BandageRoll no studio camera or lights",
+      "passed": true
+    },
+    {
+      "label": "BandageRoll authored dimensions in metres",
+      "passed": true
+    },
+    {
+      "label": "kit below12000 triangles",
+      "passed": true
+    },
+    {
+      "label": "invalid variant fails safely",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "total_triangles": 7344,
+  "variants": {
+    "BandagePack": {
+      "bounds_min": "(-0.057, -0.013, -0.036)",
+      "materials": [
+        "BandageLabel",
+        "SupplyPaperEdges",
+        "SupplyPaperEdges"
+      ],
+      "size_metres": "(0.114, 0.026, 0.072)",
+      "triangles": 728
+    },
+    "BandageRoll": {
+      "bounds_min": "(-0.02787, -0.0227, -0.0227)",
+      "materials": [
+        "BandageGauze",
+        "BandageLayerEdges"
+      ],
+      "size_metres": "(0.05574, 0.0454, 0.0454)",
+      "triangles": 2496
+    },
+    "BatteryCell": {
+      "bounds_min": "(-0.00725, -0.0253, -0.00725)",
+      "materials": [
+        "BatteryLabel",
+        "SupplyDarkRubber",
+        "SupplyNickel"
+      ],
+      "size_metres": "(0.0145, 0.05055, 0.0145)",
+      "triangles": 1192
+    },
+    "FlareStick": {
+      "bounds_min": "(-0.0137, -0.095, -0.0137)",
+      "materials": [
+        "FlareLabel",
+        "SupplyDarkRubber",
+        "SupplyPaperEdges"
+      ],
+      "size_metres": "(0.0274, 0.1904, 0.0274)",
+      "triangles": 2928
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "asset": "Blackweb original survival supply kit",
+  "authored_date": "2026-11-04",
+  "source_tool": "Blender 5.2 via Higgsfield 3D Jutsu",
+  "source_project_id": "cbb2a308-f6ab-4f01-ac1f-18a7c3338114",
+  "source_project_url": "https://higgsfield.ai/3d-jutsu/cbb2a308-f6ab-4f01-ac1f-18a7c3338114",
+  "source_revision": 2,
+  "original_scripted_geometry": true,
+  "recovered_uploads": false,
+  "external_asset_imports": false,
+  "paid_generation_jobs": 0,
+  "observed_credit_balance_before": 1.7,
+  "observed_credit_balance_after": 1.7,
+  "glb_bytes": 236652,
+  "glb_sha256": "DB78456E89653C15EAC9BAD560026F977A3E5502F728C3BBCE58186325E967A2",
+  "source_blend": "Tools/Assets/supply_source.blend",
+  "source_blend_sha256": "36387ED7B5E58C8318828DD36E850A1F45E73BC9E5507E25B633B9EBE4F99D33",
+  "runtime_factory": "res://scripts/supply_models.gd",
+  "runtime_label_atlas": "res://assets/generated/supply_labels_worn_v1.png",
+  "total_triangles": 7344,
+  "variants": {
+    "BatteryCell": {"dimensions_metres": [0.0145, 0.05055, 0.0145], "triangles": 1192, "long_axis": "Y", "label_material": "BatteryLabel"},
+    "BandagePack": {"dimensions_metres": [0.114, 0.026, 0.072], "triangles": 728, "long_axis": "X", "label_material": "BandageLabel"},
+    "FlareStick": {"dimensions_metres": [0.0274, 0.1904, 0.0274], "triangles": 2928, "long_axis": "Y", "label_material": "FlareLabel"},
+    "BandageRoll": {"dimensions_metres": [0.05574, 0.0454, 0.0454], "triangles": 2496, "long_axis": "X", "label_material": null}
+  },
+  "validation": {"engine": "Godot 4.7.2", "headless_checks_passed": 28, "headless_checks_total": 28, "source_render_inspected": true, "native_hand_alignment_review": "owned by main task"},
+  "limitations": "Original lightweight game meshes with flat placeholder source labels; runtime atlas supplies wear. No gauze weave normal map, photogrammetry, or claim of AAA fidelity."
+}

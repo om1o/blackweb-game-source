@@ -2,6 +2,8 @@ class_name BlackwebSupplyPickup
 extends BlackwebInteraction
 ## Small authored pickups. These are independent of the phone/keys/exit route.
 
+const SupplyModels = preload("res://scripts/supply_models.gd")
+
 signal picked_up(text: String)
 signal unavailable(text: String)
 
@@ -59,6 +61,8 @@ func _description() -> String:
 static func make_visual(kind: StringName) -> Node3D:
 	var root := Node3D.new()
 	root.name = "SupplyVisual"
+	if _add_blender_visual(root, kind):
+		return root
 	match kind:
 		&"battery":
 			var casing := _material(Color(0.21, 0.24, 0.24), 0.36)
@@ -80,6 +84,35 @@ static func make_visual(kind: StringName) -> Node3D:
 			var cap := _cylinder(root, "FlareCap", 0.013, 0.018, Vector3(0.087, 0.017, 0), end)
 			cap.rotation.z = PI * 0.5
 	return root
+
+
+static func _add_blender_visual(root: Node3D, kind: StringName) -> bool:
+	match kind:
+		&"battery":
+			var first := SupplyModels.make_variant("BatteryCell")
+			if first == null: return false
+			var second := SupplyModels.make_variant("BatteryCell")
+			if second == null:
+				first.free()
+				return false
+			first.position = Vector3(-0.010, 0.0253, 0.0)
+			second.position = Vector3(0.010, 0.0253, 0.0)
+			root.add_child(first)
+			root.add_child(second)
+		&"bandage":
+			var pack := SupplyModels.make_variant("BandagePack")
+			if pack == null: return false
+			pack.position.y = 0.0131
+			root.add_child(pack)
+		&"flare":
+			var stick := SupplyModels.make_variant("FlareStick")
+			if stick == null: return false
+			stick.rotation.z = PI * 0.5
+			stick.position.y = 0.014
+			root.add_child(stick)
+		_:
+			return false
+	return true
 
 
 static func _material(color: Color, metallic := 0.0) -> StandardMaterial3D:

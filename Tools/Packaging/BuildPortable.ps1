@@ -73,7 +73,7 @@ Add-InputTree (Join-Path $godotRoot 'scripts') 'res://scripts' { param($p) $p -m
 Add-InputTree (Join-Path $godotRoot 'scenes') 'res://scenes' { param($p) $p.EndsWith('.tscn') }
 Add-InputTree (Join-Path $godotRoot 'data') 'res://data' {
     param($p)
-    $p.EndsWith('.json') -and $p -notmatch '/([^/]*_test_report|playthrough_[^/]*|knife_swing_capture)\.json$'
+    $p.EndsWith('.json') -and $p -notmatch '/([^/]*_test_report|playthrough_[^/]*|[^/]*_capture)\.json$'
 }
 Add-InputFile (Join-Path $godotRoot 'tools\recovered_materials.gd') 'res://tools/recovered_materials.gd'
 Add-InputFile (Join-Path $PSScriptRoot 'portable_smoke.gd') 'res://tools/portable_smoke.gd'

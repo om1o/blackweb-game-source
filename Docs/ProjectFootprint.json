@@ -143,5 +143,38 @@
     "sha256": "53E7E5894C53F8487F278FEBC380FE5A6710F9496E9987282B6B71EAB49E5939",
     "isolated_smoke_checks": 17,
     "isolated_smoke_passed": true
-  }
+  },
+  "current_build": {
+    "built_utc": "2026-11-05T02:41:34.728823Z",
+    "package_bytes": 889371772,
+    "package_files": 1741,
+    "playable_bytes": 1131024532,
+    "project_bytes": 4136731766,
+    "budget_bytes": 5000000000,
+    "artifact_sha256": {
+      "Blackweb.pck": "67116D7D34F15DF2147D5333213108993E833FB877F85AC5E5086989E2BB30FF",
+      "Godot_v4.7.2-stable_win64.exe": "AB1824F85BFD8E0E4128182C000C4003A3E042245B2967848D089B2A04B22424",
+      "Godot_v4.7.2-stable_win64_console.exe": "C8F0A6BC45A19B33541501E57F6F7CD972AB18453743266339D495CBBE846643"
+    },
+    "portable_smoke_status": "PASSED: isolated outside-project headless package/dependency/startup checks",
+    "plan": {
+      "input_files": 1740,
+      "input_bytes": 888863812,
+      "runtime_bytes": 181057040,
+      "source_project_bytes_excluding_playable": 3005707234,
+      "retained_playable_bytes": 60595720,
+      "estimated_project_bytes": 4138223806,
+      "budget_bytes": 5000000000,
+      "fits": true,
+      "output_directory": "D:\\GameProjects\\BlackwebHouseRebuild-20261103\\Playable",
+      "output_is_project_playable": true,
+      "elided_source_png_count": 248,
+      "elided_source_png_bytes": 906794748,
+      "method": "PCKPacker; recovered PNG source payloads elided in portable build only; Godot .import mappings and imported textures retained"
+    },
+    "portable_smoke_exit_code": 0,
+    "portable_smoke_checks": 28,
+    "portable_smoke_working_directory": "D:\\CodexTemp\\Arachnophobia-Blackweb-20261103\\work\\portable-package-smoke"
+  },
+  "historical_snapshot_note": "Original root-level project/godot/playable data is the historical Phase0 snapshot; current_build is the latest package measurement."
 }

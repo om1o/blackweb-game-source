@@ -67,6 +67,16 @@ func _run() -> void:
 	_check("Player controller exists", player != null)
 	var candy: Node = player.get("_hand_candy") if player != null else null
 	_check("Original Blender candy and bitten variant load from the PCK", candy != null and candy.has_node("CandyBarBody/CandyReady") and candy.has_node("CandyBarBody/CandyBitten"))
+	var supply_factory := load("res://scripts/supply_models.gd")
+	var loaded_supplies: Array[String] = []
+	for variant in ["BatteryCell", "BandagePack", "FlareStick", "BandageRoll"]:
+		var prop: Node3D = supply_factory.make_variant(variant)
+		if prop != null:
+			if not prop.find_children("*", "MeshInstance3D", true, false).is_empty(): loaded_supplies.append(variant)
+			prop.free()
+	_check("All four original Blender supply variants load from the PCK", loaded_supplies.size() == 4, loaded_supplies)
+	var supply_atlas := load("res://assets/generated/supply_labels_worn_v1.png") as Texture2D
+	_check("Worn supply label atlas resolves through its packed import", supply_atlas != null and supply_atlas.get_width() > 1000)
 	var residue_texture := load("res://assets/generated/blood_goo_smears_v2.png") as Texture2D
 	_check("New transparent blood/goo atlas loads from its packed import", residue_texture != null and residue_texture.get_width() > 1000)
 	_check("Luke skeleton is preserved", _has_skeleton(player, 81))
@@ -91,13 +101,23 @@ func _run() -> void:
 	_check("All six recovered audio clips load", audio_paths.size() == 6 and bad_audio.is_empty(), bad_audio)
 	var luke_voice := game.find_child("LukeWebRevealVoice", true, false) as AudioStreamPlayer
 	_check("Luke web-reveal neural voice loads in the packaged opening", luke_voice != null and luke_voice.stream != null and luke_voice.stream.get_length() > 3.0, luke_voice.stream.get_length() if luke_voice != null and luke_voice.stream != null else -1.0)
+	var mara_voice := game.find_child("MaraPhoneWarningVoice", true, false) as AudioStreamPlayer
+	var phone_reply := game.find_child("LukePhoneReplyVoice", true, false) as AudioStreamPlayer
+	_check("Mara's warning and Luke's reply load in the packaged opening", mara_voice != null and mara_voice.stream != null and is_equal_approx(mara_voice.stream.get_length(), 11.5) and phone_reply != null and phone_reply.stream != null and phone_reply.stream.get_length() > 2.0)
 	game.call("_resume")
 	for tick in 5: await physics_frame
 	_check("Packed game resumes actual physics", not paused)
 	_check("QA run does not read or write player checkpoints", game.get("progression") != null and not bool(game.get("progression").get("auto_save")) and not bool(game.get("progression").get("auto_load")))
+	game.process_mode = Node.PROCESS_MODE_DISABLED
+	_stop_audio(game)
 	game.queue_free()
 	for frame in 3: await process_frame
+	await create_timer(0.12).timeout
 	_finish()
+
+func _stop_audio(node: Node) -> void:
+	if node is AudioStreamPlayer or node is AudioStreamPlayer3D or node is AudioStreamPlayer2D: node.stop()
+	for child in node.get_children(): _stop_audio(child)
 
 func _has_skeleton(node: Node, bones: int) -> bool:
 	if node == null: return false

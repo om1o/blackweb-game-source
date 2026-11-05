@@ -1,5 +1,7 @@
 # Blackweb gameplay milestone — source verification
 
+This document records the earlier gameplay milestone. For the current five-room build, use [TutorialHousePass.md](TutorialHousePass.md), [SupplyActionPass.md](SupplyActionPass.md) and [PhoneVoicePass.md](PhoneVoicePass.md). Supplies now use original Blender meshes and delayed use events, Mara and Luke's phone exchange is voiced, and newer evidence supersedes the historical counts below. The old narrative route did not establish access to every optional room; the new full-capsule traversal regression covers all five rooms.
+
 The active Godot source supports hold-`C` crouching with a shorter collision capsule and a clearance check before standing, `Space` jumping, and `Shift` sprinting that spends and recovers stamina. Jumping costs nine stamina. The existing phone, warning, house pickup, encounter, exit, and Greyhaven route still works.
 
 Luke starts with a working flashlight at 22% charge, a low-damage worn knife, and one candy bar. The flashlight works before the phone and before the later charged-backup pickup. It drains 0.22 percentage points per second while on, flickers more often below 8%, and cuts out at zero. The backup pickup strengthens the beam while preserving its story gate. The 1K CC0 Poly Haven flashlight model is attached to Luke's recovered right-hand skeleton, with a close-camera fallback. Beam energy and specular output have been reduced for pale furnishings; the native held-pose captures were reviewed for this prototype.

@@ -2,6 +2,7 @@ extends SceneTree
 ## Exercises the optional supply loop in the real house scene with saves disabled.
 
 var failures: Array[String] = []
+var checks := 0
 
 
 func _initialize() -> void:
@@ -9,6 +10,7 @@ func _initialize() -> void:
 
 
 func _check(condition: bool, description: String) -> void:
+	checks += 1
 	if not condition:
 		failures.append(description)
 
@@ -96,8 +98,13 @@ func _run() -> void:
 	use_click.button_index = MOUSE_BUTTON_LEFT
 	use_click.pressed = true
 	_press_use(player, use_click)
+	_check(player.item_count(&"bandage") == bandages_before_use and
+		is_equal_approx(player.health, 30.0) and player._action_kind == &"bandage",
+		"Left click did not start bandaging without instant healing or consumption")
+	player._tick_item_action(2.3)
 	_check(player.item_count(&"bandage") == bandages_before_use - 1 and
-		is_equal_approx(player.health, 85.0), "Drawn bandage did not heal and consume on left click")
+		is_equal_approx(player.health, 85.0), "Bandage did not heal and consume after the wrap event")
+	player._tick_item_action(0.6)
 	var flares_before_use: int = player.item_count(&"flare")
 	_check(player.equip_inventory_cell(_find_cell(player, &"flare"), 2),
 		"Found flare could not be equipped into quick slot three")
@@ -108,8 +115,12 @@ func _run() -> void:
 	_check(player.selected_quick_item() == &"flare" and player.item_count(&"flare") == flares_before_use,
 		"Flare hotkey did not draw the flare without consuming it")
 	_press_use(player, use_click)
+	_check(player.item_count(&"flare") == flares_before_use and player._flare_remaining <= 0.0 and
+		player._action_kind == &"flare", "Left click did not start flare ignition without instant light or consumption")
+	player._tick_item_action(0.55)
 	_check(player.item_count(&"flare") == flares_before_use - 1 and
-		player._flare_remaining > 0.0, "Drawn flare did not ignite and consume on left click")
+		player._flare_remaining > 0.0, "Flare did not ignite and consume at its ignition event")
+	player._tick_item_action(0.45)
 	player.active = false
 
 	player.add_battery(100.0)
@@ -123,8 +134,12 @@ func _run() -> void:
 	_check(not player.use_quick_slot(2) and player.item_count(&"battery_35") == 2,
 		"Full battery consumed an equipped pack")
 	player.battery_charge = 65.0
-	_check(player.use_quick_slot(2) and player.item_count(&"battery_35") == 1 and is_equal_approx(player.battery_charge, 100.0),
-		"Equipped saved battery did not recharge by its exact amount")
+	_check(player.use_quick_slot(2) and player.item_count(&"battery_35") == 2 and is_equal_approx(player.battery_charge, 65.0),
+		"Saved battery did not start replacement without instant charge or consumption")
+	player._tick_item_action(1.1)
+	_check(player.item_count(&"battery_35") == 1 and is_equal_approx(player.battery_charge, 100.0),
+		"Equipped saved battery did not recharge by its exact amount at insertion")
+	player._tick_item_action(0.6)
 	player.active = false
 
 	var bandages_before_retry: int = player.item_count(&"bandage")
@@ -157,7 +172,7 @@ func _run() -> void:
 
 
 func _finish(game: Node3D) -> void:
-	print(JSON.stringify({"passed": failures.is_empty(), "failures": failures,
+	print(JSON.stringify({"passed": failures.is_empty(), "checks": checks, "failures": failures,
 		"world_supply_count": game._supply_pickups.size() if game._loaded else 0,
 		"storage_count": game._storage_units.size() if game._loaded else 0}))
 	paused = false

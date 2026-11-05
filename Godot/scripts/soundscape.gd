@@ -15,6 +15,8 @@ var _presence: AudioStreamPlayer3D
 var _door: AudioStreamPlayer3D
 var _event: AudioStreamPlayer
 var _web_voice: AudioStreamPlayer
+var _mara_warning: AudioStreamPlayer
+var _phone_reply: AudioStreamPlayer
 var _phone_timer := 1.2
 var _step_distance := 0.0
 var _step_streams: Array[AudioStream] = []
@@ -26,8 +28,14 @@ var _stage := -1
 var _recovered_audio: Dictionary = {}
 var _missing_audio: Array[String] = []
 var _web_voice_played := false
+var _mara_warning_played := false
+var _phone_reply_played := false
+var _phone_clock_elapsed := 0.0
+var _phone_clock_tick_usec := 0
 const WEB_REVEAL_POSITION := Vector3(-1.6, 0.44, -2.0)
 const WEB_VOICE_PATH := "res://assets/generated/luke_web_reveal_neural_v2.wav"
+const MARA_WARNING_PATH := "res://assets/generated/mara_phone_warning_neural_v1.wav"
+const PHONE_REPLY_PATH := "res://assets/generated/luke_phone_reply_neural_v1.wav"
 const STEP_PITCH := [0.985, 1.01, 0.995, 1.015]
 const STEP_GAIN := [-0.6, 0.2, -0.2, 0.5]
 
@@ -82,6 +90,16 @@ func _ready() -> void:
 	_web_voice.volume_db = -7.0
 	_web_voice.stream = _load_voice(WEB_VOICE_PATH)
 	add_child(_web_voice)
+	_mara_warning = AudioStreamPlayer.new()
+	_mara_warning.name = "MaraPhoneWarningVoice"
+	_mara_warning.volume_db = -6.0
+	_mara_warning.stream = _load_voice(MARA_WARNING_PATH, "Mara phone warning")
+	add_child(_mara_warning)
+	_phone_reply = AudioStreamPlayer.new()
+	_phone_reply.name = "LukePhoneReplyVoice"
+	_phone_reply.volume_db = -7.0
+	_phone_reply.stream = _load_voice(PHONE_REPLY_PATH, "Luke phone reply")
+	add_child(_phone_reply)
 	if is_instance_valid(player):
 		player.recovery_changed.connect(_on_recovery)
 		_recovering = player.is_recovering()
@@ -91,6 +109,11 @@ func _ready() -> void:
 			progression.checkpoint_restored.connect(_checkpoint_restored)
 		_stage_changed(int(progression.stage), true)
 	set_meta("audio_provenance", get_audio_provenance())
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PAUSED or what == NOTIFICATION_UNPAUSED:
+		# A paused menu must not count toward the real-time message clock.
+		_phone_clock_tick_usec = Time.get_ticks_usec()
 
 func _load_sound(sound_path: String, role: String) -> AudioStream:
 	if not sound_path.is_empty() and ResourceLoader.exists(sound_path):
@@ -107,7 +130,7 @@ func _load_sound(sound_path: String, role: String) -> AudioStream:
 	_missing_audio.append(role + ": " + (sound_path if not sound_path.is_empty() else "path not supplied"))
 	return null
 
-func _load_voice(sound_path: String) -> AudioStream:
+func _load_voice(sound_path: String, role: String = "Luke web reveal neural voice") -> AudioStream:
 	if ResourceLoader.exists(sound_path):
 		var stream := load(sound_path) as AudioStream
 		if stream is AudioStreamWAV:
@@ -115,19 +138,34 @@ func _load_voice(sound_path: String) -> AudioStream:
 			one_shot.loop_mode = AudioStreamWAV.LOOP_DISABLED
 			return one_shot
 		if stream != null: return stream
-	_missing_audio.append("Luke web reveal neural voice: " + sound_path)
+	_missing_audio.append(role + ": " + sound_path)
 	return null
 
 func get_audio_provenance() -> Dictionary:
-	return {"recovered": _recovered_audio.duplicate(true), "original_procedural": ["low mechanical room hum", "phone notification ping", "power-cut click"], "prototype_voice": {"path": WEB_VOICE_PATH, "source": "Locally generated Kokoro-82M neural voice, am_michael; synthetic placeholder, not an actor performance"}, "missing": _missing_audio.duplicate(), "presence_policy": "Spatial, quiet, once per PRESENCE entry, at most 8 active seconds, stopped on POWER_LOSS.", "footstep_policy": "Recovered wood samples, grounded velocity-based stride distance, deterministic mild pitch/gain sequence.", "continuous_horror_score": false}
+	return {"recovered": _recovered_audio.duplicate(true), "original_procedural": ["low mechanical room hum", "phone notification ping", "power-cut click"], "prototype_voice": {"path": WEB_VOICE_PATH, "source": "Locally generated Kokoro-82M neural voice, am_michael; synthetic placeholder, not an actor performance"}, "phone_dialogue": {"mara_path": MARA_WARNING_PATH, "luke_path": PHONE_REPLY_PATH, "source": "Local Kokoro-82M stock synthetic voices: af_heart and am_michael; no voice cloning", "policy": "Once per message attempt, aligned to message elapsed time and subtitle slots, no overlap with the web reaction"}, "missing": _missing_audio.duplicate(), "presence_policy": "Spatial, quiet, once per PRESENCE entry, at most 8 active seconds, stopped on POWER_LOSS.", "footstep_policy": "Recovered wood samples, grounded velocity-based stride distance, deterministic mild pitch/gain sequence.", "continuous_horror_score": false}
 
 func _process(delta: float) -> void:
 	if not is_instance_valid(player) or not is_instance_valid(progression): return
 	if _recovering or player.is_recovering(): return
 	if not player.active:
+		_phone_clock_tick_usec = Time.get_ticks_usec()
 		_steps.stop()
 		_step_distance = 0.0
+		if _mara_warning.playing:
+			_mara_warning.stop()
+			_mara_warning_played = false
+		if _phone_reply.playing:
+			_phone_reply.stop()
+			_phone_reply_played = false
 		return # A door opened during departure may finish naturally.
+	if _stage == progression.Stage.MESSAGE:
+		_synchronize_phone_clock()
+		play_mara_warning()
+		play_phone_reply()
+		# End the phone channel at its subtitle boundary even if an audio
+		# driver trails the game clock slightly under load.
+		if _mara_warning.playing and progression._elapsed >= _mara_warning.stream.get_length():
+			_mara_warning.stop()
 	if not _web_voice_played and _stage >= progression.Stage.PREPARATION and _stage < progression.Stage.POWER_LOSS and player.global_position.distance_to(WEB_REVEAL_POSITION) < 2.3:
 		play_web_reveal_voice()
 	if _stage < progression.Stage.POWER_LOSS and not _room.playing: _room.play()
@@ -160,10 +198,65 @@ func _process(delta: float) -> void:
 func play_web_reveal_voice() -> bool:
 	if _web_voice_played or not is_instance_valid(_web_voice) or _web_voice.stream == null or _recovering or get_tree().paused:
 		return false
+	if not is_instance_valid(progression) or _stage < progression.Stage.PREPARATION or _stage >= progression.Stage.POWER_LOSS or _mara_warning.playing or _phone_reply.playing:
+		return false
 	_web_voice_played = true
 	_web_voice.play()
 	if is_instance_valid(progression):
 		progression.show_notice("Luke: Mara... these webs were not here yesterday.", 3.2)
+	return true
+
+func _synchronize_phone_clock() -> void:
+	var now := Time.get_ticks_usec()
+	var wall_delta := maxf(0.0, float(now - _phone_clock_tick_usec) / 1000000.0) if _phone_clock_tick_usec > 0 else 0.0
+	_phone_clock_tick_usec = now
+	_phone_clock_elapsed += wall_delta
+	# Frame delta can clamp during a GPU/readback stall while speech keeps
+	# playing. Catch the subtitle clock up monotonically, including the silent
+	# disconnected beat; never seek speech backward or replay an old line.
+	var spoken_clock := 0.0
+	if _mara_warning.playing:
+		spoken_clock = _mara_warning.get_playback_position() + AudioServer.get_time_since_last_mix() - AudioServer.get_output_latency()
+	elif _phone_reply.playing:
+		spoken_clock = _phone_reply_start() + _phone_reply.get_playback_position() + AudioServer.get_time_since_last_mix() - AudioServer.get_output_latency()
+	_phone_clock_elapsed = maxf(_phone_clock_elapsed, spoken_clock)
+	if _phone_clock_elapsed > progression._elapsed + 0.04:
+		progression._elapsed = _phone_clock_elapsed
+		progression._update_message()
+
+func _phone_reply_start() -> float:
+	var start := 0.0
+	for index in range(mini(4, progression.mara_durations.size())):
+		start += maxf(0.5, float(progression.mara_durations[index]))
+	return start
+
+func _dialogue_can_play() -> bool:
+	return is_instance_valid(player) and player.active and is_instance_valid(progression) and _stage == progression.Stage.MESSAGE and not _recovering and not player.is_recovering() and not get_tree().paused
+
+func play_mara_warning() -> bool:
+	if not _dialogue_can_play() or _mara_warning_played or not is_instance_valid(_mara_warning) or _mara_warning.stream == null:
+		return false
+	var elapsed: float = progression._elapsed
+	if elapsed >= _mara_warning.stream.get_length():
+		_mara_warning_played = true
+		return false
+	# The generated three lines start at the existing 0, 3.5, and 7.5-second
+	# subtitle boundaries. Seeking preserves sync after a late active frame.
+	_web_voice.stop()
+	_mara_warning_played = true
+	_mara_warning.play(maxf(0.0, elapsed))
+	return true
+
+func play_phone_reply() -> bool:
+	if not _dialogue_can_play() or _phone_reply_played or not is_instance_valid(_phone_reply) or _phone_reply.stream == null:
+		return false
+	var offset: float = progression._elapsed - _phone_reply_start()
+	if offset < 0.0: return false
+	_phone_reply_played = true
+	if offset >= _phone_reply.stream.get_length(): return false
+	_mara_warning.stop()
+	_web_voice.stop()
+	_phone_reply.play(offset)
 	return true
 
 func play_door() -> bool:
@@ -175,6 +268,17 @@ func play_door() -> bool:
 func _stage_changed(stage: int, restoring: bool = false) -> void:
 	var previous: int = _stage
 	_stage = stage
+	if previous != stage or restoring:
+		_phone_clock_elapsed = maxf(0.0, progression._elapsed)
+	_phone_clock_tick_usec = Time.get_ticks_usec()
+	if stage == progression.Stage.NORMAL:
+		_mara_warning_played = false
+		_phone_reply_played = false
+	if stage != progression.Stage.MESSAGE:
+		_mara_warning.stop()
+		_phone_reply.stop()
+	else:
+		_web_voice.stop()
 	if stage != progression.Stage.NORMAL: _phone.stop()
 	else: _phone_timer = 1.2
 	_presence.stop()
@@ -194,9 +298,12 @@ func _stage_changed(stage: int, restoring: bool = false) -> void:
 		_event.stop()
 		_door.stop()
 		_web_voice.stop()
+		_mara_warning.stop()
+		_phone_reply.stop()
 
 func _on_recovery(recovering: bool) -> void:
 	_recovering = recovering
+	_phone_clock_tick_usec = Time.get_ticks_usec()
 	_room.stream_paused = recovering
 	_presence.stream_paused = recovering
 	_steps.stop()
@@ -204,9 +311,13 @@ func _on_recovery(recovering: bool) -> void:
 	_event.stop()
 	_door.stop()
 	_web_voice.stop()
+	_mara_warning.stop()
+	_phone_reply.stop()
 	_step_distance = 0.0
 
 func _checkpoint_restored() -> void:
+	_phone_clock_elapsed = maxf(0.0, progression._elapsed)
+	_phone_clock_tick_usec = Time.get_ticks_usec()
 	_step_index = 0
 	_step_distance = 0.0
 	_phone_timer = 1.2
@@ -214,6 +325,13 @@ func _checkpoint_restored() -> void:
 	_presence_started = false
 	_door.stop()
 	_event.stop()
+	_mara_warning.stop()
+	_phone_reply.stop()
+	# A restored MESSAGE checkpoint restarts its subtitle clock from zero.
+	# Permit one fresh take for that attempt, never a duplicate stage signal.
+	if progression.stage in [progression.Stage.NORMAL, progression.Stage.MESSAGE]:
+		_mara_warning_played = false
+		_phone_reply_played = false
 	# The immediately following stage_changed signal restores the correct state.
 
 func _mechanical_hum() -> AudioStreamWAV:
