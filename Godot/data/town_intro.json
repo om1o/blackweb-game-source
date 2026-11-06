@@ -5,7 +5,7 @@
   "delivery": {
     "width": 1280,
     "height": 720,
-    "fps": 24,
+    "fps": 30,
     "audio_bus": "Dialogue",
     "skippable": true
   },
@@ -79,9 +79,9 @@
   "medium": "Full-motion video rendered from the editable Godot 3D town scene, skinned character animation, authored reactions and voice-envelope jaw motion",
   "video_path": "res://assets/generated/cinematics/greyhaven_motion.ogv",
   "render_provenance": {
-    "fps": 24,
-    "frames": 1008,
-    "scene_sha256": "04f5a2bb8ddb1937299ab627a42b585b5e71750174ea219b7e9d6a1ac5725bc1",
+    "fps": 30,
+    "frames": 1260,
+    "scene_sha256": "f016364a2419292f7893814c31769600a782f881a62c0bcfc0857e5496f809d9",
     "voice_envelope_sha256": "64c8a42435aa50ee1cdaaec9e6dcf6a7d089fe1e14f8684959011cc6ad8dfedd"
   }
 }

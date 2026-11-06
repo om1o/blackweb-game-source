@@ -22,6 +22,34 @@ func _run() -> void:
 		await _finish()
 		return
 	game._resume()
+	# New game / ignored phone / looking away must all permit a real fight.
+	game.progression.set_process(false)
+	game.player.set_physics_process(false)
+	game.player.camera.rotation.y += PI
+	game.progression._elapsed = 8.1
+	game._update_early_sighting(.1)
+	var starter = game._sighting_spider
+	_check(starter.active and starter.visible and starter.collision_layer == 4,
+		"Starting-room spider activates without camera visibility, phone, key or vault")
+	_check(starter.health == 12.0 and starter.hit_damage == 4.0,
+		"Starter has juvenile health and bite damage")
+	starter.take_damage(4)
+	_check(starter.health == 8.0, "Starter receives worn-knife damage")
+	starter.take_damage(8)
+	game._update_early_sighting(1)
+	_check(not starter.active and starter.health == 0, "Killed starter does not respawn every frame")
+	game.progression.restore_snapshot(game.progression.snapshot())
+	game.progression._elapsed = 8.1
+	game._update_early_sighting(.1)
+	_check(starter.active and starter.health == 12, "Checkpoint reset restores a fightable starter")
+	game.progression.interact(&"phone")
+	_check(not starter.active, "Phone dialogue suspends the starter encounter")
+	game.progression.step(20)
+	game.progression._elapsed = 6.1
+	game._update_early_sighting(.1)
+	_check(starter.active and not game.progression.vault_unlocked, "Starter returns after phone without vault puzzle")
+	game._reset_early_spider()
+	game.set_process(false)
 	game.progression.auto_advance_atmosphere = false
 	game.progression.set_process(false)
 	game.player.set_process(false)
@@ -32,6 +60,9 @@ func _run() -> void:
 		mini.set_process(false)
 		mini.set_physics_process(false)
 	for door in game._tutorial_doors:
+		# Routing fixture: vault authorization is covered by tutorial_journey.
+		# A locked door would open a paused keypad instead of its physical hinge.
+		door.locked = false
 		if not door.opened: door.toggle()
 	await create_timer(0.75).timeout
 	var all_open := true
@@ -42,6 +73,7 @@ func _run() -> void:
 	var live = game.get_node("MiniSpider1")
 	var corpse = game.get_node("MiniSpider2")
 	var sighting = game._sighting_spider
+	sighting.deactivate()
 	_check(is_equal_approx(adult.max_health, 100.0) and is_equal_approx(adult.hit_damage, 35.0)
 		and is_equal_approx(adult.bite_damage, 18.0), "The real adult receives its 100-HP, 35-lunge and 18-bite JSON balance")
 	_check(is_equal_approx(live.max_health, 12.0) and is_equal_approx(live.hit_damage, 4.0)

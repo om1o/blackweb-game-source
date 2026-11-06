@@ -1,0 +1,170 @@
+{
+  "date_utc": "2026-11-06T13:27:13.5848788Z",
+  "package_sha256": "450ff548e2d1dcfcedadd29d4d2adb96aa3794fef8beeb35eb1fb014c0da02d8",
+  "runtime_origin": "frozen PCK",
+  "adapter": "ANGLE (Intel, Intel(R) HD Graphics 530 (0x00001912) Direct3D11 vs_5_0 ps_5_0, D3D11-30.0.101.1339)",
+  "window": [
+    960,
+    540
+  ],
+  "warmup_ms": 1522,
+  "complete": true,
+  "failures": [],
+  "knife_actions": 11,
+  "frames": {
+    "above_33_33_ms_percent": 9.57230142566191,
+    "above_50_ms_percent": 0.814663951120163,
+    "max_ms": 67.951,
+    "mean_ms": 20.3105291242363,
+    "p50_ms": 16.779,
+    "p95_ms": 36.682,
+    "p99_ms": 48.538,
+    "samples": 2455
+  },
+  "first_warm_package_frames": {
+    "above_33_33_ms_percent": 4.44115470022206,
+    "above_50_ms_percent": 0.666173205033309,
+    "max_ms": 74.504,
+    "mean_ms": 18.4595429311621,
+    "p50_ms": 16.697,
+    "p95_ms": 33.036,
+    "p99_ms": 45.131,
+    "samples": 2702
+  },
+  "cold_package_frames": {
+    "above_33_33_ms_percent": 26.031746031746,
+    "above_50_ms_percent": 6.08465608465608,
+    "max_ms": 1677.457,
+    "mean_ms": 28.2050052910053,
+    "p50_ms": 18.662,
+    "p95_ms": 51.52,
+    "p99_ms": 72.516,
+    "samples": 1890
+  },
+  "runtime_script_sha256": {
+    "armor_visuals.gd": "2ce5f2a206509f03387a71ad7556e5900a55aa630f9e994d42997db147c43e33",
+    "environment_surfaces.gd": "061a3b541a66d967df84a20ff4b046889db6bd0f369bbf0bc1b2f040087c0af8",
+    "horror_menu.gd": "13dd201aadca3bafa4e254ace2a9976c7f01157a263a67cbebdd13a59910c18e",
+    "house_batching.gd": "7bb3c7495ddd9d7ab199ecd93f462908210b3aa6487cba612ab4b612560a5f4d",
+    "house_dressing.gd": "6170394de269fd9a94b6d579b5b7df5821096e574d869d74e3596eac7bc9ae07",
+    "item_preview.gd": "2b5fbf5526fa6cca806af259340b590456499bbe748fd6da105449ee0d6d8dce",
+    "locomotion_pose.gd": "b81641657bcdb2d7a0d234d8f33983070721cd4f9f1c5d8553f4b85c63b24e78",
+    "main.gd": "2590fdf95f90d3cb67d3485db98103464806b758d4be081645c1dad95f8d8b64",
+    "menu_settings.gd": "b4417ad27dc3e3baee411b2d4837bae3486f5d0d0ee4f5129884527e1c0dc018",
+    "mini_spider.gd": "ed1cbc1535db0848bf3843e994d7b860df85fef7e1da86b202654dc8fff83b39",
+    "modeled_silk.gd": "898b82dbdc581e6cd9ffea81dd09cecd03e888e83e9eb3ad76d6baab27a9cb0b",
+    "player.gd": "718090c8addd9cad0fc2ac5965bc00477107cf6a3344888a20d0de3499fece64",
+    "progression.gd": "2d2ffa41ab302374d654e7d010d70f29dc9bf90c4ded8977de016191b26fb291",
+    "props.gd": "d816753cd95b8e3d0819d81d771f31644f5bc56f1f3059d312520b5b12f7dd63",
+    "spider.gd": "cee985eff7cf279b4d22779a5db501f3858cc3b8fad32258f3a56471becb8f4d",
+    "storage.gd": "5f80dbe931ed414df2bcc2d1b92f7df9d2189b0de237fd3d32aa1a34eafcde3a",
+    "supply_models.gd": "3edbba6dbcc7e948e400133ba6692130c79b95b4da1ccc9e05906232de26f2d7",
+    "tutorial_house.gd": "01986e2799113d126d8bdae3b3fdb53a7a2ea2f86ec548dbf9b9a26edb44a238"
+  },
+  "texture_memory": {
+    "after_bytes": 23125720,
+    "before_bytes": 113222967,
+    "kind": "RenderingServer texture-memory counter deltas while retaining all compared textures; not whole-process RAM or FPS",
+    "textures": [
+      {
+        "after_bytes": 2104384,
+        "before_bytes": 8386712,
+        "height": 888,
+        "path": "res://assets/generated/blood_goo_decal_v1.png",
+        "width": 1776
+      },
+      {
+        "after_bytes": 2104384,
+        "before_bytes": 8386712,
+        "height": 888,
+        "path": "res://assets/generated/blood_goo_smears_v2.png",
+        "width": 1776
+      },
+      {
+        "after_bytes": 2105968,
+        "before_bytes": 8384072,
+        "height": 1256,
+        "path": "res://assets/generated/blood_variants_v3.png",
+        "width": 1256
+      },
+      {
+        "after_bytes": 2104384,
+        "before_bytes": 8386712,
+        "height": 888,
+        "path": "res://assets/generated/ceiling_silk_v2.png",
+        "width": 1776
+      },
+      {
+        "after_bytes": 2105968,
+        "before_bytes": 8384072,
+        "height": 1256,
+        "path": "res://assets/generated/corner_web_v1.png",
+        "width": 1256
+      },
+      {
+        "after_bytes": 2105968,
+        "before_bytes": 8384072,
+        "height": 1256,
+        "path": "res://assets/generated/goo_variants_v3.png",
+        "width": 1256
+      },
+      {
+        "after_bytes": 1052984,
+        "before_bytes": 6288054,
+        "height": 1256,
+        "path": "res://assets/generated/candy_wrapper_aged_v1.png",
+        "width": 1256
+      },
+      {
+        "after_bytes": 1053032,
+        "before_bytes": 6290916,
+        "height": 944,
+        "path": "res://assets/generated/blackweb_menu_corridor_v1.png",
+        "width": 1672
+      },
+      {
+        "after_bytes": 2796216,
+        "before_bytes": 16777215,
+        "height": 2048,
+        "path": "res://assets/third_party/poly_haven/brown_leather/brown_leather_albedo_2k.jpg",
+        "width": 2048
+      },
+      {
+        "after_bytes": 2796216,
+        "before_bytes": 16777215,
+        "height": 2048,
+        "path": "res://assets/third_party/poly_haven/brown_leather/brown_leather_arm_2k.jpg",
+        "width": 2048
+      },
+      {
+        "after_bytes": 2796216,
+        "before_bytes": 16777215,
+        "height": 2048,
+        "path": "res://assets/third_party/poly_haven/brown_leather/brown_leather_nor_gl_2k.jpg",
+        "width": 2048
+      }
+    ]
+  },
+  "movie": {
+    "checks": 10,
+    "decoded_audio_peak": 0.644821643829346,
+    "failures": [],
+    "frame_ms": {
+      "maximum": 207.58,
+      "median": 16.677,
+      "p95": 31.419,
+      "samples": 2216
+    },
+    "frames_captured": 3,
+    "mode": "rendered_3d_movie"
+  },
+  "tests": {
+    "portable_smoke": 53,
+    "native_journey": 56,
+    "locomotion": 10,
+    "juvenile_combat": 31,
+    "house_combat_spawn": 18,
+    "native_knife": 16
+  },
+  "limitations": "Sequential samples on shared desktop hardware, not a controlled A/B attribution or sustained 60 FPS guarantee. Route uses a 1000 HP benchmark player, normal enemy balance, and native 960x540 Performance rendering."
+}

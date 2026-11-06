@@ -146,7 +146,7 @@ func _run() -> void:
 	_check(game.campaign.vault_unlocked and not door.locked and door.opened, "key plus correct code opens real door")
 	_check(game.progression.stage == game.progression.Stage.PREPARATION, "vault unlock preserves the initial exploration beat")
 	game.progression.step(game.progression.exploration_seconds)
-	_check(game.progression.stage == game.progression.Stage.PRESENCE and game._sighting_spider.visible, "prepared exploration leads to the first harmless sighting")
+	_check(game.progression.stage == game.progression.Stage.PRESENCE and game._sighting_spider.visible, "prepared exploration preserves the starting-room combat spider")
 	game.get_node("VaultFieldKit").interact()
 	await _capture("vault-leather-kit")
 	for item in game.CampaignScript.ARMOR:

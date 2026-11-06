@@ -66,6 +66,7 @@ var _tutorial_doors: Array[Node3D] = []
 var _tutorial_evidence: Array[Node3D] = []
 var _sighting_spider: Node3D
 var _early_sighting_time := 0.0
+var _early_spider_spawned := false
 const EARLY_SPIDER_START := Vector3(-4.0, 0.44, 1.0)
 const EARLY_SPIDER_END := Vector3(-2.7, 0.44, 1.0)
 var campaign = CampaignScript.new()
@@ -74,6 +75,9 @@ var _item_preview: Node
 var _loading_campaign := true
 var _save_queued := false
 var _intro: Node
+var _warming_house := false
+var _house_warmed := false
+var house_warmup_ms := 0
 
 func _ready() -> void:
 	if qa_mode: print("JOURNEY LOAD: main ready")
@@ -617,19 +621,27 @@ func _create_mini_spiders() -> void:
 		mini.process_mode = Node.PROCESS_MODE_PAUSABLE
 
 func _create_sighting_spider() -> void:
-	# The first harmless silhouette appears after exploration, during Presence.
-	# Arrival, the phone call and early clue hunting stay free of enemy reveals.
+	# This former decorative sighting now uses the normal juvenile combat model.
+	# Arrival has a short grace period and phone dialogue remains safe.
 	var sighting := MiniSpiderScript.new()
 	sighting.name = "SupplyRoomSighting"
 	sighting.auto_bind_progression = false
-	# Keep its first silhouette in front of the couch, in the line of sight
-	# from the open entry doorway. Behind the couch it was never seen.
-	sighting.position = Vector3(1.55, 0.44, -1.72)
+	sighting.target = player
+	SpiderProfile.apply_to(sighting, "juvenile")
+	sighting.position = EARLY_SPIDER_START
 	add_child(sighting)
 	sighting.hide()
 	sighting._play_visual("idle")
 	sighting.process_mode = Node.PROCESS_MODE_PAUSABLE
 	_sighting_spider = sighting
+	progression.checkpoint_restored.connect(_reset_early_spider)
+
+func _reset_early_spider() -> void:
+	_early_spider_spawned = false
+	_early_sighting_time = 0.0
+	if is_instance_valid(_sighting_spider):
+		_sighting_spider.deactivate()
+		_sighting_spider.position = EARLY_SPIDER_START
 
 func _label(text: String, size: int, color := Color(0.88, 0.86, 0.82)) -> Label:
 	var label := Label.new()
@@ -736,10 +748,12 @@ func _button(text: String, callback: Callable) -> Button:
 	return button
 
 func _resume() -> void:
-	if not _loaded or progression.stage == progression.Stage.COMPLETE: return
+	if not _loaded or _warming_house or progression.stage == progression.Stage.COMPLETE: return
 	_started = true
 	menu.hide()
 	status_hud.hide_inventory()
+	if not qa_mode and not _house_warmed:
+		await warm_house_renderer()
 	if not qa_mode and not campaign.intro_seen and progression.stage == progression.Stage.NORMAL:
 		player.active = false
 		get_tree().paused = true
@@ -752,6 +766,58 @@ func _resume() -> void:
 	get_tree().paused = false
 	player.active = not _leaving
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func warm_house_renderer() -> void:
+	if _house_warmed or _warming_house or DisplayServer.get_name() == "headless": return
+	_warming_house = true
+	var began := Time.get_ticks_msec()
+	var tree := get_tree()
+	var prior_pause := tree.paused
+	var prior_active: bool = player.active
+	var prior_camera: Transform3D = player.camera.global_transform
+	var prior_disable := get_viewport().disable_3d
+	var prior_lamp: bool = player.lamp.visible
+	tree.paused = true
+	player.active = false
+	get_viewport().disable_3d = false
+	var cover := CanvasLayer.new()
+	cover.layer = 100
+	add_child(cover)
+	var black := ColorRect.new()
+	black.color = Color("080c0e")
+	black.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	cover.add_child(black)
+	var message := _label("Preparing house lighting…", 20)
+	message.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	message.position = Vector2(-220,-20)
+	message.size = Vector2(440,40)
+	message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	black.add_child(message)
+	var visuals: Array[Node3D] = []
+	for candidate in [spider, _sighting_spider, get_node("MiniSpider1"), get_node("MiniSpider2"), player._hand_flashlight, player._hand_knife, player._hand_candy]:
+		if is_instance_valid(candidate): visuals.append(candidate)
+	var visibility: Array[bool] = []
+	for visual in visuals:
+		visibility.append(visual.visible)
+		visual.show()
+	player.lamp.show()
+	# Draw the real materials before the first interactive camera pan. No AI,
+	# pickups, phone clocks, player simulation or damage advance behind the cover.
+	for eye in [Vector3(-4.3,1.82,.4),Vector3(.6,1.82,2.5),Vector3(4,1.82,2),Vector3(.6,1.82,-2.5),Vector3(4,1.82,-2.8)]:
+		for direction in [-1.0,1.0]:
+			player.camera.global_position = eye
+			player.camera.look_at(eye+Vector3(direction*2,-.65,-.2))
+			for frame in 3: await RenderingServer.frame_post_draw
+	for index in visuals.size(): visuals[index].visible = visibility[index]
+	player.camera.global_transform = prior_camera
+	player.lamp.visible = prior_lamp
+	get_viewport().disable_3d = prior_disable
+	player.active = prior_active
+	tree.paused = prior_pause
+	cover.queue_free()
+	house_warmup_ms = Time.get_ticks_msec()-began
+	_house_warmed = true
+	_warming_house = false
 
 func _has_menu_progress() -> bool:
 	if not _loaded or progression.stage == progression.Stage.COMPLETE: return false
@@ -789,6 +855,9 @@ func _restart() -> void:
 	_resume()
 
 func _input(event: InputEvent) -> void:
+	if _warming_house:
+		get_viewport().set_input_as_handled()
+		return
 	if event is InputEventKey and event.echo: return
 	if is_instance_valid(_intro):
 		if event.is_action_pressed("pause_game") or event.is_action_pressed("jump") or (event is InputEventKey and event.pressed and event.keycode in [KEY_ENTER, KEY_KP_ENTER]):
@@ -855,12 +924,8 @@ func _set_hud_layout(index: int) -> void:
 
 func _on_stage(stage: int) -> void:
 	_clear_presence()
-	_early_sighting_time = 0.0
-	if is_instance_valid(_sighting_spider):
-		_sighting_spider.visible = stage in [progression.Stage.PRESENCE, progression.Stage.POWER_LOSS]
-		_sighting_spider.position = EARLY_SPIDER_START if stage == progression.Stage.PREPARATION else Vector3(1.55, 0.44, -1.72)
-		_sighting_spider.rotation.y = 0.0
-		_sighting_spider._play_visual("idle")
+	if stage in [progression.Stage.NORMAL, progression.Stage.MESSAGE]:
+		_reset_early_spider()
 	if is_instance_valid(objective):
 		objective.text = progression.objective()
 		status_hud.set_objective(objective.text)
@@ -870,7 +935,7 @@ func _on_stage(stage: int) -> void:
 		if reveal_door != null and not reveal_door.opened: reveal_door.toggle()
 		_start_presence()
 	if stage >= progression.Stage.POWER_LOSS: _power_target = 0.0
-	if stage >= progression.Stage.ENCOUNTER and is_instance_valid(_sighting_spider): _sighting_spider.hide()
+	if stage >= progression.Stage.ENCOUNTER and is_instance_valid(_sighting_spider): _sighting_spider.deactivate()
 	if stage == progression.Stage.COMPLETE:
 		get_tree().paused = true
 		menu.present("complete", false, _loaded, true)
@@ -891,21 +956,18 @@ func _process(delta: float) -> void:
 
 func _update_early_sighting(delta: float) -> void:
 	if not is_instance_valid(_sighting_spider) or not is_instance_valid(player): return
-	if progression.stage != progression.Stage.PREPARATION or progression._elapsed < 6.0: return
-	# The harmless crossing does not depend on finding a key, cells or vault code.
-	# Wait until the player can actually see its lane, rather than wasting it offscreen.
-	var center := EARLY_SPIDER_START.lerp(EARLY_SPIDER_END, 0.5) + Vector3.UP * 0.16
-	if _early_sighting_time == 0.0:
-		if not player.camera.is_position_in_frustum(center): return
-		var ray := PhysicsRayQueryParameters3D.create(player.camera.global_position, center, 1)
-		ray.exclude = [player.get_rid()]
-		if not get_world_3d().direct_space_state.intersect_ray(ray).is_empty(): return
-		_sighting_spider.show()
-		_sighting_spider._play_visual("walk")
-		_sighting_spider.rotation.y = -PI * 0.5
+	if _early_spider_spawned or player.is_recovering(): return
+	if progression.stage == progression.Stage.MESSAGE or progression.stage >= progression.Stage.ENCOUNTER: return
+	# A fixed, navigable starting-room spawn. Never depend on the camera, key,
+	# code, or vault. The phone and paused screens remain safe.
+	var delay := 8.0 if progression.stage == progression.Stage.NORMAL else 6.0
+	if progression._elapsed < delay: return
 	_early_sighting_time += delta
-	_sighting_spider.position = EARLY_SPIDER_START.lerp(EARLY_SPIDER_END, clampf(_early_sighting_time / 5.0, 0.0, 1.0))
-	if _early_sighting_time >= 5.0: _sighting_spider._play_visual("idle")
+	_early_spider_spawned = true
+	_sighting_spider.position = EARLY_SPIDER_START
+	_sighting_spider.activate(player)
+	_sighting_spider._attack_cooldown = 2.0
+	progression.show_notice("Spider nearby. Press 2 for the knife; left click to strike.", 5.0)
 
 func _vec(values: Array) -> Vector3:
 	return Vector3(float(values[0]), float(values[1]), float(values[2]))

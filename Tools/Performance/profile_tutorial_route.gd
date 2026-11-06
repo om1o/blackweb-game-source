@@ -45,6 +45,15 @@ func _run() -> void:
 		report.failures.append("Scene failed to load")
 		_finish()
 		return
+	if OS.get_cmdline_user_args().has("--warm-house"):
+		var camera_before: Transform3D = game.player.camera.global_transform
+		var paused_before := paused
+		var time_before: float = game.progression._elapsed
+		var health_before: float = game.player.health
+		var rendering_before := root.disable_3d
+		await game.warm_house_renderer()
+		if not game._house_warmed or game._warming_house or paused != paused_before or root.disable_3d != rendering_before or not game.player.camera.global_transform.is_equal_approx(camera_before) or game.progression._elapsed != time_before or game.player.health != health_before:
+			report.failures.append("Warm-up changed camera, pause, rendering, health or progression state")
 	game._resume()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	if with_armor:
@@ -105,15 +114,19 @@ func _run() -> void:
 	game.player.health = 1000.0
 	game.progression._set_stage(game.progression.Stage.ENCOUNTER)
 	for index in 180: await physics_frame
-	var from_package := OS.get_cmdline_args().has("--main-pack")
-	var package_sha256 := "not applicable; source checkout"
+	# Godot consumes engine flags before exposing script arguments. The embedded
+	# manifest is present only in our PCK; an explicit user arg identifies its file.
+	var from_package := FileAccess.file_exists("res://package-build-info.json")
+	var package_sha256 := "not supplied" if from_package else "not applicable; source checkout"
 	if from_package:
-		var pack_index := OS.get_cmdline_args().find("--main-pack")
-		package_sha256 = FileAccess.get_sha256(OS.get_cmdline_args()[pack_index + 1])
+		for argument in OS.get_cmdline_user_args():
+			if argument.begins_with("--profile-package="):
+				package_sha256 = FileAccess.get_sha256(argument.trim_prefix("--profile-package="))
 	var source_hashes: Dictionary = {}
 	for source_file in ["main.gd", "player.gd", "tutorial_house.gd", "mini_spider.gd", "spider.gd", "house_dressing.gd", "environment_surfaces.gd", "modeled_silk.gd", "house_batching.gd", "locomotion_pose.gd", "props.gd", "supply_models.gd", "storage.gd", "horror_menu.gd", "menu_settings.gd", "item_preview.gd", "armor_visuals.gd", "progression.gd"]:
 		if FileAccess.file_exists("res://scripts/" + source_file): source_hashes[source_file] = FileAccess.get_sha256("res://scripts/" + source_file)
 	report.metadata = {
+		"house_warmup_ms": game.house_warmup_ms,
 		"utc": Time.get_datetime_string_from_system(true), "process_id": OS.get_process_id(),
 		"validation_only": validation, "engine": Engine.get_version_info(),
 		"adapter": RenderingServer.get_video_adapter_name(), "vendor": RenderingServer.get_video_adapter_vendor(),

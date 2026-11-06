@@ -242,6 +242,9 @@ func attach_model(scene: PackedScene, model_scale := 1.0) -> void:
 	model.scale *= model_scale
 	_animation = model.find_child("*AnimationPlayer*", true, false) as AnimationPlayer
 	if _animation:
+		# Evaluate the base pose once, before crouch/jump and hand IK. An idle
+		# animation update after physics used to overwrite the authored poses.
+		_animation.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 		for clip in _animation.get_animation_list():
 			if "walk" in clip.to_lower(): _walk_clip = clip
 			if "idle" in clip.to_lower(): _idle_clip = clip
@@ -685,6 +688,7 @@ func _physics_process(delta: float) -> void:
 		_update_flashlight_lenses()
 		if _animation and not _idle_clip.is_empty() and _animation.current_animation != _idle_clip:
 			_animation.play(_idle_clip, 0.18)
+		if _animation: _animation.advance(delta)
 		_set_focus_prompt("")
 		return
 	_hurt_time = maxf(0.0, _hurt_time - delta)
@@ -730,6 +734,7 @@ func _physics_process(delta: float) -> void:
 		if horizontal_speed > 2.3 and not _run_clip.is_empty(): clip = _run_clip
 		_animation.speed_scale = clampf(horizontal_speed / (2.8 if clip == _run_clip else 1.7), 0.6, 1.4) if horizontal_speed > 0.15 else 1.0
 		if not clip.is_empty() and _animation.current_animation != clip: _animation.play(clip, 0.18)
+		_animation.advance(delta)
 	_locomotion_pose.apply(delta, _crouching, not is_on_floor(), velocity.y, -camera.global_basis.z)
 	_tick_item_action(delta)
 	if _light_on or selected_quick_item() == &"knife" or _action_kind != &"": visual.rotation.y = lerp_angle(visual.rotation.y, _yaw, minf(1.0, delta * 8.0))

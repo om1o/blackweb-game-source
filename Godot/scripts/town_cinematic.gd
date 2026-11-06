@@ -215,27 +215,46 @@ func _turn_bone(index: int, axis_world: Vector3, amount: float) -> void:
 	bone.basis = Basis(axis.normalized(),amount) * bone.basis
 	skeleton.set_bone_global_pose_override(index,bone,1.0,true)
 
+func _travel_progress(time: float, start: float, end: float) -> float:
+	var duration := end-start
+	var phase := clampf(time-start,0.0,duration)
+	var ramp := 0.5
+	var distance := phase-ramp*.5
+	if phase < ramp: distance = phase*phase/(2.0*ramp)
+	elif phase > duration-ramp: distance = duration-ramp-pow(duration-phase,2)/(2.0*ramp)
+	return distance/(duration-ramp)
+
 func pose(time: float) -> void:
 	elapsed = clampf(time,0,LENGTH)
 	var t := elapsed
-	var walking := t < 9.0 or (t >= 21 and t < 31) or t >= 35
-	var clip := "walk" if walking else "idle"
 	skeleton.clear_bones_global_pose_override()
-	if animation.current_animation != clip: animation.play(clip)
-	animation.seek(fmod(t, animation.get_animation(clip).length),true)
-	actor.position = Vector3(-2.3,.08,3.5-minf(t,9)*1.05)
+	# Deterministic skeletal crossfade, including offline rendering and seeking.
+	# Seeking a single clip discarded AnimationPlayer's ordinary crossfade.
+	var weight := 1.0-smoothstep(8.5,9.0,t)
+	weight = maxf(weight, smoothstep(21,21.5,t)*(1.0-smoothstep(30.5,31,t)))
+	weight = maxf(weight, smoothstep(35,35.5,t)*(1.0-smoothstep(40.5,41,t)))
+	animation.play("idle")
+	animation.seek(fmod(t,animation.get_animation("idle").length),true)
+	var idle_pose: Array[Transform3D] = []
+	for bone in skeleton.get_bone_count(): idle_pose.append(skeleton.get_bone_pose(bone))
+	animation.play("walk")
+	animation.seek(fmod(t,animation.get_animation("walk").length),true)
+	for bone in skeleton.get_bone_count():
+		skeleton.set_bone_pose(bone,idle_pose[bone].interpolate_with(skeleton.get_bone_pose(bone),weight))
+	actor.position = Vector3(-2.3,.08,lerpf(3.5,-5.95,_travel_progress(t,0,9)))
 	actor.rotation.y = 0
 	if t >= 9 and t < 21:
 		actor.position.z += .45*sin(PI*clampf((t-12)/2,0,1))
 		actor.rotation.y = .3*sin((t-9)*.45)
 	if t >= 21:
-		actor.position = Vector3(-2.3,.08,-5.95).lerp(Vector3(3.5,.08,-17.3),clampf((t-21)/10,0,1))
-		actor.rotation.y = -.47
+		actor.position = Vector3(-2.3,.08,-5.95).lerp(Vector3(3.5,.08,-17.3),_travel_progress(t,21,31))
+		actor.rotation.y = lerp_angle(.3*sin(12*.45),-.47,smoothstep(21,21.5,t))
 	if t >= 31:
 		actor.position = Vector3(3.5,.08,-17.3).lerp(Vector3(6.4,.08,-21),smoothstep(35,41,t))
-		actor.rotation.y = -PI*.5
-	var reaction := sin(clampf((t-12)/3,0,1)*PI)*.85
-	_turn_bone(_head,Vector3.UP, sin(t*.8)*(.45 if t>9 and t<21 else .12))
+		actor.rotation.y = lerp_angle(-.47,-.665,smoothstep(31,32,t))
+	var reaction := sin(smoothstep(12,15,t)*PI)*.85
+	var alert := smoothstep(8.5,9.5,t)*(1.0-smoothstep(20.5,21.5,t))
+	_turn_bone(_head,Vector3.UP, sin(t*.8)*lerpf(.12,.45,alert))
 	_turn_bone(skeleton.find_bone("Bip01 Spine2"),Vector3.RIGHT,reaction*.35)
 	# Authored recoil: both arms rise defensively, then settle back into breathing.
 	_turn_bone(skeleton.find_bone("Bip01 R UpperArm"),actor.global_basis.x,reaction*.9)
