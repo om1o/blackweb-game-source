@@ -1,0 +1,22 @@
+[
+  {
+    "id": "mica_message",
+    "expected": "Luke, call me when you get home. Something is wrong.",
+    "recognized": " Luke call me when you get home. Something is wrong."
+  },
+  {
+    "id": "luke_town",
+    "expected": "What happened here?",
+    "recognized": " What happened here?"
+  },
+  {
+    "id": "luke_road",
+    "expected": "The road's blocked. I can get through here.",
+    "recognized": " The roads blocked. I can get through here."
+  },
+  {
+    "id": "luke_home",
+    "expected": "Mica? I'm home. Are you in there?",
+    "recognized": " Micah, I'm home. Are you in there?"
+  }
+]

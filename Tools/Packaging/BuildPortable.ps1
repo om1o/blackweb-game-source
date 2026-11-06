@@ -84,7 +84,7 @@ foreach ($name in @('LICENSE.md','NOTICE.txt','provenance.json')) {
 Add-InputTree (Join-Path $godotRoot 'assets\luke\Textures') 'res://assets/luke/Textures' { param($p) $p.EndsWith('.import') }
 if (Test-Path -LiteralPath (Join-Path $godotRoot 'assets\generated')) {
     Add-InputTree (Join-Path $godotRoot 'assets\generated') 'res://assets/generated' {
-        param($p) $p -match '\.(glb|gltf|bin|png|jpg|jpeg|webp|wav|import|json|md|txt)$'
+        param($p) $p -match '\.(glb|gltf|bin|png|jpg|jpeg|webp|wav|ogv|import|json|md|txt)$'
     }
 }
 if (Test-Path -LiteralPath (Join-Path $godotRoot 'assets\third_party')) {

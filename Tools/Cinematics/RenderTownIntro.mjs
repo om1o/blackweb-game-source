@@ -1,0 +1,27 @@
+import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const here = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(here, '../..');
+const scratch = process.env.BLACKWEB_CINEMATIC_SCRATCH || 'D:/CodexTemp/Blackweb-TownIntro';
+const ffmpeg = process.env.FFMPEG_PATH;
+if (!ffmpeg) throw new Error('Set FFMPEG_PATH to a full FFmpeg build with libtheora and libvorbis.');
+const shots = [['01-shift.png',6],['02-town.png',17],['03-blocked-road.png',8],['04-home.png',11]];
+const output = path.join(scratch,'RejectedArtwork/greyhaven_arrival.ogv');
+fs.mkdirSync(path.dirname(output),{recursive:true});
+const args = ['-y','-hide_banner','-loglevel','warning'];
+for (const [file] of shots) args.push('-i',path.join(here,'Art',file));
+args.push('-i',path.join(scratch,'town_mix.wav'));
+const filters = shots.map(([,duration],i) => `[${i}:v]scale=1920:1080,zoompan=z='1+0.045*on/${duration*24}':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d=${duration*24}:s=1280x720:fps=24,setsar=1[v${i}]`);
+filters.push('[v0][v1][v2][v3]concat=n=4:v=1:a=0,fade=t=in:st=0:d=0.8,fade=t=out:st=40.5:d=1.5,format=yuv420p[film]');
+args.push('-filter_complex_threads','1','-filter_complex',filters.join(';'),'-map','[film]','-map','4:a','-t','42','-c:v','libtheora','-q:v','6','-c:a','libvorbis','-q:a','4','-threads','2',output);
+const result = spawnSync(ffmpeg,args,{stdio:'inherit'});
+if(result.status!==0) throw new Error(`FFmpeg failed: ${result.status}`);
+const manifestPath = path.join(scratch,'RejectedArtwork/preview.json');
+const manifest = {};
+manifest.status='artwork_preview_only'; // User superseded this direction with full reacting animation.
+manifest.medium='Original generated artwork with slow camera pushes, synthetic voices and original sound design';
+manifest.shots = shots.map(([file,duration],i) => ({start:shots.slice(0,i).reduce((sum,s)=>sum+s[1],0),duration,art:`Tools/Cinematics/Art/${file}`,motion:'Slow centered 4.5 percent camera push; final shot fades to black'}));
+fs.writeFileSync(manifestPath,JSON.stringify(manifest,null,2)+'\n');
+console.log(`RENDER_READY ${output} ${fs.statSync(output).size} bytes; playback validation still required.`);

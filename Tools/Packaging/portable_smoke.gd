@@ -42,6 +42,12 @@ func _run() -> void:
 		if FileAccess.get_sha256(str(resource)).to_upper() != str(info.critical_source_sha256[resource]).to_upper(): wrong_hash.append(str(resource))
 	_check("Critical scenes, scripts and layout match source hashes", wrong_hash.is_empty(), wrong_hash)
 	var ui_theme := load("res://scripts/horror_theme.gd")
+	var film_manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/town_intro.json"))
+	_check("Animated town cinematic is ready in the package", film_manifest is Dictionary and film_manifest.get("status", "") == "ready_3d_movie")
+	var movie: Resource = load(str(film_manifest.get("video_path",""))) if film_manifest is Dictionary else null
+	_check("Full-motion 3D town movie loads from package", movie is VideoStreamTheora)
+	var town_audio: Resource = load("res://assets/generated/cinematics/town_audio.ogg")
+	_check("Town cinematic has its complete voiced soundtrack", town_audio is AudioStreamOggVorbis and town_audio.get_length() >= 41.9)
 	_check("Bundled Barlow interface fonts load from the portable PCK", ui_theme.body_font().data.size() > 10000 and ui_theme.heading_font().data.size() > 10000)
 	var document_source := load("res://scripts/tutorial_evidence.gd")
 	for title in ["transfer log", "Project 08 record", "Mica's hidden note"]:

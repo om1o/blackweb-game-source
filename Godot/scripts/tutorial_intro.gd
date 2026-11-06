@@ -1,14 +1,15 @@
 class_name BlackwebTutorialIntro
 extends Node
-## Original in-engine arrival camera and captions; no prerecorded video asset.
+## Animated 3D town opening, with a camera-arrival fallback for missing media.
 ## begin() owns the temporary pause/camera and restores them before finished.
 signal finished
 
 const DURATION := 8.0
+const FILM_MANIFEST := "res://data/town_intro.json"
 const ENTRY_POSITION := Vector3(-4.3, 1.85, 0.4)
 const CAPTIONS := [
 	"Luke / Greyhaven maintenance worker",
-	"Home after the late shift. Mica asked me to wait here.",
+	"Home after the late shift. Mica's car is outside. Where is she?",
 	"The front door has shut behind me. Her phone is ringing.",
 ]
 var _player: Node3D
@@ -27,6 +28,19 @@ var _end_fov := 68.0
 var _hidden_visuals: Array[Dictionary] = []
 var _hidden_hud: Array[Dictionary] = []
 var reduced_motion := false
+var film_enabled := true
+var town_enabled := false # Authoring preview; release uses its rendered full-motion movie.
+var _town: Node3D
+var _town_viewport: SubViewport
+var _town_audio: AudioStreamPlayer
+var _town_time := 0.0
+var _town_ready := false
+var _town_prior_disable_3d := false
+var _video: VideoStreamPlayer
+var _video_captions: Array = []
+var _video_last_position := 0.0
+var _video_stalled_seconds := 0.0
+var _video_prior_disable_3d := false
 
 func _init() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -67,10 +81,128 @@ func begin(player: Node3D, hud_parent: Control) -> bool:
 	_build_overlay(hud_parent)
 	_running = true
 	_pose(0.0)
+	if _try_start_town(): return true
+	if _try_start_video(): return true
 	_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	_tween.tween_method(_pose, 0.0, DURATION, DURATION)
 	_tween.tween_callback(_finish)
 	return true
+
+func _try_start_town() -> bool:
+	if not town_enabled: return false
+	var audio_path := "res://assets/generated/cinematics/town_audio.ogg"
+	if not ResourceLoader.exists(audio_path): return false
+	var frame := AspectRatioContainer.new()
+	frame.ratio = 16.0/9.0
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overlay.add_child(frame)
+	_overlay.move_child(frame,0)
+	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_town_viewport = SubViewport.new()
+	_town_viewport.size = Vector2i(960,540)
+	_town_viewport.msaa_3d = Viewport.MSAA_2X
+	_town_viewport.own_world_3d = true
+	_town_viewport.process_mode = Node.PROCESS_MODE_ALWAYS
+	_town_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	frame.add_child(_town_viewport)
+	var display := TextureRect.new()
+	display.texture = _town_viewport.get_texture()
+	display.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	display.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	display.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(display)
+	_town = load("res://scripts/town_cinematic.gd").new()
+	_town.reduced_motion = reduced_motion
+	_town_viewport.add_child(_town)
+	_town_audio = AudioStreamPlayer.new()
+	_town_audio.process_mode = Node.PROCESS_MODE_ALWAYS
+	_town_audio.stream = load(audio_path)
+	_town_audio.bus = &"Dialogue"
+	add_child(_town_audio)
+	_video_captions = JSON.parse_string(FileAccess.get_file_as_string(FILM_MANIFEST)).get("captions",[])
+	_town_prior_disable_3d = get_viewport().disable_3d
+	get_viewport().disable_3d = true
+	_town_time = 0
+	_town_ready = false
+	_caption.text = "GREYHAVEN / Preparing arrival"
+	_warm_town()
+	return true
+
+func _warm_town() -> void:
+	# First-use shader compilation must finish before the dialogue clock starts.
+	for frame in 3:
+		await RenderingServer.frame_post_draw
+		if not _running or not is_instance_valid(_town): return
+	_town_ready = true
+	_town_audio.play()
+
+func _try_start_video() -> bool:
+	if not film_enabled: return false
+	if not FileAccess.file_exists(FILM_MANIFEST): return false
+	var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string(FILM_MANIFEST))
+	# An unreviewed render must not silently replace the tested opening.
+	if not manifest is Dictionary or manifest.get("status", "") != "ready_3d_movie": return false
+	var path := str(manifest.get("video_path", ""))
+	if not ResourceLoader.exists(path): return false
+	var stream := load(path) as VideoStream
+	if stream == null: return false
+	var captions: Variant = manifest.get("captions", [])
+	_video_captions = captions if captions is Array else []
+	var frame := AspectRatioContainer.new()
+	frame.name = "TownFilmFrame"
+	frame.ratio = 16.0 / 9.0
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overlay.add_child(frame)
+	_overlay.move_child(frame, 0)
+	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_video = VideoStreamPlayer.new()
+	_video.name = "VoicedTownFilm"
+	_video.process_mode = Node.PROCESS_MODE_ALWAYS
+	_video.expand = true
+	_video.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_video.stream = stream
+	_video.bus = &"Dialogue"
+	frame.add_child(_video)
+	_video.finished.connect(_finish)
+	_video_prior_disable_3d = get_viewport().disable_3d
+	get_viewport().disable_3d = true
+	_fade.color.a = 0.0
+	_caption.text = ""
+	_caption.modulate.a = 1.0
+	_video_last_position = 0.0
+	_video_stalled_seconds = 0.0
+	_video.play()
+	return true
+
+func _process(delta: float) -> void:
+	if _running and is_instance_valid(_town):
+		if not _town_ready: return
+		_town_time += delta
+		# Follow the hardware playback clock so reactions remain tied to voices.
+		var at := maxf(0,_town_audio.get_playback_position()+AudioServer.get_time_since_last_mix()-AudioServer.get_output_latency()) if _town_audio.playing else _town_time
+		_town.pose(at)
+		_fade.color.a = maxf(1-smoothstep(0,.8,at),smoothstep(40.5,42,at))
+		_caption.modulate.a = 1
+		_caption.text = ""
+		for cue in _video_captions:
+			if at >= float(cue.start) and at < float(cue.end): _caption.text = (str(cue.speaker)+": " if not str(cue.speaker).is_empty() else "") + str(cue.text)
+		if at >= 42 or _town_time > 60: _finish()
+		return
+	if not _running or not is_instance_valid(_video): return
+	var position := _video.stream_position
+	_video_stalled_seconds = _video_stalled_seconds + delta if position <= _video_last_position else 0.0
+	_video_last_position = position
+	if _video_stalled_seconds > 15.0:
+		push_warning("Town film stopped advancing; restoring gameplay.")
+		_finish()
+		return
+	_caption.text = ""
+	for cue in _video_captions:
+		if not cue is Dictionary: continue
+		if position >= float(cue.get("start", 0.0)) and position < float(cue.get("end", 0.0)):
+			var speaker := str(cue.get("speaker", ""))
+			_caption.text = (speaker + ": " if not speaker.is_empty() else "") + str(cue.get("text", ""))
+			break
 
 func is_running() -> bool:
 	return _running
@@ -156,6 +288,16 @@ func _finish() -> void:
 	finished.emit()
 
 func _restore() -> void:
+	if is_instance_valid(_town):
+		_town_audio.stop()
+		_town_audio.queue_free()
+		_town_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+		_town = null
+		if is_inside_tree(): get_viewport().disable_3d = _town_prior_disable_3d
+	if is_instance_valid(_video):
+		_video.stop()
+		if is_inside_tree(): get_viewport().disable_3d = _video_prior_disable_3d
+		_video = null
 	if is_instance_valid(_original_camera): _original_camera.make_current()
 	if is_instance_valid(_camera):
 		_camera.current = false

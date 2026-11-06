@@ -150,7 +150,7 @@ if ($inputBytes + 4000000 -gt $BudgetBytes) { throw "Handoff payload plus manife
 
 # Unique names and CreateNew archive semantics preserve every older handoff.
 $stamp = [DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss')
-$release = 'Blackweb-InterfaceRelease-' + $stamp + '-' + $commit.Substring(0,8) + '-' + [Guid]::NewGuid().ToString('N').Substring(0,6)
+$release = 'Blackweb-TownIntroRelease-' + $stamp + '-' + $commit.Substring(0,8) + '-' + [Guid]::NewGuid().ToString('N').Substring(0,6)
 New-Item -ItemType Directory -Force -Path $output | Out-Null
 $stage = Join-Path $output ($release + '-staging')
 $root = Join-Path $stage 'Blackweb'
@@ -210,7 +210,7 @@ start "Blackweb Source" "%~dp0Playable\Godot_v4.7.2-stable_win64.exe" --path "%~
 '@
 $packHash = Sha256 (Join-Path $root 'Playable/Blackweb.pck')
 Write-Handoff 'START HERE.md' @"
-# BLACKWEB — InterfaceRelease private development handoff
+# BLACKWEB — TownIntroRelease private development handoff
 
 Extract the whole ZIP to a writable Windows x64 folder. **PLAY BLACKWEB.cmd** runs the tested packaged game without an engine installation or account. It starts at 960x540 with a Performance graphics override. To choose graphics in Options, use **Playable/Launch Blackweb.cmd** instead; a command-line override locks the picker for that run. Keep the Playable folder together. Saves are created locally under Playable/UserData; no existing personal saves are included.
 

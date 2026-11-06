@@ -286,6 +286,19 @@ func press_digit(key: String) -> void:
 		for i in range(4): parts.append(digits[i] if i < digits.length() else "_")
 		_display.text = "  ".join(parts)
 
+func handle_vault_key(event: InputEventKey) -> bool:
+	if mode != "vault" or not visible or not event.pressed or event.echo: return false
+	if event.keycode in [KEY_ENTER, KEY_KP_ENTER]: press_digit("ENTER")
+	elif event.keycode in [KEY_BACKSPACE, KEY_DELETE]: press_digit("DEL")
+	elif event.unicode >= 48 and event.unicode <= 57: press_digit(String.chr(event.unicode))
+	else:
+		# Some keyboard layouts/drivers report physical keypad keys without Unicode.
+		var keypad := [KEY_KP_0, KEY_KP_1, KEY_KP_2, KEY_KP_3, KEY_KP_4, KEY_KP_5, KEY_KP_6, KEY_KP_7, KEY_KP_8, KEY_KP_9]
+		var digit := keypad.find(event.keycode)
+		if digit < 0: return false
+		press_digit(str(digit))
+	return true
+
 func set_message(text: String) -> void:
 	if is_instance_valid(_message):
 		_message.text = text

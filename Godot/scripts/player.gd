@@ -672,7 +672,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		# A focused document or ringing phone owns this click. Never consume a
 		# supply or swing the knife while trying to answer Mica.
-		if is_instance_valid(_focused) and _focused.kind in [&"tutorial_evidence", &"phone"]:
+		if is_instance_valid(_focused) and _focused.kind in [&"tutorial_evidence", &"phone", &"tutorial_door"]:
 			_focused.interact()
 			get_viewport().set_input_as_handled()
 			return
@@ -753,9 +753,10 @@ func _update_focus() -> void:
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
 	if not hit.is_empty():
 		var candidate = hit.collider
-		if candidate is BlackwebInteraction and global_position.distance_to(candidate.global_position) < 2.1:
+		var reach_origin := global_position + Vector3.UP * 1.35
+		if candidate is BlackwebInteraction and reach_origin.distance_to(candidate.global_position) < 2.1:
 			# A camera peeking around a corner cannot reach through a wall.
-			var reach := PhysicsRayQueryParameters3D.create(global_position + Vector3.UP * 1.35, candidate.global_position, 1)
+			var reach := PhysicsRayQueryParameters3D.create(reach_origin, candidate.global_position, 1)
 			reach.exclude = [get_rid()]
 			if get_world_3d().direct_space_state.intersect_ray(reach).is_empty(): _focused = candidate
 	_set_focus_prompt(_focused.prompt() if is_instance_valid(_focused) else "")

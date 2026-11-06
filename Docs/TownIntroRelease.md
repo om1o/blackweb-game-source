@@ -1,0 +1,19 @@
+# Greyhaven voiced arrival and tutorial fixes
+
+The opening is a 42-second full-motion 3D animation rendered in Godot. Luke walks home after his maintenance shift, sees the wider town buried in webs, recoils from a crossing spider, searches the street, speaks and approaches his opening front door. Walk/idle clips, authored body reactions and speech-envelope jaw movement animate the existing rigged character. Synthetic voices and original ambience accompany the scene. See [editable scene, asset provenance and reproducible tooling](../Tools/Cinematics/README.md). The earlier still-artwork direction is retained as concepts only and is not used in the release movie.
+
+Start a **New Game** to see the opening. Continue preserves existing progress and does not replay a previously seen intro. Enter, Esc or Space skips. The house and phone remain paused during playback, and 3D rendering is disabled until the film ends. Missing or unavailable video falls back to the existing eight-second camera arrival.
+
+The plant clue remains outside the locked vault. Its folded world model conceals the code until inspection; clicking opens the generated page with zoom and transcript controls. Interaction reach is measured from shoulder height, with a separate obstruction ray retained. Interior doors now accept left click as well as E. The vault keypad handles numpad digits without Unicode and preserves the leading zero; both the key and correct code are still required.
+
+A harmless animated spider crosses near the phone after the warning and a short exploration delay, once its lane is in view and unobstructed. This sighting does not require the vault puzzle. Later combat and the gradual blackout remain in their existing sequence.
+
+Validation: native final-movie playback 10/10, fallback lifecycle 19/19, native assembled-house journey 56/56, folded-paper input 18/18, phone voice synchronization 38/38, tutorial pacing 40/40. The journey exercises real paper click input, numpad entry, the early spider, armor claims, saves, restart, and paused phone/progression timing during the intro. Native movie audio capture peaks at 0.6448 without clipping; independent speech transcription retains all four lines. Visual captures were inspected for town framing, the raised-arm reaction, readable paper and the visible early spider. The isolated portable-package result is recorded in `Playable/portable-smoke.json` and must pass before promotion.
+
+The final movie is 42 seconds, 1280×720, 24 fps, 1,008 frames and 12,761,021 bytes (Theora video / Vorbis audio). Its recorded scene and speech-envelope hashes match the authoring inputs. During native movie playback at a 960×540 window, presentation intervals had a 16.679 ms median and 17.805 ms p95 across 2,333 samples. The 311.788 ms maximum includes synchronous QA screenshot capture/readback. These are movie-player measurements, not a gameplay FPS claim.
+
+The final isolated portable package passed **53/53 checks**, including all payload sizes/source hashes, native movie loading, soundtrack presence and the assembled house. The pack is 1,157,082,936 bytes. `Playable/build-report.json` records its authoritative SHA-256 and installation footprint.
+
+Current cinematic evidence is in `Evidence/Town3D`; gameplay-fix evidence is in `Evidence/TownIntroRelease`. Previous InterfaceRelease evidence was preserved at `D:/BlackwebHandoffs/Validation/InterfaceRelease-20261105` to retain the owner's 5 GB working-project budget. Previous playable backups and handoff ZIPs remain outside the project. Source geometry code, animation choreography, concept art and voice takes are retained for editing.
+
+This change does not promise a fixed frame rate or remove the existing first-use shader/model-loading delays. Film playback suspends the house render workload; gameplay uses the existing validated Intel graphics settings.

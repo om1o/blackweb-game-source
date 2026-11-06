@@ -25,11 +25,13 @@ func _key(code: Key) -> void:
 	event.keycode = code
 	event.pressed = true
 	Input.parse_input_event(event)
+	Input.flush_buffered_events()
 	event = InputEventKey.new()
 	event.physical_keycode = code
 	event.keycode = code
 	event.pressed = false
 	Input.parse_input_event(event)
+	Input.flush_buffered_events()
 
 func _capture(label: String) -> void:
 	if not visual: return
@@ -51,7 +53,9 @@ func _run() -> void:
 		var intro = load("res://scripts/tutorial_intro.gd").new()
 		root.add_child(intro)
 		_check(intro.begin(game.player, game.status_hud.get_parent()), "arrival starts on actual house camera")
+		var before_intro: float = game.progression._elapsed
 		await create_timer(3.2, true).timeout
+		_check(is_equal_approx(game.progression._elapsed,before_intro) and paused, "cinematic holds house progression and phone timing until control returns")
 		await _capture("arrival-intro")
 		intro.skip()
 		intro.queue_free()
@@ -70,7 +74,30 @@ func _run() -> void:
 	_key(KEY_I)
 	await process_frame
 	_check(not game.status_hud.is_inventory_open() and not paused and game.player.active, "I closes inventory through input pipeline")
-	game.get_node("PlantCodeNote").interact()
+	var note = game.get_node("PlantCodeNote")
+	var arrival_position: Vector3 = game.player.global_position
+	var arrival_rotation: Vector3 = game.player.camera.global_rotation
+	game.player.global_position = Vector3(1.7, .44, 2.3)
+	game.player.camera.look_at(note.global_position)
+	await physics_frame
+	game.player._update_focus()
+	_check(note.folded_in_world and note.get_node_or_null("FoldedNoteFlap") != null, "plant clue conceals its code inside a physical fold")
+	_check(game.player._focused == note, "real camera and reach rays acquire the plant clue")
+	var paper_click := InputEventMouseButton.new()
+	paper_click.button_index = MOUSE_BUTTON_LEFT
+	paper_click.position = root.get_visible_rect().size * .5
+	paper_click.global_position = paper_click.position
+	paper_click.button_mask = MOUSE_BUTTON_MASK_LEFT
+	paper_click.pressed = true
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	Input.parse_input_event(paper_click)
+	Input.flush_buffered_events()
+	await process_frame
+	paper_click = paper_click.duplicate()
+	paper_click.pressed = false
+	paper_click.button_mask = 0
+	Input.parse_input_event(paper_click)
+	Input.flush_buffered_events()
 	await process_frame
 	_check(game.field_overlay.visible and game.field_overlay.mode == "paper" and paused, "paper opens readable modal")
 	_check(game.campaign.code_found, "hidden plant paper records discovery")
@@ -78,6 +105,8 @@ func _run() -> void:
 	_key(KEY_ENTER)
 	await process_frame
 	_check(not paused and not game.field_overlay.visible, "focused paper close works with keyboard Enter")
+	game.player.global_position = arrival_position
+	game.player.camera.global_rotation = arrival_rotation
 	var door = game.get_node("RearNorthDoor")
 	_check(door.locked and not door.opened, "vault starts physically locked")
 	door.toggle()
@@ -94,6 +123,14 @@ func _run() -> void:
 	else:
 		game.progression.step(20.0)
 	_check(game.progression.warning_heard and game.progression.stage == game.progression.Stage.PREPARATION, "Mica warning reaches preparation")
+	var prior_rotation: Vector3 = game.player.camera.global_rotation
+	game.player.camera.look_at(game.EARLY_SPIDER_START.lerp(game.EARLY_SPIDER_END, 0.5) + Vector3.UP * .16)
+	game.progression._elapsed = 6.1
+	await physics_frame
+	game._update_early_sighting(.1)
+	_check(game._sighting_spider.visible and game._early_sighting_time > 0 and not game.campaign.vault_unlocked, "early visible spider does not require solving the vault")
+	await _capture("early-spider")
+	game.player.camera.global_rotation = prior_rotation
 	game.progression.interact(&"keys")
 	game.progression.interact(&"flashlight")
 	_check(game.progression.stage == game.progression.Stage.PREPARATION, "vault puzzle gates encounter")
@@ -101,7 +138,11 @@ func _run() -> void:
 	game._submit_vault_code("9999")
 	_check(door.locked and not game.campaign.vault_unlocked, "wrong code denied with key")
 	await _capture("vault-keypad")
-	game._submit_vault_code("0417")
+	for code in [KEY_KP_0, KEY_KP_4, KEY_KP_1, KEY_KP_7]: _key(code)
+	await process_frame
+	_check(game.field_overlay.digits == "0417", "numpad input preserves leading zero without Unicode")
+	_key(KEY_KP_ENTER)
+	await process_frame
 	_check(game.campaign.vault_unlocked and not door.locked and door.opened, "key plus correct code opens real door")
 	_check(game.progression.stage == game.progression.Stage.PREPARATION, "vault unlock preserves the initial exploration beat")
 	game.progression.step(game.progression.exploration_seconds)

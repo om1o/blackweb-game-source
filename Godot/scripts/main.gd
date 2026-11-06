@@ -65,6 +65,9 @@ var _storage_units: Array[BlackwebStorage] = []
 var _tutorial_doors: Array[Node3D] = []
 var _tutorial_evidence: Array[Node3D] = []
 var _sighting_spider: Node3D
+var _early_sighting_time := 0.0
+const EARLY_SPIDER_START := Vector3(-4.0, 0.44, 1.0)
+const EARLY_SPIDER_END := Vector3(-2.7, 0.44, 1.0)
 var campaign = CampaignScript.new()
 var field_overlay: BlackwebFieldOverlay
 var _item_preview: Node
@@ -345,7 +348,7 @@ func _create_evidence() -> void:
 			"text": "PROJECT 08 / The altered spiders answer voices that no staff member can hear. The company ordered the records hidden before containment failed."},
 		{"name": "VaultCash", "kind": "cash", "title": "unmarked cash", "position": Vector3(5.35, 1.75, 2.82),
 			"text": "The company left unmarked cash beside the supplies. Someone was paid to keep this house quiet."},
-		{"name": "PlantCodeNote", "kind": "paper", "title": "Mica's hidden note", "position": Vector3(1.86, 1.0782, 3.48),
+		{"name": "PlantCodeNote", "kind": "paper", "title": "Mica's hidden note", "position": Vector3(2.08, 1.0782, 3.57),
 			"text": "Luke,\n\nI couldn't leave this on the phone. Use the small key from the record-room shelf, then enter:\n\n0  4  1  7\n\nThe vault holds a leather shirt, pants, hood and shoes. Take them before you go.\n\nThe spiders in this house are ordinary animals. The company records describe something else.\n\n— Mica"},
 		{"name": "VaultFieldKit", "kind": "kit", "title": "leather field kit", "position": Vector3(6.55, 0.98, 3.3),
 			"text": "Four leather armor pieces."},
@@ -355,6 +358,7 @@ func _create_evidence() -> void:
 		evidence.evidence_type = entry.kind
 		evidence.title = entry.title
 		evidence.record_text = entry.text
+		evidence.folded_in_world = entry.name == "PlantCodeNote"
 		evidence.progression = progression
 		evidence.position = entry.position
 		evidence.discovered.connect(_show_tutorial_evidence)
@@ -403,7 +407,7 @@ func _create_clue_plant() -> void:
 	if props_script == null: return
 	var plant: Node3D = props_script.make_plant()
 	plant.name = "MicasPlant"
-	# The pot stands on the floor beside the table; the code paper rests on its top.
+	# The pot stands beside the table; the folded code note rests on the tabletop.
 	plant.position = Vector3(2.28, 0.405, 3.50)
 	add_child(plant)
 	var kit: Node3D = props_script.make_leather_kit()
@@ -802,15 +806,7 @@ func _input(event: InputEvent) -> void:
 			field_overlay.close_overlay()
 			handled = true
 		elif field_overlay.mode == "vault" and event is InputEventKey and event.pressed:
-			if event.keycode in [KEY_ENTER, KEY_KP_ENTER]:
-				field_overlay.press_digit("ENTER")
-				handled = true
-			elif event.keycode == KEY_BACKSPACE:
-				field_overlay.press_digit("DEL")
-				handled = true
-			elif event.unicode >= 48 and event.unicode <= 57:
-				field_overlay.press_digit(String.chr(event.unicode))
-				handled = true
+			handled = field_overlay.handle_vault_key(event)
 		if handled: get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("inventory_toggle") and _started and not menu.visible:
@@ -859,8 +855,12 @@ func _set_hud_layout(index: int) -> void:
 
 func _on_stage(stage: int) -> void:
 	_clear_presence()
+	_early_sighting_time = 0.0
 	if is_instance_valid(_sighting_spider):
 		_sighting_spider.visible = stage in [progression.Stage.PRESENCE, progression.Stage.POWER_LOSS]
+		_sighting_spider.position = EARLY_SPIDER_START if stage == progression.Stage.PREPARATION else Vector3(1.55, 0.44, -1.72)
+		_sighting_spider.rotation.y = 0.0
+		_sighting_spider._play_visual("idle")
 	if is_instance_valid(objective):
 		objective.text = progression.objective()
 		status_hud.set_objective(objective.text)
@@ -882,11 +882,30 @@ func _on_recovery(recovering: bool) -> void:
 
 func _process(delta: float) -> void:
 	if get_tree().paused: return
+	_update_early_sighting(delta)
 	var next_power := move_toward(_power, _power_target, delta * 2.2)
 	if next_power == _power: return
 	_power = next_power
 	for i in _lamps.size(): _lamps[i].light_energy = _base_energy[i] * _power
 	_environment.ambient_light_energy = lerpf(BLACKOUT_AMBIENT, POWERED_AMBIENT, _power)
+
+func _update_early_sighting(delta: float) -> void:
+	if not is_instance_valid(_sighting_spider) or not is_instance_valid(player): return
+	if progression.stage != progression.Stage.PREPARATION or progression._elapsed < 6.0: return
+	# The harmless crossing does not depend on finding a key, cells or vault code.
+	# Wait until the player can actually see its lane, rather than wasting it offscreen.
+	var center := EARLY_SPIDER_START.lerp(EARLY_SPIDER_END, 0.5) + Vector3.UP * 0.16
+	if _early_sighting_time == 0.0:
+		if not player.camera.is_position_in_frustum(center): return
+		var ray := PhysicsRayQueryParameters3D.create(player.camera.global_position, center, 1)
+		ray.exclude = [player.get_rid()]
+		if not get_world_3d().direct_space_state.intersect_ray(ray).is_empty(): return
+		_sighting_spider.show()
+		_sighting_spider._play_visual("walk")
+		_sighting_spider.rotation.y = -PI * 0.5
+	_early_sighting_time += delta
+	_sighting_spider.position = EARLY_SPIDER_START.lerp(EARLY_SPIDER_END, clampf(_early_sighting_time / 5.0, 0.0, 1.0))
+	if _early_sighting_time >= 5.0: _sighting_spider._play_visual("idle")
 
 func _vec(values: Array) -> Vector3:
 	return Vector3(float(values[0]), float(values[1]), float(values[2]))

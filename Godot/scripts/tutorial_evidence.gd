@@ -14,6 +14,7 @@ var evidence_type := "paper"
 var title := "Field paper"
 var record_text := ""
 var taken := false
+var folded_in_world := false
 
 static func document_texture(document_title: String) -> Texture2D:
 	var path: String = DOCUMENT_TEXTURES.get(document_title, "")
@@ -23,6 +24,7 @@ static func document_texture(document_title: String) -> Texture2D:
 func _ready() -> void:
 	kind = &"tutorial_evidence"
 	label = "Read " + title if evidence_type == "paper" else "Take " + title if evidence_type == "cash" else "Open " + title
+	if folded_in_world: label = "Unfold note"
 	super._ready()
 	var trigger := get_child(0) as CollisionShape3D
 	var box := BoxShape3D.new()
@@ -48,6 +50,7 @@ func _make_paper() -> void:
 	var paper := BoxMesh.new()
 	var page_size := Vector2(0.32, 0.23)
 	if document != null: page_size = Vector2(0.32 * document.get_width() / float(document.get_height()), 0.32)
+	if folded_in_world: page_size = Vector2(0.13, 0.11)
 	paper.size = Vector3(page_size.x, 0.004, page_size.y)
 	var material := StandardMaterial3D.new()
 	material.albedo_color = Color(0.80, 0.74, 0.59)
@@ -59,6 +62,18 @@ func _make_paper() -> void:
 	page.material_override = material
 	page.rotation.y = 0.17
 	add_child(page)
+	if folded_in_world:
+		# Keep the actual code inside the fold; inspection still opens the full image.
+		var flap := MeshInstance3D.new()
+		flap.name = "FoldedNoteFlap"
+		var flap_mesh := BoxMesh.new()
+		flap_mesh.size = Vector3(0.071, 0.002, 0.11)
+		flap.mesh = flap_mesh
+		flap.material_override = material
+		flap.position = Vector3(-0.029, 0.006, 0)
+		flap.rotation = Vector3(0, page.rotation.y, 0.07)
+		add_child(flap)
+		return
 	if document != null:
 		# The world sheet and the inspection reader use the same image, not dummy ink.
 		var face := MeshInstance3D.new()

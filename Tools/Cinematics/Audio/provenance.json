@@ -1,0 +1,44 @@
+{
+  "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+  "dtype": "fp32",
+  "stock_synthetic_voices": true,
+  "sample_rate": 24000,
+  "duration": 42,
+  "peak": 0.6212413311004639,
+  "clipped": 0,
+  "takes": [
+    {
+      "id": "mica_message",
+      "voice": "af_heart",
+      "at": 7,
+      "text": "Luke, call me when you get home. Something is wrong.",
+      "seconds": 2.914833333333333,
+      "end": 9.914833333333334
+    },
+    {
+      "id": "luke_town",
+      "voice": "am_michael",
+      "at": 17.2,
+      "text": "What happened here?",
+      "seconds": 1.3089166666666667,
+      "end": 18.508916666666664
+    },
+    {
+      "id": "luke_road",
+      "voice": "am_michael",
+      "at": 25,
+      "text": "The road's blocked. I can get through here.",
+      "seconds": 2.6069166666666668,
+      "end": 27.606916666666667
+    },
+    {
+      "id": "luke_home",
+      "voice": "am_michael",
+      "at": 33,
+      "text": "Mica? I'm home. Are you in there?",
+      "seconds": 2.4044166666666666,
+      "end": 35.40441666666667
+    }
+  ],
+  "ambience": "Original deterministic wind/static noise, walking-timed footsteps and latch synthesis; seed8177; no music"
+}

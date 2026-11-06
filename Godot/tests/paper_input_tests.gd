@@ -76,6 +76,7 @@ func _run() -> void:
 	note = EvidenceScript.new()
 	note.name = "PhysicalPaper"
 	note.title = "Mica's hidden note"
+	note.folded_in_world = true
 	note.record_text = "The vault code is 0417. This physical note opens on a left click."
 	note.progression = progression
 	note.position = Vector3(0, 0.96, -1.3)

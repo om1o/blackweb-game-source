@@ -47,6 +47,8 @@ func _run() -> void:
 	hidden_menu.visible = false
 	hud.add_child(hidden_menu)
 	var intro := IntroScript.new()
+	intro.film_enabled = false # Exercise the missing-media camera fallback independently.
+	intro.town_enabled = false
 	scene.add_child(intro)
 	intro.finished.connect(func(): completions += 1)
 	paused = true
