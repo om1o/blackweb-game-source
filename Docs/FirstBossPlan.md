@@ -4,6 +4,8 @@
 
 **Creator's revised backstory:** the adult subject was a killer responsible for twelve deaths, connected to the nearby orphanage. The company secretly acquired him from prison for its experiments. His crimes are revealed through records and dialogue; victims are not depicted in the creature concept. The generated [Subject 12 concept](Design/first-boss-subject12-v1.png) explores this adult character in the greenhouse. "Subject 12" is a proposed specimen label, separate from the confirmed victim count. The [exact prompt](Design/FirstBossSubject12Prompt.txt) records the built-in imagegen call. This is concept art, not a new 3D model or implemented encounter.
 
+**3D draft update, 2026-11-07:** a textured Meshy draft now exists for the approved stone-crown design. The current connection exposes its viewer but no downloadable formats. See the [model record and actual preview](SmilingSpiderModel.md). No importable boss mesh, rig, animation or encounter has been added to the game.
+
 ## Place in the story
 
 The five-room house teaches light, inventory, movement and ordinary spider combat. After escaping, Luke follows Mica's interrupted transmission across web-covered Greyhaven. A company transport tag and a damaged emergency message lead toward a greenhouse on the edge of town. The first major boss guards the service approach, linking the town outbreak directly to the experimental facility.
