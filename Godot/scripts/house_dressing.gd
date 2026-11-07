@@ -325,7 +325,7 @@ static func _hanging_veil_sites() -> Array[Dictionary]:
 		{"start": Vector3(-3.65, 2.95, -3.14), "width": 0.80, "length": 0.78},
 		{"start": Vector3(-0.65, 2.95, 3.10), "width": 0.90, "length": 0.96},
 		{"start": Vector3(3.48, 2.95, -3.14), "width": 0.82, "length": 0.72},
-		{"start": Vector3(6.25, 2.95, 3.10), "width": 0.94, "length": 0.90},
+		{"start": Vector3(6.25, 2.95, 3.10), "width": 0.94, "length": 0.32},
 		{"start": Vector3(5.55, 2.95, -3.14), "width": 0.88, "length": 0.86},
 	]
 
@@ -642,7 +642,7 @@ static func _dense_silk_sites() -> Array[Dictionary]:
 		for index in range(x_positions.size()):
 			sites.append({"origin": Vector3(x_positions[index], 2.96, z),
 				"horizontal": Vector3(1.04, 0, 0), "normal": normal,
-				"height": 0.70 + 0.12 * float((index + back) % 3)})
+				"height": 0.26 if back == 1 and float(x_positions[index]) > 4.5 else 0.70 + 0.12 * float((index + back) % 3)})
 	for face in range(2):
 		var z := -0.055 if face == 0 else 0.255
 		var normal := Vector3(0, 0, -1 if face == 0 else 1)

@@ -107,6 +107,8 @@ static func _flashlight() -> Node3D:
 
 
 static func _keys() -> Node3D:
+	if ResourceLoader.exists("res://assets/generated/exit_keys.glb"):
+		return load("res://assets/generated/exit_keys.glb").instantiate()
 	var root := Node3D.new()
 	root.name = "AuthoredCarKeys"
 	root.set_meta("asset_origin", "Original procedural Blackweb prop")

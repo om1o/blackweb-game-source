@@ -26,7 +26,7 @@
     {
       "end": 14,
       "start": 6,
-      "action": "Wide view of webbed town; spider crosses and Luke recoils"
+      "action": "Town-wide web reveal; a rigged spider approaches and lunges, Luke raises his knee and arms and sidesteps"
     },
     {
       "end": 21,
@@ -81,7 +81,7 @@
   "render_provenance": {
     "fps": 30,
     "frames": 1260,
-    "scene_sha256": "f016364a2419292f7893814c31769600a782f881a62c0bcfc0857e5496f809d9",
+    "scene_sha256": "9e51691a81f7310c8f05cf4cd81cec8620f46de5f6d280fd2bfb3e5705846157",
     "voice_envelope_sha256": "64c8a42435aa50ee1cdaaec9e6dcf6a7d089fe1e14f8684959011cc6ad8dfedd"
   }
 }

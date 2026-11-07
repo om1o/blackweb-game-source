@@ -7,7 +7,6 @@ const PAPER_TEXTURE := "res://assets/recovered/Arachnophobia/Content/Megascans/D
 const DOCUMENT_TEXTURES := {
 	"transfer log": "res://assets/generated/papers/transfer_log.png",
 	"Project 08 record": "res://assets/generated/papers/project_08_record.png",
-	"Mica's hidden note": "res://assets/generated/papers/mica_hidden_note.png",
 }
 
 var evidence_type := "paper"
@@ -30,7 +29,11 @@ func _ready() -> void:
 	var box := BoxShape3D.new()
 	box.size = Vector3(0.48, 0.42, 0.42)
 	trigger.shape = box
-	if evidence_type == "cash": _make_cash()
+	if evidence_type == "exit_keys":
+		label = "Take exit keys"
+		add_child(preload("res://scripts/props.gd").create(&"keys"))
+	elif evidence_type == "kit": pass
+	elif evidence_type == "cash": _make_cash()
 	else: _make_paper()
 
 func interact() -> void:

@@ -47,3 +47,10 @@ The following deliberate Godot art adaptations were added after reviewing the co
 | Inst_Parquet | No additional art adjustment | Retains recovered parquet diffuse/normal references and the existing primary UV approximation (05.Scale = 0.1). Exact layered gloss and tint are not claimed. |
 
 Each affected material records its source UV approximation, final values and rationale in house_import_report.json under art_adaptation and approximations. These settings require a regenerated house scene; the art pass itself did not run a full build or renderer. Final visual validation is recorded separately from parser and serialization checks.
+
+## Escape and motion additions — 7 November 2026
+
+- PINOC: curated Crouching Idle, Crouch Walk Forward, Jump and Hit Reaction Front, plus generated Knife Slash sample 1 (asset `a31ccac8-11f7-4300-ade9-7c1aba08a6ba`). Runtime uses retargeted numerical animation samples, not the bundled X Bot mesh. Provider asset IDs and conversion instructions are in `Docs/EscapeAndMotionRelease.md` in the source project.
+- Meshy: Rusty Barrel from the user's existing library, asset `019ec77f-ad69-7d44-9d75-3e08a51b68a1`. Optimized geometry and 1K maps form the containment-drum prop. No CC0 or exclusive-ownership claim is made for provider-generated content.
+- OpenAI imagegen: original aged brown leather color texture, paired with the previously credited Poly Haven brown-leather normal and roughness maps on MakeHuman garments. Blender-authored exit keys are original geometry. Existing garment, spider, flashlight and knife attributions continue to apply.
+- Voice: the revised Mica call and discovery dialogue use stock Kokoro synthetic voices, not human performances or cloned identities. HeyGen speech has not been generated. The attempted Meshy worn-dagger result, Runway video and Mobbin references are not shipped assets.

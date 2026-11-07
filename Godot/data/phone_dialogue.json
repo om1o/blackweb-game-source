@@ -3,67 +3,67 @@
   "caller": "Mica",
   "lines": [
     "Mica: Luke? It's Mica. You're home.",
-    "Mica: Listen carefully. The keys are for the vault.",
+    "Mica: Listen carefully. Your exit keys are inside the vault with the family records. The brass key is on the shelf. Cut the silk off the front lock.",
     "Mica: I left the code by the plant—",
     "[Connection lost]",
     "Luke: Mica? ... Mica!"
   ],
   "durations": [
-    2.04,
-    2.615,
-    1.68875,
+    2.255,
+    9,
+    1.903125,
     1.2,
     1.793625
   ],
   "warning": {
-    "path": "res://assets/generated/mica_phone_warning_neural_v2.wav",
-    "bytes": 304544,
-    "sha256": "9953c788f7cfa9d05d130bb265711b2f5e5c552c3114ad7abcae2fe579616f83",
-    "duration_seconds": 6.34375,
+    "path": "res://assets/generated/mica_phone_warning_neural_v3.wav",
+    "bytes": 631634,
+    "sha256": "40e012b43c7a600939d92fcca9f74f8380fac73e06f46218b3bbc4d36fb3f063",
+    "duration_seconds": 13.158125,
     "peak": 0.70697021484375,
     "peak_dbfs": -3.0119776590405034,
-    "rms": 0.09037044172204713,
-    "rms_dbfs": -20.87947189848765,
-    "dc": -0.0002846381026144294,
+    "rms": 0.07707622244692047,
+    "rms_dbfs": -22.261591570694836,
+    "dc": -0.00025161619709903775,
     "clipped_samples": 0,
     "start_seconds": 0
   },
   "reply": {
-    "path": "res://assets/generated/luke_mica_reply_neural_v2.wav",
+    "path": "res://assets/generated/luke_mica_reply_neural_v3.wav",
     "bytes": 66938,
-    "sha256": "f4aeb37be2a26a219076ce02c633975d7c5da3affff8f64d1062d58820023658",
+    "sha256": "2c92f833db01a7eb9b3ca5bfb9d6e23fedc265873356c802cd9710504be406c3",
     "duration_seconds": 1.393625,
     "peak": 0.70697021484375,
     "peak_dbfs": -3.0119776590405034,
-    "rms": 0.08506370841622976,
-    "rms_dbfs": -21.405113756305838,
-    "dc": 0.00025597648541909586,
+    "rms": 0.08506161900269628,
+    "rms_dbfs": -21.40532710978631,
+    "dc": 0.00025594728810693037,
     "clipped_samples": 0,
-    "start_seconds": 7.54375
+    "start_seconds": 14.358125
   },
   "web_reaction": {
     "path": "res://assets/generated/luke_web_reveal_neural_v4.wav",
     "bytes": 133630,
-    "sha256": "e252dcf52b02ea1c7de68fe8a3acc0f6af8408fb1ecd1e62cba4fd91aecdb99a",
+    "sha256": "0ee7903ba3cb182388426810891cb321117dd42ec57d6da8bf2fbd94743d8db4",
     "duration_seconds": 2.7830416666666666,
     "peak": 0.70697021484375,
     "peak_dbfs": -3.0119776590405034,
-    "rms": 0.0814818321589416,
-    "rms_dbfs": -21.778784284754988,
-    "dc": 0.000230575327820187,
+    "rms": 0.08148006359779636,
+    "rms_dbfs": -21.778972813820083,
+    "dc": 0.00023057304333093476,
     "clipped_samples": 0,
     "subtitle": "Luke: Mica... these webs were not here yesterday."
   },
   "voice_test": {
-    "path": "res://assets/generated/luke_voice_check_neural_v2.wav",
+    "path": "res://assets/generated/luke_voice_check_neural_v3.wav",
     "bytes": 128056,
-    "sha256": "306536a005391b605780e9f2163e5a67ba3e6eb3e4e37fe155a10afa7dc20c3d",
+    "sha256": "7d9cca43d15e72fca43349dd73ddf35428b14678d83029187aae10a091fdc067",
     "duration_seconds": 2.666916666666667,
     "peak": 0.70697021484375,
     "peak_dbfs": -3.0119776590405034,
-    "rms": 0.10071196938340067,
-    "rms_dbfs": -19.938378229791343,
-    "dc": 0.00011485024429472433,
+    "rms": 0.10070459303427226,
+    "rms_dbfs": -19.939014425283123,
+    "dc": 0.00011482640467177882,
     "clipped_samples": 0,
     "subtitle": "Can you hear me? This is the voice check."
   },
@@ -73,45 +73,45 @@
       "speaker": "Mica",
       "voice": "af_heart",
       "speed": 0.98,
-      "duration_seconds": 2.04,
-      "peak": 0.5127390623092651,
-      "peak_dbfs": -5.802071903614962,
-      "rms": 0.10025933288676486,
-      "rms_dbfs": -19.977503789105363,
-      "dc": -0.0003237172688753712,
+      "duration_seconds": 2.255,
+      "peak": 0.43199318647384644,
+      "peak_dbfs": -7.290462059078906,
+      "rms": 0.09015133328840215,
+      "rms_dbfs": -20.900556918373688,
+      "dc": -0.00025761545508350874,
       "clipped_samples": 0,
       "start_seconds": 0,
-      "subtitle_seconds": 2.04
+      "subtitle_seconds": 2.255
     },
     {
       "id": "vault_keys",
       "speaker": "Mica",
       "voice": "af_heart",
       "speed": 0.98,
-      "duration_seconds": 2.615,
-      "peak": 0.6040095090866089,
-      "peak_dbfs": -4.3791244821689475,
-      "rms": 0.0859309321384782,
-      "rms_dbfs": -21.317009543179488,
-      "dc": -0.00023243316291382955,
+      "duration_seconds": 9,
+      "peak": 0.7070000171661377,
+      "peak_dbfs": -3.0116115131664314,
+      "rms": 0.07403020948203627,
+      "rms_dbfs": -22.611820434005647,
+      "dc": -0.0002535448638106656,
       "clipped_samples": 0,
-      "start_seconds": 2.04,
-      "subtitle_seconds": 2.615
+      "start_seconds": 2.255,
+      "subtitle_seconds": 9
     },
     {
       "id": "plant_hint",
       "speaker": "Mica",
       "voice": "af_heart",
       "speed": 0.98,
-      "duration_seconds": 1.56875,
-      "peak": 0.7070000171661377,
-      "peak_dbfs": -3.0116115131664314,
-      "rms": 0.087443291402435,
-      "rms_dbfs": -21.165470074457883,
-      "dc": -0.00034258700221465364,
+      "duration_seconds": 1.783125,
+      "peak": 0.6368018984794617,
+      "peak_dbfs": -3.919913010372409,
+      "rms": 0.0768164884566795,
+      "rms_dbfs": -22.290910995940678,
+      "dc": -0.00025135368550143394,
       "clipped_samples": 0,
-      "start_seconds": 4.655,
-      "subtitle_seconds": 1.68875
+      "start_seconds": 11.254999999999999,
+      "subtitle_seconds": 1.903125
     }
   ],
   "policy": "The call cuts after the complete word plant. The paper beside the plant outside the vault reveals the code; no code is spoken. Mica remains one continuous waveform; measured quiet intervals only change subtitles. Luke reply and web reaction are separate complete utterances.",
@@ -133,160 +133,293 @@
         "id": "mica",
         "voice": "af_heart",
         "speed": 0.98,
-        "text": "Luke? It's Mica. You're home. Listen carefully. The keys are for the vault. I left the code by the plant—",
+        "text": "Luke? It's Mica. You're home. Listen carefully. Your exit keys are inside the vault with the family records. The brass key is on the shelf. Cut the silk off the front lock. I left the code by the plant—",
         "source": {
-          "path": "res://assets/generated/voice_sources/mica_full_context_dry_v2.wav",
-          "bytes": 298784,
-          "sha256": "293594b1faa316fcff9057a7971b7c577df4e11324364119bd8993c71fa66999",
-          "duration_seconds": 6.22375,
-          "peak": 0.59356689453125,
-          "peak_dbfs": -4.530606585959828,
-          "rms": 0.07694563580460569,
-          "rms_dbfs": -22.276320148157968,
-          "dc": -0.00042620207671700307,
+          "path": "res://assets/generated/voice_sources/mica_full_context_dry_v3.wav",
+          "bytes": 625874,
+          "sha256": "522d13fb0b4e6ec3bc4a4c76767601d29fcbf85a9c88fd3651b8c9b10eb51158",
+          "duration_seconds": 13.038125,
+          "peak": 0.915496826171875,
+          "peak_dbfs": -0.7668631392813134,
+          "rms": 0.07733091864543282,
+          "rms_dbfs": -22.232936612610604,
+          "dc": -0.00043209834137140874,
           "clipped_samples": 0
         },
         "asr": {
-          "text": " Luke, it's Micah, your home. Listen carefully. The keys are for the vault. I left the code by the plant.",
+          "text": " Luke, it's Micah, your home. Listen carefully. Your exit keys are inside the vault with the family records. The brass key is on the shelf. Cut the silk off the front lock. I left the code by the plant.",
           "chunks": [
             {
               "text": " Luke,",
               "timestamp": [
                 0,
-                0.5
+                0.48
               ]
             },
             {
               "text": " it's",
               "timestamp": [
-                0.68,
-                0.8
+                0.72,
+                0.9
               ]
             },
             {
               "text": " Micah,",
               "timestamp": [
-                0.8,
-                1.28
+                0.9,
+                1.48
               ]
             },
             {
               "text": " your",
               "timestamp": [
-                1.32,
-                1.54
+                1.5,
+                1.72
               ]
             },
             {
               "text": " home.",
               "timestamp": [
-                1.54,
-                2
+                1.72,
+                2.24
               ]
             },
             {
               "text": " Listen",
               "timestamp": [
-                2.42,
-                2.42
+                2.54,
+                2.7
               ]
             },
             {
               "text": " carefully.",
               "timestamp": [
-                2.42,
-                2.84
+                2.7,
+                3.22
               ]
             },
             {
-              "text": " The",
+              "text": " Your",
               "timestamp": [
-                3.48,
-                3.6
+                3.82,
+                3.98
+              ]
+            },
+            {
+              "text": " exit",
+              "timestamp": [
+                3.98,
+                4.32
               ]
             },
             {
               "text": " keys",
               "timestamp": [
-                3.6,
-                3.84
+                4.32,
+                4.7
               ]
             },
             {
               "text": " are",
               "timestamp": [
-                3.84,
-                4.04
+                4.7,
+                4.96
               ]
             },
             {
-              "text": " for",
+              "text": " inside",
               "timestamp": [
-                4.04,
-                4.14
+                4.96,
+                5.38
               ]
             },
             {
               "text": " the",
               "timestamp": [
-                4.14,
-                4.32
+                5.38,
+                5.58
               ]
             },
             {
-              "text": " vault.",
+              "text": " vault",
               "timestamp": [
-                4.32,
-                4.6
+                5.58,
+                5.8
+              ]
+            },
+            {
+              "text": " with",
+              "timestamp": [
+                5.8,
+                6.02
+              ]
+            },
+            {
+              "text": " the",
+              "timestamp": [
+                6.02,
+                6.14
+              ]
+            },
+            {
+              "text": " family",
+              "timestamp": [
+                6.14,
+                6.4
+              ]
+            },
+            {
+              "text": " records.",
+              "timestamp": [
+                6.4,
+                6.96
+              ]
+            },
+            {
+              "text": " The",
+              "timestamp": [
+                7.44,
+                7.6
+              ]
+            },
+            {
+              "text": " brass",
+              "timestamp": [
+                7.6,
+                7.98
+              ]
+            },
+            {
+              "text": " key",
+              "timestamp": [
+                7.98,
+                8.24
+              ]
+            },
+            {
+              "text": " is",
+              "timestamp": [
+                8.24,
+                8.42
+              ]
+            },
+            {
+              "text": " on",
+              "timestamp": [
+                8.42,
+                8.56
+              ]
+            },
+            {
+              "text": " the",
+              "timestamp": [
+                8.56,
+                8.78
+              ]
+            },
+            {
+              "text": " shelf.",
+              "timestamp": [
+                8.78,
+                9.04
+              ]
+            },
+            {
+              "text": " Cut",
+              "timestamp": [
+                9.38,
+                9.6
+              ]
+            },
+            {
+              "text": " the",
+              "timestamp": [
+                9.6,
+                9.86
+              ]
+            },
+            {
+              "text": " silk",
+              "timestamp": [
+                9.86,
+                10.04
+              ]
+            },
+            {
+              "text": " off",
+              "timestamp": [
+                10.04,
+                10.32
+              ]
+            },
+            {
+              "text": " the",
+              "timestamp": [
+                10.32,
+                10.46
+              ]
+            },
+            {
+              "text": " front",
+              "timestamp": [
+                10.46,
+                10.66
+              ]
+            },
+            {
+              "text": " lock.",
+              "timestamp": [
+                10.66,
+                10.98
               ]
             },
             {
               "text": " I",
               "timestamp": [
-                4.72,
-                4.94
+                11.48,
+                11.68
               ]
             },
             {
               "text": " left",
               "timestamp": [
-                4.94,
-                5.12
+                11.68,
+                11.86
               ]
             },
             {
               "text": " the",
               "timestamp": [
-                5.12,
-                5.32
+                11.86,
+                12.08
               ]
             },
             {
               "text": " code",
               "timestamp": [
-                5.32,
-                5.48
+                12.08,
+                12.26
               ]
             },
             {
               "text": " by",
               "timestamp": [
-                5.48,
-                5.68
+                12.26,
+                12.48
               ]
             },
             {
               "text": " the",
               "timestamp": [
-                5.68,
-                5.86
+                12.48,
+                12.66
               ]
             },
             {
               "text": " plant.",
               "timestamp": [
-                5.86,
-                6.22
+                12.66,
+                13.04
               ]
             }
           ]
@@ -298,15 +431,15 @@
         "speed": 0.96,
         "text": "Mica? ... Mica!",
         "source": {
-          "path": "res://assets/generated/voice_sources/luke_reply_full_context_dry_v2.wav",
+          "path": "res://assets/generated/voice_sources/luke_reply_full_context_dry_v3.wav",
           "bytes": 66938,
-          "sha256": "5242e53309ebc44d22080ca6fafd6565076d979835f37d37d11f2f0f18172a35",
+          "sha256": "97dd508d97a65b5b0429d32f46888ed5d2821e924263b1e5a518cfcc3fc1b34b",
           "duration_seconds": 1.393625,
-          "peak": 0.71282958984375,
-          "peak_dbfs": -2.940285617158247,
-          "rms": 0.07286464583461649,
-          "rms_dbfs": -22.749662833714723,
-          "dc": -0.00020038297822394386,
+          "peak": 0.712860107421875,
+          "peak_dbfs": -2.9399137658133667,
+          "rms": 0.07286476472078818,
+          "rms_dbfs": -22.749648661803054,
+          "dc": -0.0002003975768800266,
           "clipped_samples": 0
         },
         "asr": {
@@ -335,15 +468,15 @@
         "speed": 0.96,
         "text": "Mica... these webs were not here yesterday.",
         "source": {
-          "path": "res://assets/generated/voice_sources/luke_web_full_context_dry_v2.wav",
+          "path": "res://assets/generated/voice_sources/luke_web_full_context_dry_v3.wav",
           "bytes": 133630,
-          "sha256": "0ab3f49033becff9eded6ac933a2fdb85c19e0812d96d412d23fe9dfbc303817",
+          "sha256": "1cfa80ca6a957d7e90b770558403d398532a50a9cb5e9e24a56fc5bdd4827491",
           "duration_seconds": 2.7830416666666666,
-          "peak": 0.752899169921875,
-          "peak_dbfs": -2.465263633453092,
-          "rms": 0.07254524640444843,
-          "rms_dbfs": -22.787820796972493,
-          "dc": -0.00020038854373891164,
+          "peak": 0.7529296875,
+          "peak_dbfs": -2.4649115717770993,
+          "rms": 0.07254548213934639,
+          "rms_dbfs": -22.787792572325362,
+          "dc": -0.00020041869899704124,
           "clipped_samples": 0
         },
         "asr": {
@@ -407,15 +540,15 @@
         "speed": 0.96,
         "text": "Can you hear me? This is the voice check.",
         "source": {
-          "path": "res://assets/generated/voice_sources/voice_check_full_context_dry_v2.wav",
+          "path": "res://assets/generated/voice_sources/voice_check_full_context_dry_v3.wav",
           "bytes": 128056,
-          "sha256": "941e7269b815c3e12785df9de819beceb16d2404c0244bfd5476759bc3b38ba7",
+          "sha256": "8ae8faf40f39c76d60eb6e2f88611af1bd8dac399d206c47491478d0d0df4a74",
           "duration_seconds": 2.666916666666667,
-          "peak": 0.5401611328125,
-          "peak_dbfs": -5.349533371958226,
-          "rms": 0.07201556230312078,
-          "rms_dbfs": -22.851472879135322,
-          "dc": -0.0002152279302916914,
+          "peak": 0.54022216796875,
+          "peak_dbfs": -5.348551970947288,
+          "rms": 0.07201563100523707,
+          "rms_dbfs": -22.851464592888625,
+          "dc": -0.00021523365180119833,
           "clipped_samples": 0
         },
         "asr": {
@@ -446,7 +579,7 @@
               "text": " me?",
               "timestamp": [
                 0.68,
-                1.2
+                1.16
               ]
             },
             {
@@ -491,16 +624,16 @@
     "measured_boundaries": {
       "mica_subtitles": [
         {
-          "at": 2.04,
-          "quiet_seconds": 0.08,
+          "at": 2.255,
+          "quiet_seconds": 0.27,
           "word": " Listen",
-          "asr_word_start": 2.42
+          "asr_word_start": 2.54
         },
         {
-          "at": 4.655,
-          "quiet_seconds": 0.11,
+          "at": 11.255,
+          "quiet_seconds": 0.39,
           "word": " I",
-          "asr_word_start": 4.72
+          "asr_word_start": 11.48
         }
       ]
     },

@@ -52,6 +52,7 @@ var _hand_mount: BoneAttachment3D
 var _luke_skeleton: Skeleton3D
 var _armor_visuals: Node3D
 var _locomotion_pose: BlackwebLocomotionPose = LocomotionPose.new()
+var _pinoc_motion = preload("res://scripts/pinoc_motion.gd").new()
 var _right_upper_bone := -1
 var _right_forearm_bone := -1
 var _right_hand_bone := -1
@@ -254,6 +255,7 @@ func attach_model(scene: PackedScene, model_scale := 1.0) -> void:
 		var skeleton := skeletons[0] as Skeleton3D
 		_luke_skeleton = skeleton
 		_locomotion_pose.bind(skeleton)
+		_pinoc_motion.bind(skeleton)
 		_right_upper_bone = skeleton.find_bone("Bip01 R UpperArm")
 		_right_forearm_bone = skeleton.find_bone("Bip01 R Forearm")
 		_right_hand_bone = skeleton.find_bone("Bip01 R Hand")
@@ -726,6 +728,9 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	pivot.rotation = Vector3(_pitch, _yaw, 0)
 	pivot.position.y = move_toward(pivot.position.y, 1.03 if _crouching else 1.48, delta * 2.4)
+	# The small house's ceiling silk is visual, not a camera collider. Keep
+	# the shoulder camera below it when looking down at a pickup or drawer.
+	arm.spring_length = clampf((2.62 - pivot.global_position.y) / sin(-_pitch), 0.45, 1.85) if _pitch < -0.01 else 1.85
 	if direction.length_squared() > 0.02:
 		visual.rotation.y = lerp_angle(visual.rotation.y, atan2(-direction.x, -direction.z), 1.0 - exp(-12.0 * delta))
 	if _animation:
@@ -734,12 +739,20 @@ func _physics_process(delta: float) -> void:
 		if horizontal_speed > 2.3 and not _run_clip.is_empty(): clip = _run_clip
 		_animation.speed_scale = clampf(horizontal_speed / (2.8 if clip == _run_clip else 1.7), 0.6, 1.4) if horizontal_speed > 0.15 else 1.0
 		if not clip.is_empty() and _animation.current_animation != clip: _animation.play(clip, 0.18)
+		_pinoc_motion.clear_overrides()
 		_animation.advance(delta)
-	_locomotion_pose.apply(delta, _crouching, not is_on_floor(), velocity.y, -camera.global_basis.z)
+	_locomotion_pose.clear()
+	if not _pinoc_motion.locomotion(delta,_crouching,not is_on_floor(),velocity.y,Vector2(velocity.x,velocity.z).length()):
+		_locomotion_pose.apply(delta, _crouching, not is_on_floor(), velocity.y, -camera.global_basis.z)
 	_tick_item_action(delta)
 	if _light_on or selected_quick_item() == &"knife" or _action_kind != &"": visual.rotation.y = lerp_angle(visual.rotation.y, _yaw, minf(1.0, delta * 8.0))
 	_update_left_supply_arm()
 	_update_right_arm_pose(delta)
+	if _action_kind == &"knife":
+		_pinoc_motion.attack(_action_time/_item_action_duration())
+		_update_right_hand_grip()
+	elif _hurt_time>0.0:
+		_pinoc_motion.reaction(.65-_hurt_time)
 	# Keep the camera from showing the inside of Luke when a wall shortens the arm.
 	var show_visual := camera.global_position.distance_to(global_position + Vector3.UP * 1.3) > 0.58
 	if visual.visible != show_visual: visual.visible = show_visual
@@ -1570,7 +1583,7 @@ func _knife_strike() -> bool:
 	var distance := KNIFE_REACH
 	var contact := Vector3.ZERO
 	var normal := Vector3.UP
-	for group in [&"mini_spider", &"spider"]:
+	for group in [&"mini_spider", &"spider", &"cuttable"]:
 		for candidate in get_tree().get_nodes_in_group(group):
 			if not is_instance_valid(candidate) or not candidate is Node3D or not candidate.visible or not candidate.has_method("take_damage"): continue
 			if candidate.has_method("is_alive") and not candidate.is_alive(): continue
@@ -1652,6 +1665,7 @@ func restore_checkpoint() -> void:
 	_stamina_recovery_delay = 0.0
 	_set_crouch(false)
 	_locomotion_pose.clear()
+	_pinoc_motion.reset()
 	pivot.position.y = 1.48
 	_recovering = false
 	health_changed.emit(health)

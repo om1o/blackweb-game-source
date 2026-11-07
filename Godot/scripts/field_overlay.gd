@@ -319,6 +319,10 @@ func show_armor(claimed: Dictionary) -> void:
 		var layout := HBoxContainer.new()
 		layout.add_theme_constant_override("separation", 20)
 		row.add_child(layout)
+		var glyph := preload("res://scripts/status_hud.gd").MinimalItemGlyph.new(id)
+		glyph.custom_minimum_size = Vector2(54,42)
+		glyph.size_flags_vertical = SIZE_SHRINK_CENTER
+		layout.add_child(glyph)
 		var detail := VBoxContainer.new()
 		detail.size_flags_horizontal = SIZE_EXPAND_FILL
 		detail.add_theme_constant_override("separation", 3)

@@ -78,6 +78,9 @@ var _intro: Node
 var _warming_house := false
 var _house_warmed := false
 var house_warmup_ms := 0
+var house_map: Control
+var _room_spiders: Array[Node3D] = []
+var _room_spider_started: Dictionary = {}
 
 func _ready() -> void:
 	if qa_mode: print("JOURNEY LOAD: main ready")
@@ -121,6 +124,8 @@ func _ready() -> void:
 		player.spawn_transform = player.transform
 		player.set_view(float(_layout.get("player_yaw", 0)))
 		progression.player = player
+		house_map.player = player
+		house_map.progression = progression
 		if not campaign.loaded.is_empty():
 			if not player.restore_survival_state(campaign.loaded.survival):
 				campaign.writes_blocked = true
@@ -162,6 +167,12 @@ func _ready() -> void:
 		_create_spider()
 		_create_mini_spiders()
 		_create_sighting_spider()
+		_create_room_spiders()
+		var exit_web := preload("res://scripts/exit_web.gd").new()
+		exit_web.name = "FrontLockWeb"
+		exit_web.progression = progression
+		exit_web.position = Vector3(-4.85,1.02,.42)
+		add_child(exit_web)
 		if qa_mode: print("JOURNEY LOAD: spiders ready")
 		var sounds := SoundScript.new()
 		sounds.name = "Soundscape"
@@ -171,6 +182,11 @@ func _ready() -> void:
 		sounds.phone_position = _vec(_layout.get("phone_position", [-3.4, 1.1, 1.7]))
 		add_child(sounds)
 		sounds.process_mode = Node.PROCESS_MODE_PAUSABLE
+		var voice := preload("res://scripts/story_voice.gd").new()
+		voice.name = "StoryVoice"
+		voice.progression = progression
+		voice.soundscape = sounds
+		add_child(voice)
 	progression.stage_changed.connect(_on_stage)
 	progression.power_changed.connect(func(on: bool): _power_target = 1.0 if on else 0.0)
 	progression.subtitle_changed.connect(func(t: String): subtitle.text = t)
@@ -178,6 +194,7 @@ func _ready() -> void:
 	progression.inventory_changed.connect(func():
 		objective.text = progression.objective()
 		status_hud.set_objective(objective.text)
+		status_hud.set_escape_state(progression.has_exit_keys, progression.exit_web_cleared)
 		_queue_campaign_save())
 	if is_instance_valid(player):
 		status_hud.set_flashlight(true, player._light_on)
@@ -185,6 +202,7 @@ func _ready() -> void:
 		status_hud.set_health(player.health)
 		_update_inventory_hud()
 	status_hud.set_objective(progression.objective())
+	status_hud.set_escape_state(progression.has_exit_keys, progression.exit_web_cleared)
 	subtitle.text = progression.subtitle
 	notice.text = progression.notice
 	_on_stage(progression.stage)
@@ -353,9 +371,14 @@ func _create_evidence() -> void:
 		{"name": "VaultCash", "kind": "cash", "title": "unmarked cash", "position": Vector3(5.35, 1.75, 2.82),
 			"text": "The company left unmarked cash beside the supplies. Someone was paid to keep this house quiet."},
 		{"name": "PlantCodeNote", "kind": "paper", "title": "Mica's hidden note", "position": Vector3(2.08, 1.0782, 3.57),
-			"text": "Luke,\n\nI couldn't leave this on the phone. Use the small key from the record-room shelf, then enter:\n\n0  4  1  7\n\nThe vault holds a leather shirt, pants, hood and shoes. Take them before you go.\n\nThe spiders in this house are ordinary animals. The company records describe something else.\n\n— Mica"},
-		{"name": "VaultFieldKit", "kind": "kit", "title": "leather field kit", "position": Vector3(6.55, 0.98, 3.3),
+			"text": "Luke,\n\nI couldn't leave this on the phone. Use the small key from the record-room shelf, then enter:\n\n0  4  1  7\n\nYour exit keys are inside the vault with the field kit. Cut the silk off the front lock before turning the exit key.\n\nDad hid the company records here. He was trying to get the prisoners out. Take the records. Come find me.\n\n— Mica"},
+		{"name": "VaultFieldKit", "kind": "kit", "title": "leather field kit", "position": Vector3(7.9, 0.98, 1.25),
 			"text": "Four leather armor pieces."},
+		{"name": "VaultExitKeys", "kind": "exit_keys", "title": "exit keys", "position": Vector3(7.65,.99,1.05), "text": "The exit keys."},
+		{"name": "FathersLetter", "kind": "paper", "title": "Dad's last shift", "position": Vector3(1.65,1.075,2.95),
+			"text": "LUKE — I kept the night maintenance job because it gave me access to the transfer corridor. They called the prisoners volunteers. None of them could leave. I copied the manifests and sent Mica to your house with them. If anyone asks, you never saw me. — Dad\n\nPencil beneath the signature: Do not follow the voices in the vents."},
+		{"name": "ContainmentMemo", "kind": "paper", "title": "Containment notice", "position": Vector3(6.9,.46,-3.0),
+			"text": "GREYHAVEN / FIELD CONTAINMENT\n\nThe spiders in residential buildings are ordinary colony animals displaced by the underground tests. Do not confuse them with the grafted subjects. Silk fouls latch mechanisms: isolate the strands before using a key.\n\nProject 08 combined prisoner tissue with spider subjects. The microphones recorded replies after the test chamber was empty. Management ordered every recording destroyed."},
 	]:
 		var evidence: Node3D = EvidenceScript.new()
 		evidence.name = entry.name
@@ -369,9 +392,10 @@ func _create_evidence() -> void:
 		add_child(evidence)
 		_tutorial_evidence.append(evidence)
 	_create_clue_plant()
+	_create_containment_drum()
 	var case_body := StaticBody3D.new()
 	case_body.name = "LeatherKitCase"
-	case_body.position = Vector3(6.55, 0.68, 3.3)
+	case_body.position = Vector3(7.9, 0.68, 1.25)
 	add_child(case_body)
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
@@ -387,8 +411,25 @@ func _create_evidence() -> void:
 	material.roughness = 0.93
 	mesh.material_override = material
 	case_body.add_child(mesh)
+	# A small battery-powered case lamp makes the actual loot readable in the
+	# dark vault. Its short range stays away from the separating walls.
+	var kit_light := OmniLight3D.new()
+	kit_light.name = "FieldCaseLamp"
+	kit_light.position = Vector3(0,.82,.10)
+	kit_light.omni_range = 1.65
+	kit_light.light_energy = .75
+	kit_light.light_color = Color(.86,.79,.60)
+	kit_light.shadow_enabled = false
+	case_body.add_child(kit_light)
 
 func _show_tutorial_evidence(text: String, title: String) -> void:
+	if title == "exit keys":
+		if progression.collect_exit_keys():
+			get_node("StoryVoice").enqueue("exit_keys")
+			get_node("VaultExitKeys").set_taken(true)
+			campaign.claimed["VaultExitKeys"] = true
+			_queue_campaign_save()
+		return
 	if title == "unmarked cash":
 		if campaign.collect_cash("VaultCash", 120):
 			get_node("VaultCash").set_taken(true)
@@ -400,11 +441,29 @@ func _show_tutorial_evidence(text: String, title: String) -> void:
 		field_overlay.show_armor(campaign.claimed)
 		return
 	if title == "Mica's hidden note": campaign.code_found = true
+	if title == "Dad's last shift": get_node("StoryVoice").enqueue("records")
+	if title == "Containment notice": get_node("StoryVoice").enqueue("containment")
 	status_hud.set_record_found(true)
 	status_hud.set_vault_code_found(campaign.code_found)
 	_open_field_modal()
 	field_overlay.show_paper(title, text)
 	_queue_campaign_save()
+
+func _create_containment_drum() -> void:
+	var path := "res://assets/generated/meshy_containment_drum.glb"
+	if not ResourceLoader.exists(path): return
+	var body := StaticBody3D.new()
+	body.name = "ContainmentDrum"
+	body.position = Vector3(8.05,.405,-3.05)
+	add_child(body)
+	body.add_child(load(path).instantiate())
+	var collider := CollisionShape3D.new()
+	var cylinder := CylinderShape3D.new()
+	cylinder.radius = .31
+	cylinder.height = .86
+	collider.shape = cylinder
+	collider.position.y = .43
+	body.add_child(collider)
 
 func _create_clue_plant() -> void:
 	var props_script = load("res://scripts/tutorial_props.gd")
@@ -414,10 +473,12 @@ func _create_clue_plant() -> void:
 	# The pot stands beside the table; the folded code note rests on the tabletop.
 	plant.position = Vector3(2.28, 0.405, 3.50)
 	add_child(plant)
-	var kit: Node3D = props_script.make_leather_kit()
+	var kit: Node3D = preload("res://scripts/field_kit_display.gd").new()
 	kit.name = "LeatherKitContents"
-	kit.position = Vector3(6.55, 0.925, 3.30)
+	kit.position = Vector3(7.9, 0.925, 1.25)
 	add_child(kit)
+	kit.build(player)
+	kit.refresh(campaign.claimed)
 
 func _open_field_modal() -> void:
 	status_hud.hide_inventory()
@@ -452,7 +513,7 @@ func _submit_vault_code(code: String) -> void:
 		if not vault.opened: vault.toggle()
 	progression.unlock_vault()
 	field_overlay.close_overlay()
-	progression.show_notice("VAULT OPEN  /  Leather field kit inside. Equip armor with I.", 6.0)
+	progression.show_notice("VAULT OPEN  /  Recover your exit keys and field kit. Equip armor with I.", 6.0)
 	_queue_campaign_save()
 
 func _claim_armor(item: StringName) -> void:
@@ -462,6 +523,7 @@ func _claim_armor(item: StringName) -> void:
 		field_overlay.set_message("Backpack full. Leave a cell free and return for this piece.")
 		return
 	campaign.claimed[str(item)] = true
+	get_node("LeatherKitContents").refresh(campaign.claimed)
 	field_overlay.show_armor(campaign.claimed)
 	_update_inventory_hud()
 	_queue_campaign_save()
@@ -509,6 +571,7 @@ func _restore_world_claims() -> void:
 		storage._refresh_loot_visuals()
 	for evidence in _tutorial_evidence:
 		if evidence.evidence_type == "cash": evidence.set_taken(campaign.claimed.has(str(evidence.name)))
+		if evidence.evidence_type == "exit_keys": evidence.set_taken(progression.has_exit_keys)
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST: _save_campaign()
@@ -636,7 +699,34 @@ func _create_sighting_spider() -> void:
 	_sighting_spider = sighting
 	progression.checkpoint_restored.connect(_reset_early_spider)
 
+func _create_room_spiders() -> void:
+	for index in 2:
+		var resident := MiniSpiderScript.new()
+		resident.name = "RoomSpider%d" % (index+1)
+		resident.auto_bind_progression = false
+		resident.target = player
+		SpiderProfile.apply_to(resident,"juvenile")
+		resident.position = Vector3(1.7,.44,-2.8) if index == 0 else Vector3(5.7,.44,-2.15)
+		add_child(resident)
+		resident.process_mode = Node.PROCESS_MODE_PAUSABLE
+		_room_spiders.append(resident)
+
+func _update_room_spiders() -> void:
+	if progression.stage < progression.Stage.PREPARATION or progression.stage >= progression.Stage.ENCOUNTER: return
+	if not is_instance_valid(player) or not player.active or player.is_recovering(): return
+	for resident in _room_spiders:
+		if _room_spider_started.has(str(resident.name)): continue
+		if resident.global_position.distance_to(player.global_position) > 4.0: continue
+		if not resident._can_see_target(): continue
+		_room_spider_started[str(resident.name)] = true
+		resident.activate(player)
+		resident._attack_cooldown = 1.6
+
 func _reset_early_spider() -> void:
+	_room_spider_started.clear()
+	for resident in _room_spiders:
+		resident.deactivate()
+		resident.global_transform = resident._spawn_transform
 	_early_spider_spawned = false
 	_early_sighting_time = 0.0
 	if is_instance_valid(_sighting_spider):
@@ -666,6 +756,9 @@ func _create_hud() -> void:
 	root.add_child(status_hud)
 	status_hud.inventory_close_requested.connect(_toggle_inventory)
 	status_hud.set_layout(2)
+	house_map = preload("res://scripts/house_map.gd").new()
+	house_map.name = "HouseMap"
+	root.add_child(house_map)
 	objective = _label("", 18)
 	objective.position = Vector2(44, 38)
 	root.add_child(objective)
@@ -796,11 +889,30 @@ func warm_house_renderer() -> void:
 	var visuals: Array[Node3D] = []
 	for candidate in [spider, _sighting_spider, get_node("MiniSpider1"), get_node("MiniSpider2"), player._hand_flashlight, player._hand_knife, player._hand_candy]:
 		if is_instance_valid(candidate): visuals.append(candidate)
+	if is_instance_valid(player._armor_visuals):
+		for garment in player._armor_visuals._garments.values(): visuals.append(garment)
+	visuals.append(player.visual)
 	var visibility: Array[bool] = []
 	for visual in visuals:
 		visibility.append(visual.visible)
 		visual.show()
 	player.lamp.show()
+	# Compile skinned leather and contact-effect materials while the loading
+	# cover is up. Loot ownership and equipment are not changed by this draw.
+	player.camera.global_position = player.global_position + Vector3(1.5,1.4,-1.5)
+	player.camera.look_at(player.global_position + Vector3.UP*.9)
+	var effects := preload("res://scripts/combat_effects.gd").for_source(player)
+	var particles: CPUParticles3D = effects._slots[0].particles
+	particles.process_mode = Node.PROCESS_MODE_ALWAYS
+	particles.global_position = player.global_position + Vector3(.5,1.0,.3)
+	particles.show()
+	particles.restart()
+	particles.emitting = true
+	effects._marks[0].global_position = player.global_position + Vector3(.5,.01,.5)
+	effects._marks[0].show()
+	for frame in 4: await RenderingServer.frame_post_draw
+	effects.clear_all()
+	particles.process_mode = Node.PROCESS_MODE_INHERIT
 	# Draw the real materials before the first interactive camera pan. No AI,
 	# pickups, phone clocks, player simulation or damage advance behind the cover.
 	for eye in [Vector3(-4.3,1.82,.4),Vector3(.6,1.82,2.5),Vector3(4,1.82,2),Vector3(.6,1.82,-2.5),Vector3(4,1.82,-2.8)]:
@@ -845,6 +957,8 @@ func _restart() -> void:
 	player.restore_checkpoint()
 	player.reset_starting_inventory()
 	_reset_supplies()
+	get_node("LeatherKitContents").refresh(campaign.claimed)
+	house_map.visited = {0:true}
 	for evidence in _tutorial_evidence: evidence.set_taken(false)
 	var vault := get_node_or_null("RearNorthDoor")
 	if vault != null: vault.locked = true
@@ -935,7 +1049,9 @@ func _on_stage(stage: int) -> void:
 		if reveal_door != null and not reveal_door.opened: reveal_door.toggle()
 		_start_presence()
 	if stage >= progression.Stage.POWER_LOSS: _power_target = 0.0
-	if stage >= progression.Stage.ENCOUNTER and is_instance_valid(_sighting_spider): _sighting_spider.deactivate()
+	if stage >= progression.Stage.ENCOUNTER:
+		if is_instance_valid(_sighting_spider): _sighting_spider.deactivate()
+		for resident in _room_spiders: resident.deactivate()
 	if stage == progression.Stage.COMPLETE:
 		get_tree().paused = true
 		menu.present("complete", false, _loaded, true)
@@ -948,6 +1064,7 @@ func _on_recovery(recovering: bool) -> void:
 func _process(delta: float) -> void:
 	if get_tree().paused: return
 	_update_early_sighting(delta)
+	_update_room_spiders()
 	var next_power := move_toward(_power, _power_target, delta * 2.2)
 	if next_power == _power: return
 	_power = next_power

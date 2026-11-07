@@ -255,7 +255,13 @@ func _physics_process(delta: float) -> void:
 	if _bite_windup_remaining > 0.0:
 		_set_combat_state(CombatState.WINDUP)
 		_bite_windup_remaining = maxf(0.0, _bite_windup_remaining - delta)
-		_move_grounded(Vector3.ZERO, delta)
+		var phase := 1.0 - _bite_windup_remaining / maxf(.01,bite_windup_seconds)
+		# A committed forward dart, followed by fang contact. Physics resolves
+		# the motion so a closing door or sidestep can still defeat the attack.
+		_move_grounded(_bite_direction * (1.65 if phase > .48 else 0.0), delta)
+		if is_instance_valid(_visual_root):
+			_visual_root.position.y = _visual_rest_position.y + sin(phase*PI)*.065
+			_visual_root.rotation.x = _visual_rest_rotation.x - sin(phase*PI)*.22
 		if _bite_windup_remaining <= 0.0:
 			_attack_cooldown = maxf(attack_cooldown_seconds, bite_recovery_seconds)
 			var hit := _can_bite_target(bite_reach) and _inside_committed_bite()
@@ -273,6 +279,7 @@ func _physics_process(delta: float) -> void:
 	# the clip every frame or replace it with Walk immediately after impact.
 	if _attack_cooldown > maxf(0.0, attack_cooldown_seconds - bite_recovery_seconds):
 		_set_combat_state(CombatState.RECOVERY)
+		_restore_visual_pose()
 		_move_grounded(Vector3.ZERO, delta)
 		return
 	if not _target_can_fight():
@@ -295,7 +302,7 @@ func _physics_process(delta: float) -> void:
 	_play_visual("walk" if actual_speed > 0.08 else "idle")
 	if actual_speed > 0.08 and is_instance_valid(_visual_animation):
 		_visual_animation.speed_scale = clampf(actual_speed / maxf(0.1, walk_speed), 0.35, 1.25)
-	if _attack_cooldown <= 0.0 and _can_bite_target(minf(0.50, bite_reach)):
+	if _attack_cooldown <= 0.0 and _can_bite_target(bite_reach + .18):
 		_bite_direction = toward.normalized() if toward.length_squared() > 0.001 else -global_basis.z
 		rotation.y = atan2(-_bite_direction.x, -_bite_direction.z)
 		_bite_windup_remaining = maxf(0.01, bite_windup_seconds)

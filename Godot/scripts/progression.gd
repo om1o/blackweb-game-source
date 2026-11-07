@@ -26,17 +26,19 @@ const SAVE_VERSION := 1
 var vault_unlocked := false
 @export var mara_lines: Array[String] = [
 	"Mica: Luke? It's Mica. You're home.",
-	"Mica: Listen carefully. The keys are for the vault.",
+	"Mica: Listen carefully. Your exit keys are inside the vault with the family records. The brass key is on the shelf. Cut the silk off the front lock.",
 	"Mica: I left the code by the plant—",
 	"[Connection lost]",
 	"Luke: Mica? ... Mica!",
 ]
-@export var mara_durations: Array[float] = [2.141, 2.827, 1.741, 1.2, 1.861]
+@export var mara_durations: Array[float] = [2.255, 9.0, 1.903125, 1.2, 1.793625]
 
 var stage: int = Stage.NORMAL
 var warning_heard := false
 var has_flashlight := false
 var has_keys := false
+var has_exit_keys := false
+var exit_web_cleared := false
 var encounter_survived := false
 var departed := false
 var power_available := true
@@ -112,6 +114,20 @@ func unlock_vault() -> void:
 	inventory_changed.emit()
 	if not _try_finish_preparation(): _record_checkpoint()
 
+func collect_exit_keys() -> bool:
+	if requires_vault and not vault_unlocked: return false
+	has_exit_keys = true
+	inventory_changed.emit()
+	show_notice("Exit keys recovered. Cut the silk around the front lock with your knife.", 6)
+	_record_checkpoint()
+	return true
+
+func clear_exit_web() -> void:
+	exit_web_cleared = true
+	inventory_changed.emit()
+	show_notice("Front lock cleared. " + ("You have the exit keys." if has_exit_keys else "The exit keys are inside the vault."), 5)
+	_record_checkpoint()
+
 func _load_phone_dialogue() -> void:
 	var path := "res://data/phone_dialogue.json"
 	if not FileAccess.file_exists(path): return
@@ -133,7 +149,7 @@ func can_interact(kind: StringName) -> bool:
 		&"keys":
 			return stage == Stage.PREPARATION and warning_heard and not has_keys
 		&"exit", &"exit_door":
-			return stage == Stage.READY_TO_LEAVE and prepared() and encounter_survived and not departed
+			return stage == Stage.READY_TO_LEAVE and prepared() and encounter_survived and not departed and (not requires_vault or (has_exit_keys and exit_web_cleared))
 	return false
 
 
@@ -219,11 +235,15 @@ func objective() -> String:
 			if not has_keys: return "Find the vault key"
 			if not has_flashlight: return "Collect the spare flashlight battery"
 			if requires_vault and not vault_unlocked: return "Find the paper beside the plant. Open the vault."
+			if requires_vault and not has_exit_keys: return "Recover your exit keys from the vault"
 			return "Look around before leaving"
 		Stage.PRESENCE: return "Listen. Something moved in the supply room."
 		Stage.POWER_LOSS: return "The power is out. Keep your flashlight ready."
 		Stage.ENCOUNTER: return "Keep your distance. Find room to move."
-		Stage.READY_TO_LEAVE: return "Leave the house. Find Mica."
+		Stage.READY_TO_LEAVE:
+			if requires_vault and not has_exit_keys: return "Recover your exit keys from the vault"
+			if requires_vault and not exit_web_cleared: return "Cut the webbed front lock  /  Knife [2]"
+			return "Unlock the front door. Find Mica."
 		Stage.COMPLETE: return "GREYHAVEN\nEnd of the house opening"
 	return ""
 
@@ -233,6 +253,8 @@ func interaction_hint(kind: StringName) -> String:
 	if kind == &"phone" and stage == Stage.MESSAGE: return ""
 	if not warning_heard: return "A message from Mica. I should listen."
 	if kind == &"exit" or kind == &"exit_door":
+		if requires_vault and not has_exit_keys: return "The lock is webbed shut. My exit keys are in the vault."
+		if requires_vault and not exit_web_cleared: return "Cut the silk around the lock. Equip the knife and left-click."
 		if not has_keys: return "Mica left a key for the vault."
 		if requires_vault and not vault_unlocked: return "I should check the vault before leaving."
 		if not has_flashlight: return "The flashlight. I'll need it."
@@ -242,6 +264,7 @@ func interaction_hint(kind: StringName) -> String:
 
 func snapshot() -> Dictionary:
 	return {"version": SAVE_VERSION, "stage": stage, "warning_heard": warning_heard,
+		"has_exit_keys": has_exit_keys, "exit_web_cleared": exit_web_cleared,
 		"has_flashlight": has_flashlight, "has_keys": has_keys,
 		"encounter_survived": encounter_survived, "departed": departed, "vault_unlocked": vault_unlocked}
 
@@ -255,6 +278,9 @@ func _normalized(data: Dictionary) -> Dictionary:
 		if not data.get(key) is bool:
 			return {}
 	var state: Dictionary = data.duplicate(true)
+	for key in ["has_exit_keys", "exit_web_cleared"]:
+		if state.has(key) and not state[key] is bool: return {}
+		state[key] = state.get(key, bool(state.departed))
 	var saved_stage: Variant = data.get("stage")
 	var current: int = Stage.NORMAL
 	if (saved_stage is int or saved_stage is float) and is_finite(float(saved_stage)):
@@ -292,6 +318,8 @@ func restore_snapshot(data: Dictionary, notify: bool = true) -> bool:
 	warning_heard = bool(state.warning_heard)
 	has_flashlight = bool(state.has_flashlight)
 	has_keys = bool(state.has_keys)
+	has_exit_keys = bool(state.has_exit_keys)
+	exit_web_cleared = bool(state.exit_web_cleared)
 	encounter_survived = bool(state.encounter_survived)
 	departed = bool(state.departed)
 	# Older saves that already passed preparation keep their completed milestone.

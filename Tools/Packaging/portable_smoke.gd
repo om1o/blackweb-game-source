@@ -50,7 +50,7 @@ func _run() -> void:
 	_check("Town cinematic has its complete voiced soundtrack", town_audio is AudioStreamOggVorbis and town_audio.get_length() >= 41.9)
 	_check("Bundled Barlow interface fonts load from the portable PCK", ui_theme.body_font().data.size() > 10000 and ui_theme.heading_font().data.size() > 10000)
 	var document_source := load("res://scripts/tutorial_evidence.gd")
-	for title in ["transfer log", "Project 08 record", "Mica's hidden note"]:
+	for title in ["transfer log", "Project 08 record"]:
 		var document: Texture2D = document_source.document_texture(title)
 		_check("Generated document texture is packaged: " + title, document != null and document.get_width() == 1024 and document.get_height() == 1536)
 	var menu_art := load("res://assets/generated/blackweb_menu_corridor_v1.png") as Texture2D
@@ -66,6 +66,10 @@ func _run() -> void:
 	root.add_child(game)
 	for frame in 3: await process_frame
 	_check("Recovered house and runtime props load", bool(game.get("_loaded")))
+	var code_note := game.get_node_or_null("PlantCodeNote")
+	_check("Folded note contains the updated readable code and exit-key clue", code_note != null and code_note.folded_in_world and code_note.record_text.contains("0  4  1  7") and code_note.record_text.contains("exit keys"))
+	_check("Separate exit keys, cuttable lock silk and surveyed map are packaged", game.has_node("VaultExitKeys") and game.has_node("FrontLockWeb") and game.get("house_map") != null)
+	_check("Optimized Meshy containment model loads from PCK", game.has_node("ContainmentDrum") and game.get_node("ContainmentDrum").find_children("*","MeshInstance3D",true,false).size()>0)
 	var house: Node = game.get_node_or_null("RecoveredHouse")
 	var compact_geometry_count := _geometry_instances(house)
 	_check("Compact tutorial retains recovered house mesh geometry", compact_geometry_count >= 70 and compact_geometry_count <= 120, compact_geometry_count)
@@ -79,6 +83,8 @@ func _run() -> void:
 	var player: Node = game.get("player")
 	var spider: Node = game.get("spider")
 	_check("Player controller exists", player != null)
+	_check("All five PINOC motion clips are packaged", player.get("_pinoc_motion").clips.size()==5)
+	_check("Three story voice assets are packaged", game.get_node("StoryVoice")._data.size()==3)
 	var armor = player.get("_armor_visuals")
 	_check("All four credited garment meshes bind in the isolated package", armor != null and armor.visual_state().size() == 4 and not armor.visual_state().values().has(true))
 	_check("Inventory preview can resolve every starter model from the package", player.item_preview_source(&"flashlight") != null and player.item_preview_source(&"knife") != null and player.item_preview_source(&"candy_bar") != null)
@@ -105,7 +111,7 @@ func _run() -> void:
 		and wall_goo.get_shader_parameter("detail_normal") is Texture2D
 		and floor_goo.get_shader_parameter("detail_normal") is Texture2D)
 	var modeled_webs := house.get_node_or_null("BlackwebModeledSilk")
-	_check("All six original modeled web placements load in the packaged house", modeled_webs != null and modeled_webs.get_child_count() == 6)
+	_check("All eight modeled web placements load in the packaged house", modeled_webs != null and modeled_webs.get_child_count() == 8)
 	var orb_material := new_environment.orb_material() as ShaderMaterial
 	var pbr_maps_ok := true
 	for channel in ["silk_color", "silk_opacity", "silk_normal", "silk_roughness", "silk_ao"]:

@@ -151,7 +151,8 @@ func _leather_material(source: StandardMaterial3D, garment_name: String) -> Shad
 	material.set_shader_parameter("garment_color", source.albedo_texture)
 	material.set_shader_parameter("garment_normal", source.normal_texture)
 	var base := "res://assets/third_party/poly_haven/brown_leather/brown_leather_"
-	material.set_shader_parameter("leather_color", load(base+"albedo_2k.jpg"))
+	material.set_shader_parameter("leather_color", load("res://assets/generated/aged_field_leather.png"))
+	material.set_shader_parameter("leather_tint", Color(.84,.77,.67) if garment_name == "Boots" else Color(1.14,1.06,.94))
 	material.set_shader_parameter("leather_normal", load(base+"nor_gl_2k.jpg"))
 	material.set_shader_parameter("leather_arm", load(base+"arm_2k.jpg"))
 	material.set_shader_parameter("tile_scale", 4.0 if garment_name == "Shirt" else 3.0)

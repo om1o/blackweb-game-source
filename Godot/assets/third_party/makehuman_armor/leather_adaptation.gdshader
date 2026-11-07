@@ -17,8 +17,8 @@ void fragment() {
 	ALBEDO = texture(leather_color, tile_uv).rgb * leather_tint * seam;
 	vec3 arm = texture(leather_arm, tile_uv).rgb;
 	AO = arm.r;
-	ROUGHNESS = clamp(arm.g * 0.40 + 0.55, 0.72, 0.94);
-	SPECULAR = 0.28;
+	ROUGHNESS = clamp(arm.g * 0.42 + 0.28, 0.40, 0.78);
+	SPECULAR = 0.38;
 	METALLIC = 0.0;
 	vec3 source_n = texture(garment_normal, UV).rgb * 2.0 - 1.0;
 	vec3 leather_n = texture(leather_normal, tile_uv).rgb * 2.0 - 1.0;

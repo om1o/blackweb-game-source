@@ -29,10 +29,21 @@
     1.9
   ],
   "tutorial": {
-    "rooms": ["Entry / Mica's phone", "Record room / plant and hidden code", "Supply room / juvenile sighting", "Infested room / adult encounter", "Vault / leather armor, cash and juvenile"],
+    "rooms": [
+      "Entry / Mica's phone",
+      "Record room / plant and hidden code",
+      "Supply room / juvenile sighting",
+      "Infested room / adult encounter",
+      "Vault / leather armor, cash and juvenile"
+    ],
     "interior_doors": 4,
     "exterior_exits": 1,
-    "bounds_meters": [-5.6, 7.8, -4.25, 4.25]
+    "bounds_meters": [
+      -5.6,
+      8.8,
+      -4.25,
+      4.25
+    ]
   },
   "lights": [
     {

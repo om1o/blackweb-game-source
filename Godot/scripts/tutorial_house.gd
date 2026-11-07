@@ -4,7 +4,7 @@ extends RefCounted
 ## The recovered mansion stays intact on disk. At runtime the opening uses its
 ## ground-floor entry shell, then closes that shell with copies of its brick wall.
 const MIN_X := -5.60
-const MAX_X := 7.80
+const MAX_X := 8.80
 const MIN_Z := -4.25
 const MAX_Z := 4.25
 const WALL_BOTTOM := 0.40
@@ -52,7 +52,7 @@ static func apply(house: Node3D) -> Dictionary:
 	var segments := 0
 	# Rear shell: one sealed wall, one and only one exterior exit remains at the front.
 	for end_z in [-2.0, 0.0, 2.0, 4.0]:
-		_add_wall(house, wall_template, "RearWall", Vector3(7.68, WALL_BOTTOM, end_z), 0.0, 2.0)
+		_add_wall(house, wall_template, "RearWall", Vector3(8.68, WALL_BOTTOM, end_z), 0.0, 2.0)
 		segments += 1
 	# Five rooms: entry; north/south middle; north/south rear. Four 1.6 m
 	# doorways make two short branches from the entry to the rear chambers.
@@ -69,7 +69,7 @@ static func apply(house: Node3D) -> Dictionary:
 	# stays wide enough for Mara's phone and the original front-door sightline.
 	# Bury each spine end inside the crossing wall. Matching the visible face
 	# exactly caused coplanar caps to flicker as a pale vertical seam.
-	for span in [[-0.70, 3.30], [3.30, 7.78]]:
+	for span in [[-0.70, 3.30], [3.30, 8.78]]:
 		_add_wall(house, wall_template, "RoomSpine", Vector3(float(span[0]), WALL_BOTTOM, 0.0), -PI / 2.0, float(span[1]) - float(span[0]))
 		segments += 1
 	return {"success": true, "removed": removed, "new_wall_segments": segments,

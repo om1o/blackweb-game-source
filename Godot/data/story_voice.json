@@ -1,0 +1,41 @@
+{
+  "records": {
+    "text": "Dad's handwriting. He knew what they were doing. Mica brought the evidence here for me.",
+    "path": "res://assets/generated/story_records.wav",
+    "duration_seconds": 5.545041666666667,
+    "sha256": "13b838f2aa2acb3962203a5546f50066b92548578c6e76b23af376f979dbc1de",
+    "voice": "am_michael",
+    "engine": "Kokoro-82M fp32 stock synthetic",
+    "voice_cloning": false,
+    "peak": 0.707,
+    "asr": {
+      "text": " Dad's handwriting. He knew what they were doing. Micah brought the evidence here for me."
+    }
+  },
+  "exit_keys": {
+    "text": "My keys. She locked them in with the records. She wanted me to find this before I left.",
+    "path": "res://assets/generated/story_exit_keys.wav",
+    "duration_seconds": 5.709958333333334,
+    "sha256": "75e40316d96e90fa1a43921305bc97adbb77a42e2625b60c04615ac68aef43d7",
+    "voice": "am_michael",
+    "engine": "Kokoro-82M fp32 stock synthetic",
+    "voice_cloning": false,
+    "peak": 0.707,
+    "asr": {
+      "text": " My keys. She locked them in with the records. She wanted me to find this before I left."
+    }
+  },
+  "containment": {
+    "text": "Ordinary spiders, driven up from below. Whatever they made down there is still missing.",
+    "path": "res://assets/generated/story_containment.wav",
+    "duration_seconds": 5.696791666666667,
+    "sha256": "40ff3fdf6becc932c39e1d8b66cbd5ba07b890e1fab8e6120f00098c6a2f19ad",
+    "voice": "am_michael",
+    "engine": "Kokoro-82M fp32 stock synthetic",
+    "voice_cloning": false,
+    "peak": 0.707,
+    "asr": {
+      "text": " Ordinary spiders driven up from below. Whatever they made down there is still missing."
+    }
+  }
+}

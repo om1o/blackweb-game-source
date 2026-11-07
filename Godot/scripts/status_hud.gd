@@ -102,6 +102,8 @@ var armor_state: Dictionary = {}
 var armor_percent := 0.0
 var wallet := 0
 var vault_code_found := false
+var exit_keys_owned := false
+var lock_cleared := false
 var _armor_buttons: Dictionary = {}
 var _armor_equip_button: Button
 var _wallet_label: Label
@@ -125,6 +127,11 @@ func set_wallet(amount: int) -> void:
 
 func set_vault_code_found(found: bool) -> void:
 	vault_code_found = found
+	_refresh_inventory()
+
+func set_escape_state(keys_owned: bool, silk_cut: bool) -> void:
+	exit_keys_owned = keys_owned
+	lock_cleared = silk_cut
 	_refresh_inventory()
 
 func _ready() -> void:
@@ -659,7 +666,8 @@ func _refresh_inventory() -> void:
 	_inventory_supplies.text = "Battery %d%%  ·  Packs %d\nBandages %d  ·  Flares %d" % [ceili(battery_charge), int(inventory_counts.get(&"battery", 0)), int(inventory_counts.get(&"bandage", 0)), int(inventory_counts.get(&"flare", 0))]
 	_inventory_condition.text = "Health: %d / 100\nStamina: %d / 100\nArmor: %d%% reduction\n%s" % [ceili(health), ceili(stamina), roundi(armor_percent), objective_text]
 	_inventory_records.text = "PROJECT 08\nPrisoner tissue was grafted to spiders; the altered subjects drew in a demonic presence." if record_found else "No field record found yet.\nSearch the house's drawers and cabinets."
-	if vault_code_found: _inventory_records.text = "MICA'S NOTE  /  VAULT 0417\nUse the small vault key.\nFour leather armor pieces inside.\nThe house spiders are ordinary."
+	if vault_code_found:
+		_inventory_records.text = "MICA'S NOTE  /  VAULT 0417\nEXIT KEYS  /  %s\nFRONT LOCK  /  %s\nField kit and family records in vault." % ["RECOVERED" if exit_keys_owned else "INSIDE VAULT", "SILK CLEARED" if lock_cleared else "CUT THE SILK WITH KNIFE"]
 	for index in range(_quick_buttons.size()):
 		var id: StringName = equipped_items[index]
 		_quick_buttons[index].text = "%d    %s    /    %s" % [index + 1, BlackwebInventoryGrid.display_name(id), "x%d" % _equipped_count(index) if id not in [&"flashlight", &"knife"] else ("ON" if flashlight_on else "OFF") if id == &"flashlight" else "READY"]

@@ -109,9 +109,10 @@ func _ready() -> void:
 	_head = skeleton.find_bone("Bip01 Head")
 	_jaw = skeleton.find_bone("Bip01 MJaw")
 	_jaw_rest = skeleton.get_bone_pose_rotation(_jaw)
-	spider = load("res://scenes/spider_visual.tscn").instantiate()
+	var spider_path := "res://assets/third_party/literock/Giant_Spider_Lite_1K.glb"
+	spider = load(spider_path if ResourceLoader.exists(spider_path) else "res://scenes/spider_visual.tscn").instantiate()
 	spider.name = "StreetSpider"
-	spider.scale = Vector3.ONE * .22
+	spider.scale = Vector3.ONE * .38
 	add_child(spider)
 	camera = Camera3D.new()
 	camera.fov = 52
@@ -252,7 +253,9 @@ func pose(time: float) -> void:
 	if t >= 31:
 		actor.position = Vector3(3.5,.08,-17.3).lerp(Vector3(6.4,.08,-21),smoothstep(35,41,t))
 		actor.rotation.y = lerp_angle(-.47,-.665,smoothstep(31,32,t))
-	var reaction := sin(smoothstep(12,15,t)*PI)*.85
+	var reaction := sin(smoothstep(12.5,14.8,t)*PI)*.95
+	var dodge := smoothstep(12.5,13.25,t)*(1.0-smoothstep(14.2,15.1,t))
+	actor.position.x -= dodge*.65
 	var alert := smoothstep(8.5,9.5,t)*(1.0-smoothstep(20.5,21.5,t))
 	_turn_bone(_head,Vector3.UP, sin(t*.8)*lerpf(.12,.45,alert))
 	_turn_bone(skeleton.find_bone("Bip01 Spine2"),Vector3.RIGHT,reaction*.35)
@@ -260,21 +263,34 @@ func pose(time: float) -> void:
 	_turn_bone(skeleton.find_bone("Bip01 R UpperArm"),actor.global_basis.x,reaction*.9)
 	_turn_bone(skeleton.find_bone("Bip01 L UpperArm"),actor.global_basis.x,reaction*.8)
 	_turn_bone(skeleton.find_bone("Bip01 R Forearm"),actor.global_basis.x,reaction*.8)
+	# Raise the knee and sweep the forearm as the spider commits, then plant
+	# the foot and regain balance. This poses the rig, not an image card.
+	_turn_bone(skeleton.find_bone("Bip01 R Thigh"),actor.global_basis.x,-dodge*.72)
+	_turn_bone(skeleton.find_bone("Bip01 R Calf"),actor.global_basis.x,dodge*1.15)
+	_turn_bone(skeleton.find_bone("Bip01 L Forearm"),actor.global_basis.x,reaction*1.05)
 	skeleton.set_bone_pose_rotation(_jaw,_jaw_rest)
 	var frame := clampi(int(t*25),0,maxi(0,_voice_envelope.size()-2))
 	if _voice_envelope.size()>1:
 		var mouth := lerpf(float(_voice_envelope[frame]),float(_voice_envelope[frame+1]),fmod(t*25,1))
 		_turn_bone(_jaw,actor.global_basis.x,mouth*.16)
-	spider.position = Vector3(lerpf(2.0,-3.5,smoothstep(10,14,t)),.10,-8.5)
-	spider.rotation.y = PI*.5
+	var approach := Vector3(2,.10,-8.5).lerp(Vector3(-1.65,.10,-6.9),smoothstep(10,12.5,t))
+	var leap := smoothstep(12.5,13.12,t)
+	var retract := smoothstep(13.15,14.5,t)
+	spider.position = approach.lerp(Vector3(-2.22,.14,-5.85),leap).lerp(Vector3(-.7,.10,-8.5),retract)
+	spider.position.y += sin(leap*PI)*.27*(1.0-retract)
+	spider.rotation.y = atan2(-2.3-spider.position.x,-5.95-spider.position.z)
 	var spider_anim := spider.find_child("*AnimationPlayer*",true,false) as AnimationPlayer
 	if spider_anim != null and not spider_anim.get_animation_list().is_empty():
 		var spider_clip: StringName = spider_anim.get_animation_list()[0]
 		for candidate in spider_anim.get_animation_list():
 			if "walk" in candidate.to_lower(): spider_clip = candidate
+		if t >= 12.5 and t < 13.5:
+			for candidate in spider_anim.get_animation_list():
+				if "bite" in candidate.to_lower(): spider_clip = candidate
 		spider_anim.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 		spider_anim.play(spider_clip)
-		spider_anim.seek(fmod(t, maxf(.1,spider_anim.get_animation(spider_clip).length)),true)
+		var clip_time := (t-12.5)*1.2 if t >= 12.5 and t < 13.5 else t
+		spider_anim.seek(fmod(clip_time, maxf(.1,spider_anim.get_animation(spider_clip).length)),true)
 	if door != null: door.rotation.y = -1.1*smoothstep(36,39,t)
 	for i in _silks.size(): _silks[i].rotation.z = sin(t*.65+i)*.008
 	var target := actor.position + Vector3(0,1.25,0)
@@ -287,8 +303,8 @@ func pose(time: float) -> void:
 		camera.position = Vector3(-.4,.43,-5.2)
 		target = spider.position+Vector3(0,.16,0)
 	elif t < 16:
-		camera.position = actor.position+Vector3(-.75,1.5,-2.1)
-		target = actor.position+Vector3(0,1.15,0)
+		camera.position = actor.position+Vector3(2.15,1.4,-2.35)
+		target = actor.position+Vector3(.15,.85,-.25)
 	elif t < 21:
 		camera.position = actor.position + Vector3(-.55,1.65,-1.5)
 		target = actor.position+Vector3(0,1.48,0)

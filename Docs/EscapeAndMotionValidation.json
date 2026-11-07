@@ -1,0 +1,248 @@
+{
+  "package_sha256": "d869092093ab5f8f7103ab77ebd4a1a5475271c084115290ba4fc0be677553e7",
+  "route_complete": true,
+  "route_failures": [],
+  "metadata": {
+    "adapter": "Radeon RX550/550 Series",
+    "armor_loadout": {
+      "hood": "leather_hood",
+      "pants": "leather_pants",
+      "shirt": "leather_shirt",
+      "shoes": "leather_shoes"
+    },
+    "base_source_commit": "not supplied; see runtime file hashes",
+    "battery_at_sample_start": 21.1236666666664,
+    "concurrent_game_pid": 0,
+    "content_scale_size": [
+      1366,
+      768
+    ],
+    "display_driver": "Windows",
+    "engine": {
+      "build": "official",
+      "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+      "hex": 263938,
+      "major": 4,
+      "minor": 7,
+      "patch": 2,
+      "status": "stable",
+      "string": "4.7.2-stable (official)",
+      "timestamp": 0
+    },
+    "framebuffer_image_size_at_end": [
+      960,
+      539
+    ],
+    "framebuffer_image_size_at_start": [
+      960,
+      539
+    ],
+    "graphics_preset": "performance",
+    "health_at_sample_start": 1000.0,
+    "health_budget_at_setup": 1000,
+    "house_warmup_ms": 5432,
+    "limitations": [
+      "No other Godot renderer was observed at launch; desktop apps and ordinary OS scheduling still share the device.",
+      "One scripted route is not a sustained thermal benchmark, narrative playthrough, or minimum-spec certification.",
+      "Frame intervals include VSync/presentation pacing and CPU/GPU scheduling, not GPU execution time.",
+      "Headless runs validate traversal only and must never be reported as rendering performance."
+    ],
+    "max_fps": 0,
+    "msaa_3d": 0,
+    "other_processes_left_untouched_by_harness": true,
+    "package_sha256": "d869092093ab5f8f7103ab77ebd4a1a5475271c084115290ba4fc0be677553e7",
+    "precomputed_segments": 9,
+    "process_id": 16724,
+    "render_scale_3d": 1.0,
+    "renderer": "gl_compatibility",
+    "runtime_origin": "frozen PCK",
+    "runtime_script_sha256": {
+      "armor_visuals.gd": "b75a15cf51c1ca0aa5328a62f0eb215a5e280dc1c6d649ecfd91fb1f813a2cc1",
+      "environment_surfaces.gd": "061a3b541a66d967df84a20ff4b046889db6bd0f369bbf0bc1b2f040087c0af8",
+      "horror_menu.gd": "13dd201aadca3bafa4e254ace2a9976c7f01157a263a67cbebdd13a59910c18e",
+      "house_batching.gd": "7bb3c7495ddd9d7ab199ecd93f462908210b3aa6487cba612ab4b612560a5f4d",
+      "house_dressing.gd": "691893f946c251b35fedf6b1d498c119e627bdd0222f10b7f7e20d9b477c2ce8",
+      "item_preview.gd": "2b5fbf5526fa6cca806af259340b590456499bbe748fd6da105449ee0d6d8dce",
+      "locomotion_pose.gd": "b81641657bcdb2d7a0d234d8f33983070721cd4f9f1c5d8553f4b85c63b24e78",
+      "main.gd": "74decf796b37e183675ff163afd593c5494bf3feda2a2df69d5e49f2eac23f5f",
+      "menu_settings.gd": "b4417ad27dc3e3baee411b2d4837bae3486f5d0d0ee4f5129884527e1c0dc018",
+      "mini_spider.gd": "cd5703640310de8e80fb6b4578b4d285bc77e063b7cd052b2957c6462868ef25",
+      "modeled_silk.gd": "f32508e2883d273d4ba3964be5a24657a70b04a4964e7a3730657dd765589aea",
+      "player.gd": "833db60517abb909b0f78e0570980dc0b7c38ba60b083cd643d837f44b47a707",
+      "progression.gd": "ad96bedee1bed83028385ce65cd3b220bf470626700783a2040d9f17144114a5",
+      "props.gd": "69ad8ce37c06e92d3402d346ff531790d14a8255708ba386e35662364285639f",
+      "spider.gd": "cee985eff7cf279b4d22779a5db501f3858cc3b8fad32258f3a56471becb8f4d",
+      "storage.gd": "5f80dbe931ed414df2bcc2d1b92f7df9d2189b0de237fd3d32aa1a34eafcde3a",
+      "supply_models.gd": "3edbba6dbcc7e948e400133ba6692130c79b95b4da1ccc9e05906232de26f2d7",
+      "tutorial_house.gd": "adebb831a82e7e97c7231db724aeb3221913dd87016bc61647d2bdae96336aec"
+    },
+    "sampling": "Monotonic process_frame intervals; includes automation and sample-collection CPU overhead. Physics monitor is a cached one-second maximum, not an individual physics tick; draw values are supplemental monitors, not isolated GPU timers. No timed screenshots, logging, file I/O, graph/path construction, teleports, healing, or performance configuration changes.",
+    "utc": "2026-11-07T06:36:22",
+    "valid_grid_cells": 1159,
+    "validation_only": false,
+    "vendor": "ATI Technologies Inc.",
+    "viewport_texture_size": [
+      674,
+      378
+    ],
+    "viewport_texture_size_at_measurement_end": [
+      674,
+      378
+    ],
+    "viewport_texture_size_at_measurement_start": [
+      674,
+      378
+    ],
+    "vsync_mode": 1,
+    "window_size": [
+      960,
+      540
+    ],
+    "workload": "Four interior doors opened in setup; real encounter activated; 1000 HP prevents checkpoint reload; original 22-point starter battery, normal collision/AI/damage/animations; controller walk, room camera pans and knife actions."
+  },
+  "summary": {
+    "adult_state_frame_counts": {
+      "2": 171,
+      "3": 201,
+      "4": 131,
+      "5": 340,
+      "6": 636,
+      "7": 59,
+      "8": 1337,
+      "9": 24
+    },
+    "by_mode": {
+      "knife": {
+        "above_33_33_ms_percent": 3.03605313092979,
+        "above_50_ms_percent": 0.189753320683112,
+        "max_ms": 103.006,
+        "mean_ms": 17.9925218216319,
+        "p50_ms": 16.991,
+        "p95_ms": 27.365,
+        "p99_ms": 42.6,
+        "samples": 527
+      },
+      "pan": {
+        "above_33_33_ms_percent": 0.488400488400488,
+        "above_50_ms_percent": 0.488400488400488,
+        "max_ms": 1141.872,
+        "mean_ms": 18.2715299145299,
+        "p50_ms": 16.797,
+        "p95_ms": 19.141,
+        "p99_ms": 21.783,
+        "samples": 819
+      },
+      "walk": {
+        "above_33_33_ms_percent": 1.60978750804894,
+        "above_50_ms_percent": 0.77269800386349,
+        "max_ms": 267.328,
+        "mean_ms": 17.8696349001932,
+        "p50_ms": 16.865,
+        "p95_ms": 20.773,
+        "p99_ms": 39.947,
+        "samples": 1553
+      }
+    },
+    "by_room": {
+      "entry_lore": {
+        "above_33_33_ms_percent": 0.74719800747198,
+        "above_50_ms_percent": 0.62266500622665,
+        "max_ms": 1141.872,
+        "mean_ms": 18.4081419676214,
+        "p50_ms": 16.791,
+        "p95_ms": 19.36,
+        "p99_ms": 30.474,
+        "samples": 803
+      },
+      "infested_spider": {
+        "above_33_33_ms_percent": 2.43478260869565,
+        "above_50_ms_percent": 0.173913043478261,
+        "max_ms": 156.008,
+        "mean_ms": 17.7927826086957,
+        "p50_ms": 16.896,
+        "p95_ms": 24.94,
+        "p99_ms": 38.931,
+        "samples": 575
+      },
+      "record_lore": {
+        "above_33_33_ms_percent": 0.0,
+        "above_50_ms_percent": 0.0,
+        "max_ms": 21.467,
+        "mean_ms": 16.6661024208566,
+        "p50_ms": 16.797,
+        "p95_ms": 18.902,
+        "p99_ms": 19.838,
+        "samples": 537
+      },
+      "supply_spider": {
+        "above_33_33_ms_percent": 4.09556313993174,
+        "above_50_ms_percent": 1.70648464163823,
+        "max_ms": 267.328,
+        "mean_ms": 19.6857252559727,
+        "p50_ms": 17.249,
+        "p95_ms": 31.707,
+        "p99_ms": 81.068,
+        "samples": 586
+      },
+      "vault_spider": {
+        "above_33_33_ms_percent": 0.251256281407035,
+        "above_50_ms_percent": 0.251256281407035,
+        "max_ms": 74.332,
+        "mean_ms": 16.8338316582915,
+        "p50_ms": 16.777,
+        "p95_ms": 18.931,
+        "p99_ms": 20.576,
+        "samples": 398
+      }
+    },
+    "frame_intervals": {
+      "above_33_33_ms_percent": 1.55225939979303,
+      "above_50_ms_percent": 0.586409106588479,
+      "max_ms": 1141.872,
+      "mean_ms": 18.0055139703347,
+      "p50_ms": 16.854,
+      "p95_ms": 20.488,
+      "p99_ms": 38.776,
+      "samples": 2899
+    },
+    "knife_animation_frames": {
+      "above_33_33_ms_percent": 3.73134328358209,
+      "above_50_ms_percent": 0.248756218905473,
+      "max_ms": 103.006,
+      "mean_ms": 18.3613283582089,
+      "p50_ms": 17.022,
+      "p95_ms": 31.153,
+      "p99_ms": 42.712,
+      "samples": 402
+    },
+    "spider_attack_frames": {
+      "above_33_33_ms_percent": 2.86144578313253,
+      "above_50_ms_percent": 0.903614457831325,
+      "max_ms": 199.702,
+      "mean_ms": 18.4275045180723,
+      "p50_ms": 16.865,
+      "p95_ms": 27.583,
+      "p99_ms": 48.791,
+      "samples": 664
+    }
+  },
+  "knife_actions": 11,
+  "portable_smoke_passed": true,
+  "portable_smoke_checks": 57,
+  "checks": {
+    "town_film": 10,
+    "traversal": 27,
+    "knife_input": 16,
+    "pinoc_motion": 10,
+    "combat_effects": 25,
+    "phone_audio": 38,
+    "escape_objective": 30,
+    "tutorial_journey": 56
+  },
+  "unresolved": [
+    "First camera-pan hitch: 1141.872 ms; cause unconfirmed",
+    "New Meshy dagger has no downloadable format and is not installed",
+    "Existing voices are synthetic; human-versus-generated preference remains unresolved",
+    "Native desktop automation unavailable; engine-generated screenshots and input fixtures used"
+  ]
+}

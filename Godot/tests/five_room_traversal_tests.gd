@@ -26,7 +26,9 @@ func _run() -> void:
 		_finish()
 		return
 	game._resume()
-	for door in game._tutorial_doors: door.toggle()
+	for door in game._tutorial_doors:
+		door.locked = false # Puzzle access is exercised by the escape/journey suites.
+		door.toggle()
 	await create_timer(0.75).timeout
 	for door in game._tutorial_doors:
 		_check(door.opened and door._hinge.rotation.y < -1.35, "%s completes its physical opening" % door.name)
@@ -35,7 +37,7 @@ func _run() -> void:
 	query.shape = game.player._standing_capsule.duplicate()
 	query.collision_mask = 1
 	var capsule_offset: Vector3 = game.player._capsule_shape.position
-	for x in range(63):
+	for x in range(68):
 		for z in range(39):
 			var world_x := -5.0 + x * 0.2
 			var world_z := -3.8 + z * 0.2
@@ -73,7 +75,9 @@ func _run() -> void:
 		{"name": "record lore", "feet": Vector3(1.2, 0.425, 1.8)},
 		{"name": "supply spider", "feet": Vector3(1.4, 0.425, -1.6)},
 		{"name": "infested spider", "feet": Vector3(5.4, 0.425, -1.6)},
-		{"name": "vault spider", "feet": Vector3(5.4, 0.425, 1.8)}
+		{"name": "vault spider", "feet": Vector3(5.4, 0.425, 1.8)},
+		{"name": "exit key case", "feet": Vector3(7.1, 0.425, 2.2)},
+		{"name": "expanded rear floor", "feet": Vector3(8.1, 0.425, -2.0)}
 	]:
 		var floor_ray := PhysicsRayQueryParameters3D.create(room.feet + Vector3.UP * 0.1, room.feet + Vector3.DOWN * 0.2, 1)
 		var floor_hit := space.intersect_ray(floor_ray)

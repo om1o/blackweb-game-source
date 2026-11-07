@@ -5,14 +5,14 @@
   "presentation": {
     "classification": "Ordinary spider",
     "attack_light": false,
-    "effects": "Tiny muted ochre fluid specks on accepted weapon hits and death, subdued dust on accepted bite contact, and short original dry impact transients at the actual contact position. No supernatural attack glow.",
+    "effects": "Wet ochre hemolymph and dark residue on spider hits; restrained red contact droplets on player injury. Four pooled emitters and eight reusable floor marks. No supernatural glow.",
     "shared_effect_slots": 4,
-    "particles_per_slot": 8,
-    "particle_lifetime_s": 0.34,
+    "particles_per_slot": 16,
+    "particle_lifetime_s": 0.48,
     "particle_fixed_fps": 30,
     "maximum_effect_audio_voices": 4,
     "effect_cancellation": "Pause clears all effects; activation, deactivation and checkpoint retry clear only that enemy's effects. Idle pool processing is disabled. Full pools reuse the oldest slot.",
-    "effect_assets": "Original procedural quad particles and synthesized mono contact audio; no downloaded effects, textures, decals, lights, particle collision or shadows.",
+    "effect_assets": "Original low-polygon droplet meshes, eight pooled floor meshes and synthesized spatial impact audio; no added lights or particle collision.",
     "sources": [
       "https://docs.godotengine.org/en/stable/classes/class_cpuparticles3d.html",
       "https://docs.godotengine.org/en/stable/classes/class_physicsshapequeryparameters3d.html"
@@ -41,8 +41,14 @@
     "bite_damage": 18,
     "bite_windup_s": 0.55,
     "bite_duration_s": 0.45,
-    "bite_active_window_s": [0.12, 0.32],
-    "lunge_active_window_s": [0.10, 0.60],
+    "bite_active_window_s": [
+      0.12,
+      0.32
+    ],
+    "lunge_active_window_s": [
+      0.1,
+      0.6
+    ],
     "attack_half_angle_degrees": 50,
     "hit_stagger_s": 0.32,
     "stagger_resistance_s": 1.5,
@@ -60,14 +66,19 @@
   "juvenile": {
     "runtime": "res://scripts/mini_spider.gd",
     "visual": "Optimized Literock Giant Spider Lite 1K skinned GLB in the local game package; CC0 Quaternius source-checkout fallback, then code-native visual",
-    "visual_animations": ["Idle", "Walk", "Run", "Bite"],
+    "visual_animations": [
+      "Idle",
+      "Walk",
+      "Run",
+      "Bite"
+    ],
     "death_visual": "Short procedural collapse; the Literock Lite rig has no death clip",
     "weapon_hurt_volumes": "Pose-following head sphere radius 0.095 m and abdomen midpoint sphere radius 0.12 m. Movement capsule remains radius 0.13 m and height 0.27 m; Literock forward correction is preserved.",
     "health": 12,
     "armor": 0,
     "awareness_radius_m": 8,
     "walk_speed_m_s": 1.35,
-    "bite_trigger_distance_m": 0.5,
+    "bite_trigger_distance_m": 0.7,
     "bite_windup_s": 0.28,
     "bite_damage_default": 6,
     "bite_damage_in_house": 4,
@@ -79,7 +90,7 @@
     "corpse_hold_s": 1.5,
     "beam_slow_percent_at_full_intensity": 20,
     "beam_slow_duration_s": 0.42,
-    "attack_telegraph": "Authored 1-second Bite clip at 2.3x speed. Impact at 0.28 seconds, one hit only inside the committed 55-degree cone with current line of sight and vertical reach. A 0.5-second recovery preserves the clip ending. Knife hits cancel the windup and briefly stagger; three 4-damage hits kill a 12-HP juvenile.",
-    "spawn": "One non-attacking sighting is visible in the supply room before the encounter; two combat juveniles occupy the supply and vault rooms when the encounter begins."
+    "attack_telegraph": "Authored Bite clip with a committed physics-driven forward dart and body lift. One line-of-sight and range checked impact at 0.28 seconds, then a punishable recovery. Sidestep, jump, doors and knife stagger remain valid counters.",
+    "spawn": "One fightable entry spider after a grace period; two separate approach-triggered supply/nest spiders during exploration; two encounter juveniles join the adult later. Exploration spiders retire for the encounter."
   }
 }

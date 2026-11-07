@@ -9,9 +9,11 @@ static func placements() -> Array[Dictionary]:
 		{"root": "WebRadialTorn", "position": Vector3(-4.10, 2.00, 3.43), "scale": Vector3.ONE * 0.64, "yaw": PI},
 		{"root": "WebRadialTorn", "position": Vector3(4.75, 2.08, -3.60), "scale": Vector3.ONE * 0.68, "yaw": 0.0},
 		{"root": "WebSaggingCanopy", "position": Vector3(-3.10, 2.98, -1.35), "scale": Vector3(0.86, 0.64, 0.85), "yaw": 0.0},
-		{"root": "WebSaggingCanopy", "position": Vector3(5.35, 2.98, 2.18), "scale": Vector3(0.95, 0.72, 0.80), "yaw": 0.0},
+		{"root": "WebSaggingCanopy", "position": Vector3(5.35, 3.18, 3.0), "scale": Vector3(0.55, 0.28, 0.45), "yaw": 0.0},
 		{"root": "WebFurnitureCocoon", "position": Vector3(-4.20, 0.425, -3.30), "scale": Vector3(0.79, 1.11, 0.50), "yaw": 0.0},
 		{"root": "WebFurnitureCocoon", "position": Vector3(1.00, 0.425, -3.14), "scale": Vector3(1.20, 0.82, 0.67), "yaw": 0.0},
+		{"root": "WebRadialTorn", "position": Vector3(8.40, 2.08, -2.1), "scale": Vector3.ONE * 0.62, "yaw": PI*.5},
+		{"root": "WebSaggingCanopy", "position": Vector3(7.8, 3.18, -.2), "scale": Vector3(.35,.22,.35), "yaw": 0.0},
 	]
 
 static func orb_sites() -> Array[Dictionary]:

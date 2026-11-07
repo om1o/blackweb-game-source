@@ -50,8 +50,14 @@ func _run() -> void:
 		var paused_before := paused
 		var time_before: float = game.progression._elapsed
 		var health_before: float = game.player.health
+		var armor_before: Dictionary = game.player.get_armor_state().duplicate()
+		var armor_visible_before: Dictionary = game.player._armor_visuals.visual_state().duplicate()
 		var rendering_before := root.disable_3d
 		await game.warm_house_renderer()
+		if game.player.get_armor_state() != armor_before or game.player._armor_visuals.visual_state() != armor_visible_before:
+			report.failures.append("Warm-up changed armor ownership or visibility")
+		if game.get_node("BlackwebCombatEffects").active_count() != 0:
+			report.failures.append("Warm-up left combat particles active")
 		if not game._house_warmed or game._warming_house or paused != paused_before or root.disable_3d != rendering_before or not game.player.camera.global_transform.is_equal_approx(camera_before) or game.progression._elapsed != time_before or game.player.health != health_before:
 			report.failures.append("Warm-up changed camera, pause, rendering, health or progression state")
 	game._resume()
