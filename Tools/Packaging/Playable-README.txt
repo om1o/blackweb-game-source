@@ -22,12 +22,15 @@ that run. Use the regular launcher to change and save graphics in Options.
 
 Controls: WASD move; mouse look; Shift sprint; C crouch; Space jump;
 E interact; 1-3 draw a quick item; left click uses it; F toggles the flashlight
-while equipped; I opens the 50-cell inventory; F1-F4 choose one of four
-status HUD layouts; Escape pauses or closes inventory. Sprinting and
+while equipped; I opens the 50-cell inventory; M expands the house map;
+F1-F4 choose one of four status HUD layouts; Escape pauses or closes the
+inventory or map. Both panels pause combat. Sprinting and
 jumping use stamina. The Minimal HUD is selected by default. The three
 starter quick items are weak flashlight, worn knife and one candy bar.
 In the inventory, click an occupied backpack cell, then a quick-slot
 button to equip it. Only those three items can be used during play.
+Item covers are renders of the actual game models. The map tracks explored
+rooms, your facing, doors and the current search area. Exploration is saved.
 The four armor slots are separate: select a leather piece, then click
 "Equip selected armor". Click a worn piece to remove it. A full leather
 shirt, pants, hood and shoes give 18% damage reduction; maximum HP is 100.
@@ -49,7 +52,7 @@ door. Inside are four leather armor pieces and $120 for the persistent wallet.
 The code is recorded in inventory after you read the note. Survive the
 encounter and leave through the opening door. The house spiders are ordinary;
 the company records describe experiments elsewhere in the story.
-The eight-second arrival sequence can be skipped with Enter, Space or Escape.
+The 42-second opening film can be skipped with Enter, Space or Escape.
 The opening starts quietly. Mica's call leads to unhurried clue hunting;
 reading and inventory pause the tension clock. After preparation, a harmless
 spider sighting precedes the power loss and the first attacking spiders.
@@ -73,8 +76,8 @@ in development. Materials approximate the original shaders. Some pickups lack
 authored hand animation, and some creature motions are procedural. The plant
 and folded pickup kit remain prototype props. Equipped armor uses credited
 MakeHuman artist garments fitted to Luke's existing rig with a leather material
-adaptation. Voices are stock synthetic performances. The arrival
-is an in-engine camera sequence; no Higgsfield video is included.
+adaptation. Voices are stock synthetic performances. The opening is a
+HeyGen-generated moving film using the project's character and scene references.
 Read Docs/VaultTutorialPass.md, Docs/NormalSpiderEffects.md and the earlier
 Docs/Phase0Report.md for implementation details and remaining work.
 

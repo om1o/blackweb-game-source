@@ -1,5 +1,10 @@
 # Asset provenance
 
+## Field UI and actual-model covers — 7 November 2026
+
+- Ten inventory cover PNGs are original Godot studio renders of the existing held-item and armour meshes. They preserve those models' credited appearances and underlying rights. The reproducible renderer and per-image hashes are in `Godot/tools/bake_item_covers.gd` and `Godot/assets/generated/item_covers/provenance.json`.
+- OpenAI's built-in imagegen produced a UI art-direction concept, saved in `Docs/Design/field-ui-concept-v2.png`, with its exact prompt alongside it. It is documentation only. The map and objective panel are native Godot controls; runtime item covers are rendered meshes, not imagegen substitutes. See [FieldUiRelease.md](FieldUiRelease.md).
+
 ## Luke at 21 and the new town film — 7 November 2026
 
 - Luke's current model combines the MIT Rocketbox body and a separately sculpted head with CC0 MakeHuman afro01 hair. His age and mixed Black and white identity were specified by the creator. [Character build and sources](Luke21Character.md) document the actual mesh; the cinematic reference has higher fidelity than the runtime model.

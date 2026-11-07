@@ -1,6 +1,7 @@
 class_name BlackwebStatusHud
 extends Control
 const Art = preload("res://scripts/horror_theme.gd")
+const Covers = preload("res://scripts/item_covers.gd")
 
 class MinimalItemGlyph:
 	extends Control
@@ -91,7 +92,11 @@ var _inventory_supplies: Label
 var _inventory_condition: Label
 var _inventory_records: Label
 var _inventory_cell_buttons: Array[Button] = []
-var _inventory_cell_glyphs: Array[MinimalItemGlyph] = []
+var _inventory_cell_covers: Array[TextureRect] = []
+var _inventory_cell_counts: Array[Label] = []
+var _inventory_cell_equipped: Array[Label] = []
+var _quick_covers: Array[TextureRect] = []
+var _quick_info: Array[Label] = []
 var _quick_buttons: Array[Button] = []
 var _inventory_capacity_label: Label
 var _inventory_hint: Label
@@ -477,13 +482,13 @@ func _build_inventory() -> void:
 	_inventory_root.anchor_bottom = 0.5
 	_inventory_root.offset_left = -584
 	_inventory_root.offset_right = 584
-	_inventory_root.offset_top = -356
-	_inventory_root.offset_bottom = 356
-	var frame := Art.steel_panel(24)
+	_inventory_root.offset_top = -352
+	_inventory_root.offset_bottom = 352
+	var frame := Art.steel_panel(20)
 	_inventory_root.add_theme_stylebox_override("panel", frame)
 	add_child(_inventory_root)
 	var stack := VBoxContainer.new()
-	stack.add_theme_constant_override("separation", 12)
+	stack.add_theme_constant_override("separation", 8)
 	_inventory_root.add_child(stack)
 	var title_row := HBoxContainer.new()
 	var title_margin := MarginContainer.new()
@@ -493,7 +498,7 @@ func _build_inventory() -> void:
 	title_margin.add_child(title_row)
 	var title := Label.new()
 	title.text = "FIELD KIT"
-	Art.heading(title, 34)
+	Art.heading(title, 30)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_row.add_child(title)
 	_wallet_label = Label.new()
@@ -516,7 +521,7 @@ func _build_inventory() -> void:
 	columns.add_child(bag)
 	var side := VBoxContainer.new()
 	side.custom_minimum_size.x = 294
-	side.add_theme_constant_override("separation", 12)
+	side.add_theme_constant_override("separation", 8)
 	columns.add_child(side)
 	var quick_heading := Label.new()
 	quick_heading.text = "QUICK ACCESS   /   THREE ITEMS WITHIN REACH"
@@ -528,12 +533,20 @@ func _build_inventory() -> void:
 	bag.add_child(quick_row)
 	for index in range(3):
 		var quick := Button.new()
-		quick.custom_minimum_size = Vector2(260, 46)
+		quick.custom_minimum_size = Vector2(260, 54)
 		quick.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		Art.button(quick, 15, index == selected_quick_index)
 		quick.pressed.connect(_on_quick_button.bind(index))
 		quick_row.add_child(quick)
 		_quick_buttons.append(quick)
+		var cover := _cover(quick, Vector2(4, 3), Vector2(64, 48))
+		_quick_covers.append(cover)
+		var info := Label.new()
+		info.position = Vector2(76, 8)
+		info.add_theme_font_size_override("font_size", 13)
+		info.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		quick.add_child(info)
+		_quick_info.append(info)
 	var grid_heading := HBoxContainer.new()
 	bag.add_child(grid_heading)
 	var bag_label := Label.new()
@@ -553,20 +566,32 @@ func _build_inventory() -> void:
 	bag.add_child(grid)
 	for index in range(BlackwebInventoryGrid.CAPACITY):
 		var cell := Button.new()
-		cell.custom_minimum_size = Vector2(76, 44)
+		cell.custom_minimum_size = Vector2(76, 64)
 		cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		Art.button(cell, 11)
-		var number := Label.new()
-		number.text = "%02d" % (index + 1)
-		number.position = Vector2(5, 3)
-		number.add_theme_font_size_override("font_size", 10)
-		number.add_theme_color_override("font_color", Art.MUTED)
-		number.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		cell.add_child(number)
-		var glyph := MinimalItemGlyph.new()
-		glyph.position = Vector2(17, 2)
-		cell.add_child(glyph)
-		_inventory_cell_glyphs.append(glyph)
+		var cover := _cover(cell, Vector2(4, 2), Vector2(68, 52))
+		_inventory_cell_covers.append(cover)
+		var count := Label.new()
+		count.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+		count.offset_left = -34
+		count.offset_right = -4
+		count.offset_top = -18
+		count.offset_bottom = -2
+		count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		count.add_theme_font_size_override("font_size", 12)
+		count.add_theme_color_override("font_shadow_color", Color.BLACK)
+		count.add_theme_constant_override("shadow_offset_x", 1)
+		count.add_theme_constant_override("shadow_offset_y", 1)
+		count.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cell.add_child(count)
+		_inventory_cell_counts.append(count)
+		var equip := Label.new()
+		equip.position = Vector2(5, 2)
+		equip.add_theme_font_size_override("font_size", 11)
+		equip.add_theme_color_override("font_color", Color("d8bc80"))
+		equip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cell.add_child(equip)
+		_inventory_cell_equipped.append(equip)
 		cell.pressed.connect(_select_cell.bind(index))
 		grid.add_child(cell)
 		_inventory_cell_buttons.append(cell)
@@ -574,14 +599,14 @@ func _build_inventory() -> void:
 	information.add_theme_constant_override("separation", 12)
 	bag.add_child(information)
 	var inspection := PanelContainer.new()
-	inspection.custom_minimum_size = Vector2(392, 140)
+	inspection.custom_minimum_size = Vector2(392, 100)
 	inspection.add_theme_stylebox_override("panel", Art.panel(Color(.045, .065, .050, .8), Art.EDGE, 6))
 	information.add_child(inspection)
 	var inspection_row := HBoxContainer.new()
 	inspection_row.add_theme_constant_override("separation", 10)
 	inspection.add_child(inspection_row)
 	_inventory_preview = TextureRect.new()
-	_inventory_preview.custom_minimum_size = Vector2(128, 128)
+	_inventory_preview.custom_minimum_size = Vector2(92, 92)
 	_inventory_preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_inventory_preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_inventory_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -591,10 +616,10 @@ func _build_inventory() -> void:
 	_inventory_loadout.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_inventory_loadout.add_theme_font_size_override("font_size", 15)
 	inspection_row.add_child(_inventory_loadout)
-	_inventory_supplies = _inventory_panel(information, "SUPPLIES", 392, 140)
+	_inventory_supplies = _inventory_panel(information, "SUPPLIES", 392, 100)
 	var armor_heading := Label.new()
 	armor_heading.text = "WORN EQUIPMENT"
-	Art.heading(armor_heading, 24)
+	Art.heading(armor_heading, 22)
 	side.add_child(armor_heading)
 	var armor_row := GridContainer.new()
 	armor_row.columns = 2
@@ -616,8 +641,8 @@ func _build_inventory() -> void:
 	_armor_equip_button.pressed.connect(func():
 		if _selected_cell >= 0: armor_equip_requested.emit(_selected_cell))
 	side.add_child(_armor_equip_button)
-	_inventory_condition = _inventory_panel(side, "CONDITION", 294, 123)
-	_inventory_records = _inventory_panel(side, "RECORDS", 294, 139)
+	_inventory_condition = _inventory_panel(side, "CONDITION", 294, 110)
+	_inventory_records = _inventory_panel(side, "RECORDS", 294, 130)
 	_inventory_hint = Label.new()
 	_inventory_hint.text = "CLICK AN ITEM, THEN A QUICK SLOT TO EQUIP   /   1–3 ACTIVE   /   I CLOSE"
 	_inventory_hint.add_theme_font_size_override("font_size", 14)
@@ -670,7 +695,9 @@ func _refresh_inventory() -> void:
 		_inventory_records.text = "MICA'S NOTE  /  VAULT 0417\nEXIT KEYS  /  %s\nFRONT LOCK  /  %s\nField kit and family records in vault." % ["RECOVERED" if exit_keys_owned else "INSIDE VAULT", "SILK CLEARED" if lock_cleared else "CUT THE SILK WITH KNIFE"]
 	for index in range(_quick_buttons.size()):
 		var id: StringName = equipped_items[index]
-		_quick_buttons[index].text = "%d    %s    /    %s" % [index + 1, BlackwebInventoryGrid.display_name(id), "x%d" % _equipped_count(index) if id not in [&"flashlight", &"knife"] else ("ON" if flashlight_on else "OFF") if id == &"flashlight" else "READY"]
+		_quick_buttons[index].text = ""
+		_quick_covers[index].texture = Covers.texture(id)
+		_quick_info[index].text = "%d / %s\n%s" % [index + 1, BlackwebInventoryGrid.display_name(id), "x%d" % _equipped_count(index) if id not in [&"flashlight", &"knife"] else ("ON" if flashlight_on else "OFF") if id == &"flashlight" else "READY"]
 
 func _refresh_inventory_grid() -> void:
 	if _inventory_cell_buttons.size() != BlackwebInventoryGrid.CAPACITY: return
@@ -687,16 +714,17 @@ func _refresh_inventory_grid() -> void:
 		else:
 			occupied += 1
 			button.tooltip_text = BlackwebInventoryGrid.display_name(id)
-			button.text = "\n\nx%d%s" % [count, "  / EQUIPPED" if equipped_items.has(id) else ""]
+			button.text = ""
 			button.modulate = Color.WHITE
 		Art.button(button, 10, index == _selected_cell)
 		for style in ["normal", "hover", "focus", "pressed", "disabled"]:
 			var cell_style := button.get_theme_stylebox(style).duplicate() as StyleBoxFlat
 			cell_style.set_content_margin_all(3)
 			button.add_theme_stylebox_override(style, cell_style)
-		_inventory_cell_glyphs[index].item_id = id
-		_inventory_cell_glyphs[index].visible = id != &""
-		_inventory_cell_glyphs[index].queue_redraw()
+		_inventory_cell_covers[index].texture = Covers.texture(id)
+		_inventory_cell_counts[index].text = "x%d" % count if count > 1 else ""
+		var equipped_at := equipped_items.find(id)
+		_inventory_cell_equipped[index].text = str(equipped_at + 1) if id != &"" and equipped_at >= 0 else ""
 	if is_instance_valid(_inventory_capacity_label):
 		_inventory_capacity_label.text = "%d / 50 OCCUPIED" % occupied
 	_refresh_inventory()
@@ -719,8 +747,8 @@ func _request_preview() -> void:
 	if _selected_cell >= 0 and _selected_cell < inventory_slots.size(): id = StringName(str(inventory_slots[_selected_cell].get("id", "")))
 	if id == _preview_item: return
 	_preview_item = id
-	_inventory_preview.texture = null
-	item_preview_requested.emit(id)
+	_inventory_preview.texture = Covers.texture(id)
+	if _inventory_preview.texture == null and id != &"": item_preview_requested.emit(id)
 
 func set_item_preview(texture: Texture2D, item_id: StringName) -> void:
 	if is_instance_valid(_inventory_preview) and item_id == _preview_item:
@@ -767,3 +795,13 @@ func _slot_style(available: bool) -> StyleBoxFlat:
 	style.set_border_width_all(1)
 	style.set_content_margin_all(3)
 	return style
+
+func _cover(parent: Control, at: Vector2, dimensions: Vector2) -> TextureRect:
+	var cover := TextureRect.new()
+	cover.position = at
+	cover.size = dimensions
+	cover.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	cover.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(cover)
+	return cover

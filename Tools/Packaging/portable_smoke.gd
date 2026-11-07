@@ -126,6 +126,11 @@ func _run() -> void:
 	var armor = player.get("_armor_visuals")
 	_check("All four credited garment meshes bind in the isolated package", armor != null and armor.visual_state().size() == 4 and not armor.visual_state().values().has(true))
 	_check("Inventory preview can resolve every starter model from the package", player.item_preview_source(&"flashlight") != null and player.item_preview_source(&"knife") != null and player.item_preview_source(&"candy_bar") != null)
+	var covers = load("res://scripts/item_covers.gd")
+	for cover_id in covers.IDS:
+		var texture: Texture2D = covers.texture(cover_id)
+		_check("Baked model cover is packaged: " + str(cover_id), texture != null and texture.get_width() == 256)
+	_check("Objective tracker and expanded survey are packaged", game.objective.has_method("update_state") and game.house_map.has_method("set_expanded"))
 	var candy: Node = player.get("_hand_candy") if player != null else null
 	_check("Original Blender candy and bitten variant load from the PCK", candy != null and candy.has_node("CandyBarBody/CandyReady") and candy.has_node("CandyBarBody/CandyBitten"))
 	var supply_factory := load("res://scripts/supply_models.gd")

@@ -1,0 +1,11 @@
+Generated using the built-in imagegen tool as UI art direction, not runtime item art or a navigation source. Runtime item covers are renders of actual game meshes; live map geometry is implemented in code.
+
+Use case: ui-mockup
+Asset type: Blackweb survival horror HUD art direction sheet for implementation in Godot.
+Primary request: Design a refined, readable in-game objective tracker at top left and compact surveyed house minimap at top right, plus a close-up inventory row whose item covers are clean 3D product renders. This is an interface concept, not a logo poster.
+Scene/backdrop: a very dim web-covered brick tutorial house, subtle defocused background, quiet negative space in the center for gameplay.
+Style/medium: premium restrained survival-horror interface, precise off-white Barlow-like condensed headings, warm amber small objective accent, desaturated sage floorplan lines, charcoal translucent plates, fine architectural linework and hairline dividers. Avoid neon, oversized holograms, ornate frames, excessive distress.
+Composition/framing: landscape 16:9, gameplay HUD in upper two-thirds; a clearly separate lower design-detail strip shows inventory cells with ONLY an actual-looking worn dagger, battered flashlight, wrapped candy bar, battery and bandage as item art, small quantity corner labels. No pictogram replacement. Objective block is compact: small 'GREYHAVEN / THE HOUSE', large 'Find the vault key', small 'Search the record room', four understated milestone ticks. No enormous quest checklist.
+Map: accurate five-room rectangular footprint. Tall entry room on left, supplies above records in middle, nest above vault at right. Four doorway gaps connect the two branches left to right; one exit on left wall. Current room gently filled; ivory directional player triangle, amber outlined objective diamond, tiny north marker, locked vault icon. Unvisited rooms dim and unlabeled. Footer 'GROUND FLOOR'. Do not show hidden paper location or a vault code.
+Text (verbatim where used): 'GREYHAVEN / THE HOUSE', 'Find the vault key', 'Search the record room', 'GROUND FLOOR', 'FIELD KIT'.
+Constraints: very legible at 1366x768, dark UI stays subtle, clean hierarchy, plausible game UI, no brands, no watermark.

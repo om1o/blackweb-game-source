@@ -111,6 +111,10 @@ func _valid(data: Variant) -> bool:
 		var id := StringName(str(survival.armor[slot]))
 		if id != &"" and (id != StringName("leather_" + slot) or inventory.count(id) <= 0): return false
 	var world: Dictionary = data.world
+	if world.has("explored_rooms"):
+		if not world.explored_rooms is Array: return false
+		for room in world.explored_rooms:
+			if not (room is int or room is float) or not is_finite(float(room)) or float(room) != floorf(float(room)) or room < 0 or room > 4: return false
 	if world.has("seed"):
 		var seed_value: Variant = world.seed
 		if not (seed_value is int or seed_value is float) or not is_finite(float(seed_value)) or float(seed_value) != floorf(float(seed_value)) or absf(float(seed_value)) > 9007199254740991.0: return false

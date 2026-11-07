@@ -31,7 +31,7 @@ var spider: Node3D
 var hud: CanvasLayer
 var menu
 var heading: Label
-var objective: Label
+var objective: Control
 var subtitle: Label
 var notice: Label
 var prompt_label: Label
@@ -194,8 +194,7 @@ func _ready() -> void:
 	progression.subtitle_changed.connect(func(t: String): subtitle.text = t)
 	progression.notice_changed.connect(func(t: String): notice.text = t)
 	progression.inventory_changed.connect(func():
-		objective.text = progression.objective()
-		status_hud.set_objective(objective.text)
+		_refresh_objective()
 		status_hud.set_escape_state(progression.has_exit_keys, progression.exit_web_cleared)
 		_queue_campaign_save())
 	if is_instance_valid(player):
@@ -203,7 +202,7 @@ func _ready() -> void:
 		status_hud.set_battery(player.battery_charge, player._light_on)
 		status_hud.set_health(player.health)
 		_update_inventory_hud()
-	status_hud.set_objective(progression.objective())
+	_refresh_objective()
 	status_hud.set_escape_state(progression.has_exit_keys, progression.exit_web_cleared)
 	subtitle.text = progression.subtitle
 	notice.text = progression.notice
@@ -447,6 +446,7 @@ func _show_tutorial_evidence(text: String, title: String) -> void:
 	if title == "Containment notice": get_node("StoryVoice").enqueue("containment")
 	status_hud.set_record_found(true)
 	status_hud.set_vault_code_found(campaign.code_found)
+	_refresh_objective()
 	_open_field_modal()
 	field_overlay.show_paper(title, text)
 	_queue_campaign_save()
@@ -543,7 +543,7 @@ func _queue_campaign_save() -> void:
 func _save_campaign() -> void:
 	_save_queued = false
 	if _loading_campaign or qa_mode or not is_instance_valid(player) or player.health <= 0.0 or player.is_recovering(): return
-	var world := {"seed": _supply_seed, "pickups": {}, "storage": {}}
+	var world := {"seed": _supply_seed, "pickups": {}, "storage": {}, "explored_rooms": house_map.visited.keys()}
 	for pickup in _supply_pickups:
 		world.pickups[str(pickup.name)] = pickup.taken
 	for storage in _storage_units:
@@ -558,6 +558,7 @@ func _restore_world_claims() -> void:
 		campaign.vault_unlocked = progression.vault_unlocked
 		return
 	var world: Dictionary = campaign.loaded.get("world", {})
+	house_map.restore_explored(world.get("explored_rooms", [0]))
 	var pickups: Dictionary = world.get("pickups", {}) if world.get("pickups", {}) is Dictionary else {}
 	for pickup in _supply_pickups:
 		pickup.taken = bool(pickups.get(str(pickup.name), false))
@@ -627,6 +628,7 @@ func _update_inventory_hud() -> void:
 		status_hud.set_armor_state(player.get_armor_state(), player.armor_reduction_percent())
 		status_hud.set_wallet(campaign.wallet)
 		status_hud.set_vault_code_found(campaign.code_found)
+		_refresh_objective()
 		_queue_campaign_save()
 
 func _show_supply_notice(text: String) -> void:
@@ -761,8 +763,10 @@ func _create_hud() -> void:
 	house_map = preload("res://scripts/house_map.gd").new()
 	house_map.name = "HouseMap"
 	root.add_child(house_map)
-	objective = _label("", 18)
-	objective.position = Vector2(44, 38)
+	house_map.world = self
+	house_map.room_discovered.connect(func(_index: int): _queue_campaign_save())
+	objective = preload("res://scripts/objective_bar.gd").new()
+	objective.name = "ObjectiveTracker"
 	root.add_child(objective)
 	subtitle = _label("", 23)
 	subtitle.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
@@ -961,6 +965,7 @@ func _restart() -> void:
 	_reset_supplies()
 	get_node("LeatherKitContents").refresh(campaign.claimed)
 	house_map.visited = {0:true}
+	house_map.set_expanded(false)
 	for evidence in _tutorial_evidence: evidence.set_taken(false)
 	var vault := get_node_or_null("RearNorthDoor")
 	if vault != null: vault.locked = true
@@ -993,6 +998,19 @@ func _input(event: InputEvent) -> void:
 		elif field_overlay.mode == "vault" and event is InputEventKey and event.pressed:
 			handled = field_overlay.handle_vault_key(event)
 		if handled: get_viewport().set_input_as_handled()
+		return
+	if house_map.expanded:
+		if event.is_action_pressed("pause_game") or (event is InputEventKey and event.pressed and event.keycode == KEY_M):
+			_toggle_map()
+			get_viewport().set_input_as_handled()
+		elif event.is_action_pressed("inventory_toggle"):
+			_toggle_map()
+			_toggle_inventory()
+			get_viewport().set_input_as_handled()
+		return
+	if event is InputEventKey and event.pressed and event.keycode == KEY_M and _started and not status_hud.is_inventory_open():
+		_toggle_map()
+		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("inventory_toggle") and _started and not menu.visible:
 		_toggle_inventory()
@@ -1043,8 +1061,7 @@ func _on_stage(stage: int) -> void:
 	if stage in [progression.Stage.NORMAL, progression.Stage.MESSAGE]:
 		_reset_early_spider()
 	if is_instance_valid(objective):
-		objective.text = progression.objective()
-		status_hud.set_objective(objective.text)
+		_refresh_objective()
 	if stage == progression.Stage.PRESENCE:
 		_power_target = 0.72
 		var reveal_door := get_node_or_null("SouthEntryDoor")
@@ -1064,6 +1081,7 @@ func _on_recovery(recovering: bool) -> void:
 	tween.tween_property(fade, "color:a", 0.94 if recovering else 0.0, 0.55)
 
 func _process(delta: float) -> void:
+	if is_instance_valid(objective): objective.gameplay_visible = _started and is_instance_valid(player) and player.active and not is_instance_valid(_intro)
 	if get_tree().paused: return
 	_update_early_sighting(delta)
 	_update_room_spiders()
@@ -1216,3 +1234,16 @@ func _setup_house_visibility(house: Node) -> void:
 	instance.occluder = occluder
 	add_child(instance)
 	get_viewport().use_occlusion_culling = true
+
+func _refresh_objective() -> void:
+	if not is_instance_valid(objective): return
+	objective.update_state(progression, campaign.code_found)
+	house_map.objective_state = objective.state
+	status_hud.set_objective(objective.text)
+
+func _toggle_map() -> void:
+	var opened: bool = not house_map.expanded
+	house_map.set_expanded(opened)
+	get_tree().paused = opened
+	player.active = not opened and not _leaving
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if opened else Input.MOUSE_MODE_CAPTURED

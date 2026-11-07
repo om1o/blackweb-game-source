@@ -1,0 +1,87 @@
+{
+	"builder": "res://tools/bake_item_covers.gd",
+	"items": [
+		{
+			"file": "flashlight.png",
+			"height": 256,
+			"id": "flashlight",
+			"sha256": "a25e4f3801fa25a008d45c8ce8a8c615c9bad3d440e0852e938d0139d1cb2bc3",
+			"source_node": "HeldFlashlight",
+			"width": 256
+		},
+		{
+			"file": "knife.png",
+			"height": 256,
+			"id": "knife",
+			"sha256": "a1ef654214b908adef6f386735ef5681bb59f02beace94125b296d4ee72e0777",
+			"source_node": "HeldWornKnife",
+			"width": 256
+		},
+		{
+			"file": "candy_bar.png",
+			"height": 256,
+			"id": "candy_bar",
+			"sha256": "4b14566762869004c21b57d0bfe58fe2df059a838959800971464611a822b183",
+			"source_node": "HeldCandyBar",
+			"width": 256
+		},
+		{
+			"file": "battery.png",
+			"height": 256,
+			"id": "battery",
+			"sha256": "0a2fabd7e6c9a37d14d6de6d8b7af43f6c61138ed61234629759f7f04d1c54c3",
+			"source_node": "HeldBatteryCell",
+			"width": 256
+		},
+		{
+			"file": "bandage.png",
+			"height": 256,
+			"id": "bandage",
+			"sha256": "9490abe75693cdc5283c95da3780e2483a842e3cd88d6bc0e35b587928ed8102",
+			"source_node": "HeldBandagePack",
+			"width": 256
+		},
+		{
+			"file": "flare.png",
+			"height": 256,
+			"id": "flare",
+			"sha256": "28bfcca70502c563a01a383daa1b2f1cc081d0887773667afd133c56be3b62b6",
+			"source_node": "HeldUnlitFlare",
+			"width": 256
+		},
+		{
+			"file": "leather_shirt.png",
+			"height": 256,
+			"id": "leather_shirt",
+			"sha256": "bf6d99fe98698505928cbba76981d8c9cb4ab7dcfb39f0c3c4092b2520f94243",
+			"source_node": "ArmorShirt",
+			"width": 256
+		},
+		{
+			"file": "leather_pants.png",
+			"height": 256,
+			"id": "leather_pants",
+			"sha256": "8d793b7b351087dc6c563947671d25006353983859c8247964ed19083b8449cb",
+			"source_node": "ArmorPants",
+			"width": 256
+		},
+		{
+			"file": "leather_hood.png",
+			"height": 256,
+			"id": "leather_hood",
+			"sha256": "9063af69a0368131a898427b9388f68e1c439d549be6f54f14204a7f1c0ad4c7",
+			"source_node": "ArmorHood",
+			"width": 256
+		},
+		{
+			"file": "leather_shoes.png",
+			"height": 256,
+			"id": "leather_shoes",
+			"sha256": "da3654a78aa69a7f6804da808935aac9cb509e47ac2c549fdd9e1b7120a58ec3",
+			"source_node": "ArmorBoots",
+			"width": 256
+		}
+	],
+	"method": "Godot studio render of the actual player item meshes",
+	"rights": "Rendered appearances retain the underlying asset attributions in Docs/ASSET_PROVENANCE.md; no source meshes are redistributed here."
+}

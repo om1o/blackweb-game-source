@@ -40,6 +40,10 @@ func knife_click() -> void:
 	Input.flush_buffered_events()
 
 func _run() -> void:
+	if DisplayServer.get_name() == "headless":
+		push_error("Escape mouse-input checks require a native window: omit --headless.")
+		quit(2)
+		return
 	DirAccess.make_dir_recursive_absolute(output)
 	game = load("res://scenes/main.tscn").instantiate()
 	game.qa_mode = true
@@ -56,7 +60,7 @@ func _run() -> void:
 	check(game.get_node("LeatherKitContents").get_child_count()==4,"Vault shows four actual garment meshes")
 	check(game.get_node("FrontLockWeb").visible,"Physical strands cover the lock")
 	check(game.has_node("ContainmentDrum"),"Optimized Meshy containment model is in the lore room")
-	check(game.player._pinoc_motion.clips.size()==5,"PINOC locomotion, reaction and attack samples are loaded")
+	check(["Crouch_Fwd_Loop", "Crouch_Idle_Loop", "Jump_Loop", "Hit_Chest", "Sword_Attack"].all(func(id): return game.player._pinoc_motion.clips.has(id)),"Current authored locomotion, reaction and attack samples are loaded")
 	game.progression.warning_heard = true
 	game.progression._set_stage(game.progression.Stage.PREPARATION)
 	game.progression.interact(&"keys")
@@ -79,11 +83,11 @@ func _run() -> void:
 	await physics_frame
 	await shot("lock-before-cut")
 	knife_click()
-	await create_timer(.8).timeout
+	await create_timer(game.player.KNIFE_ACTION_DURATION + .15).timeout
 	check(game.get_node("FrontLockWeb").health == 4,"Mouse click drives knife animation and strikes the webbed lock")
 	check(not game.progression.exit_web_cleared,"First cut weakens silk without clearing it")
 	knife_click()
-	await create_timer(.8).timeout
+	await create_timer(game.player.KNIFE_ACTION_DURATION + .15).timeout
 	check(game.get_node("FrontLockWeb").health == 0,"Second mouse-driven knife strike reaches lock")
 	check(game.progression.exit_web_cleared and not game.get_node("FrontLockWeb").visible,"Second cut removes physical obstruction")
 	var saved: Dictionary=game.progression.snapshot()
