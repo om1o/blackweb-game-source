@@ -1,0 +1,57 @@
+{
+  "arrival": {
+    "speaker": "Luke",
+    "text": "That thing... it's guarding the greenhouse.",
+    "path": "res://assets/generated/boss_voice/arrival.wav",
+    "voice": "am_michael",
+    "engine": "Kokoro-82M fp32 stock synthetic voice; no voice cloning",
+    "duration": 3.2,
+    "peak": 0.8,
+    "rms": 0.07464910348477181,
+    "sha256": "08d007fac5ca9e16977418162fec8a0014cc78d80ce4ba7f6c075c81ac71175d"
+  },
+  "greeting": {
+    "speaker": "The Smiling Spider",
+    "text": "You came back. Good. Stay where I can see you.",
+    "path": "res://assets/generated/boss_voice/greeting.wav",
+    "voice": "am_adam",
+    "engine": "Kokoro-82M fp32 stock synthetic voice; no voice cloning",
+    "duration": 3.675,
+    "peak": 0.8,
+    "rms": 0.10531557794488602,
+    "sha256": "dd125fbe7f7fac0df4363df2c2586f718452e5b4bbdc57606ea2a9aef3dc08e1"
+  },
+  "warning": {
+    "speaker": "Mica",
+    "text": "Watch its legs, Luke. Move when it commits, then strike.",
+    "path": "res://assets/generated/boss_voice/warning.wav",
+    "voice": "af_heart",
+    "engine": "Kokoro-82M fp32 stock synthetic voice; no voice cloning",
+    "duration": 3.875,
+    "peak": 0.8,
+    "rms": 0.13977716180530866,
+    "sha256": "093786e4084ce81244fbf656c318c92c204b33f297d8fd676f9412e646613069"
+  },
+  "phase_two": {
+    "speaker": "The Smiling Spider",
+    "text": "No. You don't get to leave.",
+    "path": "res://assets/generated/boss_voice/phase_two.wav",
+    "voice": "am_adam",
+    "engine": "Kokoro-82M fp32 stock synthetic voice; no voice cloning",
+    "duration": 2.425,
+    "peak": 0.8,
+    "rms": 0.08969900043509202,
+    "sha256": "f9c016fbbfa2c5236e5236eeaf529485e2074f8d66e8701d09bbfd698f78d23e"
+  },
+  "victory": {
+    "speaker": "Luke",
+    "text": "It's down. I need to move. Now.",
+    "path": "res://assets/generated/boss_voice/victory.wav",
+    "voice": "am_michael",
+    "engine": "Kokoro-82M fp32 stock synthetic voice; no voice cloning",
+    "duration": 3.025,
+    "peak": 0.8,
+    "rms": 0.08383579890082453,
+    "sha256": "307a0fe1bdb3cdb97a7f0218c2f0b8e5fa7a15a5b3d04ddead8aec858b67c4ba"
+  }
+}

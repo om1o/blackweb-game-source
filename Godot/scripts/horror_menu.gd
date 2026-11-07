@@ -5,6 +5,7 @@ signal resume_requested
 signal restart_requested
 signal quit_requested
 signal voice_test_requested
+signal boss_test_requested
 signal hud_layout_selected(index: int)
 const Settings = preload("res://scripts/menu_settings.gd")
 const MenuAudio = preload("res://scripts/menu_audio.gd")
@@ -287,6 +288,7 @@ func _build_extras() -> void:
 		var text: String = content[label]
 		tabs.add_child(_small_button(label, func(): body.text = text; body.scroll_to_line(0)))
 	body.text = content.Controls
+	page.add_child(_small_button("Boss combat preview", func(): boss_test_requested.emit()))
 	page.add_child(_small_button("Back", back))
 
 func _build_new_game_confirmation() -> void:

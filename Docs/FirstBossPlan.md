@@ -6,6 +6,8 @@
 
 **3D draft update, 2026-11-07:** a textured Meshy draft now exists for the approved stone-crown design. The current connection exposes its viewer but no downloadable formats. See the [model record and actual preview](SmilingSpiderModel.md). No importable boss mesh, rig, animation or encounter has been added to the game.
 
+**Combat preview update:** [six authored attacks, a boss health bar and spoken dialogue](SmilingSpiderCombat.md) are now available in a separate Extras test encounter using the existing spider rig. The exact Meshy crown model, final story encounter and capture cinematic remain pending. This prototype does not add a boss to the five-room tutorial.
+
 ## Place in the story
 
 The five-room house teaches light, inventory, movement and ordinary spider combat. After escaping, Luke follows Mica's interrupted transmission across web-covered Greyhaven. A company transport tag and a damaged emergency message lead toward a greenhouse on the edge of town. The first major boss guards the service approach, linking the town outbreak directly to the experimental facility.

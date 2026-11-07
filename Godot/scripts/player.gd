@@ -32,6 +32,7 @@ var _spawn_yaw := 0.0
 var _recovering := false
 var _recovery_generation := 0
 var _hurt_time := 0.0
+var _web_slow_time := 0.0
 var _focused: Node3D
 var _focus_prompt := ""
 var _light_on := true
@@ -694,6 +695,7 @@ func _physics_process(delta: float) -> void:
 		_set_focus_prompt("")
 		return
 	_hurt_time = maxf(0.0, _hurt_time - delta)
+	_web_slow_time = maxf(0.0, _web_slow_time - delta)
 	var wants_crouch := Input.is_action_pressed("crouch")
 	if wants_crouch and not _crouching:
 		_set_crouch(true)
@@ -714,6 +716,7 @@ func _physics_process(delta: float) -> void:
 		stamina_changed.emit(stamina)
 	var speed := 1.05 if _crouching else (3.2 if sprinting else 2.0)
 	if busy_with_supply: speed *= 0.55
+	if _web_slow_time > 0.0: speed *= 0.65
 	if _hurt_time > 0.0: speed *= 0.55
 	velocity.x = move_toward(velocity.x, direction.x * speed, delta * 10.0)
 	velocity.z = move_toward(velocity.z, direction.z * speed, delta * 10.0)
@@ -916,6 +919,7 @@ func restore_survival_state(data: Dictionary) -> bool:
 	_battery_warning_band = _battery_band()
 	_knife_cooldown = 0.0
 	_hurt_time = 0.0
+	_web_slow_time = 0.0
 	_flare_remaining = 0.0
 	_clear_placed_flare()
 	if is_instance_valid(_flare_light): _flare_light.visible = false
@@ -1636,6 +1640,10 @@ func _can_stand() -> bool:
 func is_crouching() -> bool:
 	return _crouching
 
+func apply_web_slow(seconds: float) -> void:
+	if is_finite(seconds) and seconds > 0.0 and not _recovering:
+		_web_slow_time = maxf(_web_slow_time, minf(seconds, 3.0))
+
 func take_damage(amount: float) -> void:
 	if _recovering or not active or _hurt_time > 0.0 or amount <= 0.0 or not is_finite(amount): return
 	var damage := amount * (1.0 - armor_reduction_percent() / 100.0)
@@ -1663,6 +1671,7 @@ func restore_checkpoint() -> void:
 	pivot.rotation = Vector3(_pitch, _yaw, 0.0)
 	visual.rotation.y = _yaw
 	_hurt_time = 0.0
+	_web_slow_time = 0.0
 	stamina = 100.0
 	_stamina_reported = stamina
 	_stamina_recovery_delay = 0.0

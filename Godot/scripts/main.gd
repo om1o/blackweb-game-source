@@ -814,6 +814,7 @@ func _create_hud() -> void:
 		_save_campaign()
 		get_tree().quit())
 	menu.voice_test_requested.connect(_test_voice_audio)
+	menu.boss_test_requested.connect(_open_boss_test)
 	menu.hud_layout_selected.connect(_set_hud_layout)
 	status_hud.set_layout(menu.settings.hud_layout)
 	menu.present("main", _has_menu_progress(), _loaded, _has_menu_progress())
@@ -822,6 +823,13 @@ func _create_hud() -> void:
 	field_overlay.closed.connect(_close_field_modal)
 	field_overlay.code_submitted.connect(_submit_vault_code)
 	field_overlay.armor_claimed.connect(_claim_armor)
+
+func _open_boss_test() -> void:
+	if _started: _save_campaign()
+	menu.hide()
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	get_tree().change_scene_to_file("res://scenes/boss_encounter.tscn")
 
 func _menu_panel_style(fill: Color, edge: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()

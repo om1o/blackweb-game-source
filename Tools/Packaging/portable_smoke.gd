@@ -198,6 +198,27 @@ func _run() -> void:
 	_stop_audio(game)
 	game.queue_free()
 	for frame in 3: await process_frame
+	var boss_scene := load("res://scenes/boss_encounter.tscn") as PackedScene
+	_check("Boss preview scene is packaged", boss_scene != null)
+	if boss_scene:
+		var preview := boss_scene.instantiate()
+		preview.set("qa_mode", true)
+		root.add_child(preview)
+		for frame in 3: await process_frame
+		_check("All six authored boss clips load from the PCK", int(preview.boss.animation_count) == 6)
+		_check("Boss preview keeps tutorial saves isolated", not preview.progression.auto_save and not preview.progression.auto_load)
+		preview._retry()
+		preview.boss.set_physics_process(false)
+		preview.boss.take_damage(4)
+		_check("Packaged boss damage updates top-screen health bar", preview.boss_bar.visible and preview.boss_bar.meter.value == 116)
+		for id in ["arrival", "greeting", "warning", "phase_two", "victory"]:
+			var line: Dictionary = preview.dialogue.data.get(id, {})
+			var stream: Resource = load(str(line.get("path", ""))) if not line.is_empty() else null
+			_check("Packaged boss voice loads: " + id, stream is AudioStream and stream.get_length() > 1)
+		preview.dialogue.reset()
+		_stop_audio(preview)
+		preview.queue_free()
+		for frame in 3: await process_frame
 	await create_timer(0.12).timeout
 	_finish()
 

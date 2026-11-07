@@ -267,7 +267,8 @@ func _run() -> void:
 	fixture.add_child(corpse)
 	await physics_frame
 	check(player.use_selected_item() and target.hits == 0, "Knife input starts an action without immediate damage")
-	player._tick_item_action(0.23)
+	# The authored slash commits at 0.28 s; sample just before and after it.
+	player._tick_item_action(0.27)
 	check(target.hits == 0, "Knife cannot hit before its delayed contact event")
 	player._tick_item_action(0.02)
 	check(target.hits == 1 and is_equal_approx(target.health, 16.0) and corpse.hits == 0, "A worn knife hits the living surface for four damage and skips the nearer corpse")
