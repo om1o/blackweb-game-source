@@ -28,7 +28,7 @@ A launch-log error exposed a lethal-hit cancellation bug that was reproduced on 
 
 The corrected portable pack is 1,192,413,076 bytes, SHA-256 `1E1603D1A8063889315C04C9B52F9B98308D7474C5D1D4CC6AAE99773A3D1733`. Tests ran from an isolated directory and user-data profile.
 
-The first garden installation completed with identical save/configuration hashes before and after replacement. That project measured 4,932,907,625 bytes before adding the separate axe concept sheet, below the 5,000,000,000-byte limit. The corrected build reuses the same hash-checked installation and save-preservation procedure.
+The corrected garden installation completed with identical save/configuration hashes before and after replacement. Its native window was verified responsive for four seconds, with the RX550 renderer initialized and no script errors in its fresh launch log. The active project measured 4,951,572,055 bytes before adding the final single-image reference, below the 5,000,000,000-byte limit.
 
 At 960×540, the final quality-preset run sampled 1,117 frames: mean 20.43 ms, p95 37.52 ms. The performance-preset run sampled 1,182 frames: mean 19.22 ms (about 52 FPS), p95 32.06 ms. These bounded automated runs on a Radeon RX550 show remaining frame-time spikes; they do not establish a locked 60 FPS or game-wide performance guarantee.
 
@@ -42,6 +42,8 @@ At 960×540, the final quality-preset run sampled 1,117 frames: mean 20.43 ms, p
 The reproducible geometry, refinement, material finishing and animation rebake scripts live in `Tools/Assets`. The original imagegen material and exact prompt are retained in `Tools/Assets/References`.
 
 The later [axe turnaround concept](Design/smiling-spider-axe-turnaround-v1.png) is an imagegen reference sheet requested after this game build. It shows front, rear, both sides, three-quarter and top views, with the front limbs gripping a huge axe. It is concept art only; this weapon and altered forelimbs are not present in the shipped GLB or its six attacks. Its exact prompt is stored alongside the image.
+
+The user's refined direction is the [single cinematic axe reference](Design/smiling-spider-axe-cinematic-reference-v1.png): a photorealistic creature image outside the house, with wet chitin, stone busts and a huge held axe. This generated reference is an art target, not a screenshot of the current game model. Its exact prompt is also retained.
 
 ## Storage and remaining work
 
