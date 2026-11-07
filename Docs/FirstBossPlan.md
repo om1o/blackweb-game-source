@@ -18,6 +18,8 @@ Its signature behaviour is retrieval: it wraps living prey and returns toward th
 
 ## A playable first encounter
 
+**Current visual revision:** the [v3 crown concept](Design/smiling-spider-crown-v3.png) retains the v2 spider anatomy and adds four intact limestone child portrait sculptures, arranged as a crown on the cephalothorax. Small square stone plinths and silk bindings make these unmistakably artificial memorial objects. Their faces have carved stone eyes, mineral grain and no blood or injuries. This symbolic crown follows the creator's accepted statue alternative; it does not depict human remains. The [two exact imagegen prompts](Design/SmilingSpiderCrownV3Prompts.txt) record the crown addition and portrait refinement. V3 is the latest visual study and remains concept art only.
+
 The player objective is **"Open the service gate and get through."** The encounter has a visible task and a successful completion condition. Reserve a conventional kill-health bar for the later rematch; this meeting introduces an enemy Luke cannot yet kill with his worn knife.
 
 1. **Recognition:** the silhouette crosses behind greenhouse glass. Luke has a short safe view of the gate, two jammed cable housings and cover before the fight activates.

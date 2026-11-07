@@ -1,0 +1,22 @@
+Mode: built-in imagegen edit, two passes
+Final deliverable: concept art only, not a runtime model.
+Initial reference: Docs/Design/smiling-spider-v2.png
+
+PASS 1 — crown addition
+Use case: precise-object-edit
+Asset type: revised Blackweb boss concept art, The Smiling Spider.
+Edit target: the supplied smiling spider greenhouse image.
+Primary request: Add a crown of exactly FOUR carved stone portrait sculptures on top of the spider's cephalothorax, above its eyes. These are unmistakably artificial memorial statues with youthful faces, not people or anatomical remains.
+Crown design: Four separate complete limestone portrait sculptures arranged in a shallow semicircle, each face clearly visible and countable. Their calm, solemn carved faces and different sculpted hairstyles provide an eerie contrast with the creature's grin. Each portrait has a small square stone plinth beneath it, like a miniature museum bust. Thick grey silk cords secure the four plinths to the shell. Thin cobwebs connect them like a crown. Keep the crown on the spider's actual front head section, not on its rear abdomen.
+Material: visibly pale grey carved limestone, completely monochrome stone, chisel marks, grain, mineral weathering, a little moss at the plinth edges. Blank carved stone eyes. The statue faces are intact, clean and free of blood; no realistic skin, organic tissue, injuries or severed necks. The square plinths and continuous stone material must make their nature as sculptures obvious.
+Preserve unchanged: the true two-segment spider anatomy, eight jointed legs, huge rear abdomen, glossy dark spider eyes, disturbing integrated toothy smile and chelicerae, existing adult fictional monster's bloody chitin, red-black floor residue, dense greenhouse webs, glass and metal laboratory setting, perspective, lighting and realistic cinematic rendering. Retain the entire creature in frame. This is a focused crown addition rather than a new scene.
+Lighting: the crown catches a subtle cold greenhouse light so all four stone faces are legible without turning bright white or glowing.
+Constraints: Exactly four stone sculptures. No real children, people, victims, bodies or human remains. No flesh or blood on the sculptures. No additional gore. No text, logo, watermark or HUD. Do not hide the spider's face or alter its grin.
+
+PASS 2 — portrait refinement
+Reference: first-pass image generated in this session, exec-304ff92d-00d2-488f-9c08-8276407ebd12.png.
+Use case: precise-object-edit
+Edit target: the attached Smiling Spider concept with four stone sculptures on its head.
+Make one focused correction to the FOUR SCULPTURES ONLY. Replace the classical adult-looking busts with four small antique limestone memorial portrait sculptures of children, with rounded youthful facial proportions, simple carved short hair or braids, solemn neutral expressions, and blank carved stone eyes. These are clearly artificial carved objects, with matte grey limestone grain and visible chisel marks. Each sculpture is intact and sits on its own clean square stone plinth. Shorten the shoulder portions so the arrangement reads as a compact crown of four stone portrait heads. Keep the four heads distinct, fully visible and countable in the same semicircular arrangement, secured by the existing silk bindings.
+The sculptures must remain completely stone, intact, clean and free of blood or injury. No realistic skin, flesh, organic tissue, actual children, victims, human remains, exposed anatomy or severed necks. This is non-graphic symbolic memorial statuary, not living people or body parts.
+Preserve everything else exactly: the adult fictional monster's eight-legged spider anatomy, its enormous abdomen, black eyes and toothy grin, existing webs, existing environment, existing background stains, camera angle, framing and cinematic lighting. Do not add any additional violence or gore. No text or watermark.
