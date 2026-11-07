@@ -142,6 +142,30 @@ func _run() -> void:
 	boss.set_physics_process(false)
 	check(player.health == 72 and player.battery_charge == 29, "Garden retry restores the original campaign-entry supplies")
 	scene._entry_loadout.clear()
+	# Damage emits recovery_changed synchronously. Exercise the real update that
+	# was previously reading attack.recover after that signal cleared attack.
+	for lethal_id in ["double_bite","ground_slam","marked_leap","silk_spit"]:
+		scene._retry()
+		boss.set_physics_process(false)
+		boss.position = Vector3.ZERO
+		player.position = Vector3(0,.04,-1.4)
+		player.health = 1.0
+		player._hurt_time = 0.0
+		await physics_frame
+		await physics_frame
+		boss.start_attack(lethal_id)
+		var active_fraction := .16 if lethal_id == "double_bite" else .5
+		boss.attack_time = float(boss.attack.tell)+float(boss.attack.active)*active_fraction
+		if lethal_id == "marked_leap": boss.attack_time = float(boss.attack.tell)+float(boss.attack.active)
+		if lethal_id == "silk_spit":
+			boss._bolt.global_position = player.position+Vector3.UP*.7
+			boss._bolt_velocity = Vector3.FORWARD
+			boss._bolt_life = 1.0
+		boss._physics_process(1.0/60.0)
+		check(player.is_recovering() and boss.state == boss.State.DORMANT,"Lethal %s cancels combat during the same update" % lethal_id)
+		check(boss.attack.is_empty() and boss._pulse_life == 0 and boss._bolt_life == 0 and player._web_slow_time == 0,"Lethal %s leaves no restarted attack hazards" % lethal_id)
+	scene._retry()
+	boss.set_physics_process(false)
 	for id in ["arrival","greeting","warning","phase_two","victory"]:
 		check(scene.dialogue.data.has(id), "Dialogue record exists: " + id)
 		if scene.dialogue.data.has(id):

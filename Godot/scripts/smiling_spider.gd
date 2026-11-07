@@ -246,6 +246,8 @@ func _physics_process(delta: float) -> void:
 		return
 	_flash_slow = maxf(0.0, _flash_slow - delta)
 	_tick_bolt(delta)
+	# Taking damage can synchronously emit player recovery and stop this boss.
+	if state in [State.DEAD, State.DORMANT]: return
 	_pulse_life = maxf(0.0, _pulse_life - delta)
 	_pulse.visible = _pulse_life > 0.0
 	if _pulse.visible: _pulse.scale = Vector3.ONE * lerpf(3.8, 0.5, _pulse_life / 0.5)
@@ -274,11 +276,14 @@ func _physics_process(delta: float) -> void:
 		if attack_time >= tell and not _attack_impacted:
 			_audio.play_lunge()
 			_attack_impacted = true
-		if attack_time >= tell and attack_time < tell + active: _active_attack(delta, (attack_time - tell) / active)
+		if attack_time >= tell and attack_time < tell + active:
+			_active_attack(delta, (attack_time - tell) / active)
+			if state != State.ATTACK: return
 		if attack_time >= tell + active:
 			if attack.id == "marked_leap" and not _hit_tokens.has("landing_done"):
 				_hit_tokens["landing_done"] = true
 				_radial_hit(1.7, float(attack.damage), "landing", false)
+				if state != State.ATTACK: return
 				_audio.play_impact()
 			_marker.hide()
 			visual.position.y = 0.0
@@ -328,6 +333,7 @@ func _active_attack(_delta: float, fraction: float) -> void:
 			if fraction >= 0.45 and not _hit_tokens.has("pulse_done"):
 				_hit_tokens["pulse_done"] = true
 				_radial_hit(3.8, damage, "slam", true)
+				if state != State.ATTACK: return
 				_pulse.global_position = global_position + Vector3.UP * 0.06
 				_pulse_life = 0.5
 				_audio.play_impact()

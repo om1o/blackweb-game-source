@@ -211,6 +211,21 @@ func _run() -> void:
 		preview.boss.set_physics_process(false)
 		preview.boss.take_damage(4)
 		_check("Packaged boss damage updates top-screen health bar", preview.boss_bar.visible and preview.boss_bar.meter.value == 116)
+		preview.player.set_physics_process(false)
+		preview.player.set_process_unhandled_input(false)
+		preview.boss.position = Vector3.ZERO
+		preview.player.position = Vector3(0,.04,-1.4)
+		preview.player.health = 1.0
+		preview.player._hurt_time = 0.0
+		for frame in 2: await physics_frame
+		preview.boss.start_attack("ground_slam")
+		preview.boss.attack_time = float(preview.boss.attack.tell)+float(preview.boss.attack.active)*.5
+		preview.boss._physics_process(1.0/60.0)
+		_check("Lethal packaged hit safely cancels its own attack", preview.player.is_recovering() and preview.boss.attack.is_empty() and preview.boss.state == preview.boss.State.DORMANT)
+		_check("Lethal packaged slam leaves no active hazard", preview.boss._pulse_life == 0 and preview.boss._bolt_life == 0)
+		preview._retry()
+		preview.boss.set_physics_process(false)
+		_check("Packaged encounter restarts after a lethal hit", not preview.player.is_recovering() and preview.player.health == 100 and preview.boss.health == 120)
 		for id in ["arrival", "greeting", "warning", "phase_two", "victory"]:
 			var line: Dictionary = preview.dialogue.data.get(id, {})
 			var stream: Resource = load(str(line.get("path", ""))) if not line.is_empty() else null
