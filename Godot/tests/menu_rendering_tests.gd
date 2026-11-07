@@ -26,6 +26,13 @@ func _run() -> void:
 	check(not hud.visible, "Menu still suppresses underlying HUD")
 	menu.show_page("options")
 	check(root.disable_3d, "Options keeps world rendering suspended")
+	menu.present("complete",false,true,true)
+	check(not menu.resume_button.disabled and menu.resume_button.text == "Enter the garden", "Completing the house unlocks the outdoor encounter")
+	var routing := {"boss":false,"resume":false}
+	menu.boss_test_requested.connect(func(): routing.boss = true)
+	menu.resume_requested.connect(func(): routing.resume = true)
+	menu.resume_button.pressed.emit()
+	check(routing.boss and not routing.resume, "Completed-house continue routes to garden rather than resuming the closed chapter")
 	menu.hide()
 	check(not root.disable_3d and hud.visible, "Hiding menu restores world drawing and HUD")
 	root.disable_3d = true

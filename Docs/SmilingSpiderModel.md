@@ -1,6 +1,14 @@
-# The Smiling Spider: first 3D draft
+# The Smiling Spider: playable Blender model
 
-Meshy completed a textured 3D draft on 2026-11-07 from the approved crown concept. It can be viewed through Meshy's model card. **No downloadable formats were returned by the connection, so this repository does not contain a GLB, FBX, or editable mesh for this boss.** The model is not installed in the game.
+The game now uses an editable, locally authored GLB with eight articulated legs, a tooth-lined grin, four intact stone portrait sculptures, nine material surfaces and a 31-bone skeleton. Its nine embedded clips cover idle, walk, collapse and six attacks. This is an independent interpretation of the approved concept; it is not an export of the Meshy draft.
+
+Runtime asset: `Godot/assets/generated/smiling_spider/smiling_spider.glb`. Editable master: `D:/GameProjects/Blackweb-BossWorkshop/SmilingSpider-v2/smiling_spider_final.blend`. The Blender builder, material pass and motion rebake scripts are under `Tools/Assets`; see the asset README for their order. The four sculpture faces adapt the project's MIT Microsoft Rocketbox mesh. The chitin albedo was created with built-in imagegen, with the source and exact prompt retained under `Tools/Assets/References/SmilingSpiderChitin.*`.
+
+This is a real rigged game asset and a substantial prototype art pass. It is not represented as finished AAA production art. The body detailing, bust likenesses and cinematic finish remain open to further art direction. See [the outdoor encounter](SmilingSpiderCombat.md) for controls and validation.
+
+## Earlier Meshy draft record
+
+Meshy completed a textured 3D draft on 2026-11-07 from the approved crown concept. It can be viewed through Meshy's model card. **No downloadable formats were returned by the connection, so that specific Meshy draft is not installed in the game.** No encrypted viewer data was used in the locally authored replacement above.
 
 ![Actual Meshy model thumbnail](Design/smiling-spider-model-v1-preview.png)
 

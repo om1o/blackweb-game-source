@@ -826,6 +826,8 @@ func _create_hud() -> void:
 
 func _open_boss_test() -> void:
 	if _started: _save_campaign()
+	if progression.stage == progression.Stage.COMPLETE:
+		get_tree().root.set_meta("blackweb_garden_loadout",player.survival_snapshot())
 	menu.hide()
 	get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE

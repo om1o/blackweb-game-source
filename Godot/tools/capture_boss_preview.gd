@@ -10,6 +10,8 @@ func _run() -> void:
 	for i in 20: await process_frame
 	root.get_texture().get_image().save_png(folder + "/boss-menu.png")
 	scene._retry()
+	scene.player.set_process_unhandled_input(false)
+	scene.player._pitch = -0.10
 	scene.dialogue.reset()
 	scene.player.position = Vector3(0,.04,2.5)
 	scene.player.set_view(0.0)

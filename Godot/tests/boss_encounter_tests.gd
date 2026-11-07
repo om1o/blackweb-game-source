@@ -25,6 +25,8 @@ func _run() -> void:
 	player.set_physics_process(false)
 	scene.dialogue.reset()
 	check(boss.animation_count == 6, "Six skeletal clips installed")
+	check(boss.visual.scene_file_path.ends_with("smiling_spider.glb"), "Encounter uses the actual custom boss mesh")
+	check(boss.animation.has_animation("death"), "Authored collapse animation exists")
 	for data: Dictionary in boss.attacks:
 		check(boss.animation.has_animation("boss/" + str(data.id)), "Clip exists: " + str(data.id))
 		var clip: Animation = boss.animation.get_animation("boss/" + str(data.id))
@@ -32,6 +34,27 @@ func _run() -> void:
 		check(is_equal_approx(clip.length, float(data.tell) + float(data.active) + float(data.recover)), "Combat and animation share timing: " + str(data.id))
 	var rig: Skeleton3D = boss.visual.find_child("*Skeleton3D*",true,false)
 	var foreleg := rig.find_bone("LegSegmentA_R_001")
+	var foot := rig.find_bone("LegSegmentC_R_001")
+	boss.animation.play("walk",0)
+	boss.animation.advance(0.0)
+	var first_foot := rig.get_bone_global_pose(foot).origin
+	boss.animation.seek(boss.animation.get_animation("walk").length-.001,true)
+	var loop_gap := first_foot.distance_to(rig.get_bone_global_pose(foot).origin)
+	check(loop_gap<.04, "Walk loop closes without a foot teleport (gap %.4f m)" % loop_gap)
+	for data: Dictionary in boss.attacks:
+		boss.animation.play("boss/"+str(data.id),0)
+		boss.animation.advance(0.0)
+		var worst_gap := 0.0
+		for fraction in [.0,.5,.95,1.3,1.8]:
+			boss.animation.seek(minf(float(data.tell)*fraction,boss.animation.get_animation("boss/"+str(data.id)).length),true)
+			for side in ["L","R"]:
+				for leg in range(1,5):
+					for segment in ["B","C"]:
+						var child := rig.find_bone("LegSegment%s_%s_%03d" % [segment,side,leg])
+						var parent := rig.get_bone_parent(child)
+						var joint := rig.get_bone_global_pose(parent)*rig.get_bone_rest(child).origin
+						worst_gap = maxf(worst_gap,joint.distance_to(rig.get_bone_global_pose(child).origin))
+		check(worst_gap<.04,"Leg joints stay connected in %s (gap %.4f m)" % [data.id,worst_gap])
 	boss.animation.play("idle",0)
 	boss.animation.advance(0.0)
 	var base_pose := rig.get_bone_pose_rotation(foreleg)
@@ -110,6 +133,15 @@ func _run() -> void:
 	check(player.health == 100 and player._web_slow_time == 0 and boss.health == 120, "Retry resets health and movement debuffs")
 	check(not boss._marker.visible and boss._bolt_life == 0 and boss.attack.is_empty(), "Retry removes active attack hazards")
 	check(player.inventory.count(&"candy_bar") == 1 and player.equipped_items().size() == 3, "Retry restores isolated starter inventory")
+	var entry: Dictionary = player.survival_snapshot()
+	entry.health = 72.0
+	entry.battery = 29.0
+	scene._entry_loadout = entry
+	player.battery_charge = 1.0
+	scene._retry()
+	boss.set_physics_process(false)
+	check(player.health == 72 and player.battery_charge == 29, "Garden retry restores the original campaign-entry supplies")
+	scene._entry_loadout.clear()
 	for id in ["arrival","greeting","warning","phase_two","victory"]:
 		check(scene.dialogue.data.has(id), "Dialogue record exists: " + id)
 		if scene.dialogue.data.has(id):
@@ -119,6 +151,7 @@ func _run() -> void:
 	scene.dialogue.say("phase_two")
 	check(scene.dialogue.channel.playing and scene.caption.text.begins_with("The Smiling Spider:"), "Spoken line and subtitle begin together")
 	check(scene.dialogue.queue.size() == 1, "Dialogue queues instead of overlapping")
+	check(scene.dialogue.envelopes.has("greeting") and scene.dialogue.envelopes.greeting.samples.max()>0.1, "Boss jaw has a measured audible speech envelope")
 	scene.dialogue.reset()
 	check(not scene.dialogue.channel.playing and scene.caption.text.is_empty(), "Dialogue reset stops voice and clears subtitle")
 	boss.take_damage(1000)

@@ -1,0 +1,21 @@
+{
+  "model_bytes": 14696368,
+  "vertices": 98904,
+  "triangles": 189704,
+  "bones": 31,
+  "clips": [
+    "idle",
+    "walk",
+    "death",
+    "fang_rush",
+    "reaping_sweep",
+    "double_bite",
+    "silk_spit",
+    "ground_slam",
+    "marked_leap"
+  ],
+  "portrait_count": 4,
+  "source": "Locally authored Blender geometry and motion; portraits adapt MIT Microsoft Rocketbox Luke mesh",
+  "master": "D:\\GameProjects\\Blackweb-BossWorkshop\\SmilingSpider-v2\\smiling_spider_final.blend",
+  "material": "Original imagegen chitin albedo, 92-quality JPEG embedded in GLB; physical roughness and pores"
+}

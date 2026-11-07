@@ -21,6 +21,7 @@ var panel_title: Label
 var started := false
 var introduction_remaining := 0.0
 var _tell_remaining := 0.0
+var _entry_loadout: Dictionary = {}
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -49,6 +50,10 @@ func _ready() -> void:
 	player.spawn_transform = player.transform
 	player.set_view(0.0)
 	player.attach_model(load("res://scenes/luke.tscn"))
+	if get_tree().root.has_meta("blackweb_garden_loadout"):
+		_entry_loadout = get_tree().root.get_meta("blackweb_garden_loadout").duplicate(true)
+		get_tree().root.remove_meta("blackweb_garden_loadout")
+		if not player.restore_survival_state(_entry_loadout): _entry_loadout.clear()
 	player.camera.current = true
 	progression.player = player
 	progression.checkpoint_restored.connect(_retry)
@@ -79,7 +84,7 @@ func _ready() -> void:
 	dialogue.caption_changed.connect(func(text: String): caption.text = text)
 	_inventory_changed()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	_show_panel("GREENHOUSE / COMBAT PREVIEW", false)
+	_show_panel("THE GARDEN / SMILING SPIDER", false)
 
 func _install_input() -> void:
 	var keys := {"move_forward":KEY_W,"move_back":KEY_S,"move_left":KEY_A,"move_right":KEY_D,"sprint":KEY_SHIFT,"crouch":KEY_C,"jump":KEY_SPACE,"interact":KEY_E,"flashlight":KEY_F,"pause_game":KEY_ESCAPE,"hotbar_1":KEY_1,"hotbar_2":KEY_2,"hotbar_3":KEY_3,"inventory_toggle":KEY_I}
@@ -91,81 +96,8 @@ func _install_input() -> void:
 		InputMap.action_add_event(action, event)
 
 func _build_room() -> void:
-	var world := WorldEnvironment.new()
-	var environment := Environment.new()
-	environment.background_mode = Environment.BG_COLOR
-	environment.background_color = Color("080d0e")
-	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color("8da6a6")
-	environment.ambient_light_energy = 0.22
-	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	world.environment = environment
-	add_child(world)
-	_box("Floor", Vector3(0,-0.12,0), Vector3(16,0.24,22), Color("303632"), true)
-	for x in [-8.0,8.0]: _box("SideWall", Vector3(x,2.5,0), Vector3(0.3,5,22), Color("1d2b29"), true)
-	for z in [-11.0,11.0]: _box("EndWall", Vector3(0,2.5,z), Vector3(16,5,0.3), Color("172421"), true)
-	for z in [-10.0,-6.0,-2.0,2.0,6.0,10.0]:
-		for x in [-7.5,7.5]:
-			_box("SteelUpright",Vector3(x,2.6,z),Vector3(0.14,5.2,0.14),Color("52635b"),false)
-		_box("RoofTie",Vector3(0,5.0,z),Vector3(15,0.14,0.14),Color("52635b"),false)
-	for z in [-8.0,-3.0,2.0,7.0]:
-		for x in [-6.9,6.9]:
-			_box("GrowingBed",Vector3(x,0.65,z),Vector3(1.4,1.3,3.1),Color("29312a"),true)
-			_box("Soil",Vector3(x,1.32,z),Vector3(1.35,0.06,3),Color("181b15"),false)
-	for x in [-5.0,5.0]:
-		var light := OmniLight3D.new()
-		light.position = Vector3(x,3.8,-2.5)
-		light.light_color = Color("a7c4bb")
-		light.light_energy = 2.4
-		light.omni_range = 14.0
-		light.shadow_enabled = false
-		add_child(light)
-	var exit_light := OmniLight3D.new()
-	exit_light.position = Vector3(0,3,-9)
-	exit_light.light_color = Color("ba4d38")
-	exit_light.light_energy = 1.5
-	exit_light.omni_range = 8
-	add_child(exit_light)
-	var web_scene := load("res://assets/generated/web_master/web_masters.glb") as PackedScene
-	if web_scene:
-		var source := web_scene.instantiate()
-		var web := source.find_child("WebRadialTorn",true,false) as Node3D
-		if web:
-			for x in [-5.5,0.0,5.5]:
-				var instance := web.duplicate() as Node3D
-				instance.position = Vector3(x,3.4,-10.7)
-				instance.scale = Vector3.ONE * 1.4
-				add_child(instance)
-		var canopy := source.find_child("WebSaggingCanopy",true,false) as Node3D
-		if canopy:
-			for z in [-5.0,3.0]:
-				var instance := canopy.duplicate() as Node3D
-				instance.position = Vector3(0,4.7,z)
-				instance.scale = Vector3(2,0.5,1.5)
-				add_child(instance)
-		source.free()
-
-func _box(label: String, at: Vector3, dimensions: Vector3, color: Color, solid: bool) -> void:
-	var node := MeshInstance3D.new()
-	node.name = label
-	var mesh := BoxMesh.new()
-	mesh.size = dimensions
-	node.mesh = mesh
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	material.roughness = 0.84
-	node.material_override = material
-	node.position = at
-	add_child(node)
-	if solid:
-		var body := StaticBody3D.new()
-		body.collision_layer = 1
-		var collider := CollisionShape3D.new()
-		var shape := BoxShape3D.new()
-		shape.size = dimensions
-		collider.shape = shape
-		body.add_child(collider)
-		node.add_child(body)
+	add_child(preload("res://scripts/boss_garden.gd").new())
+	return
 
 func _label(text: String, size: int) -> Label:
 	var label := Label.new()
@@ -209,7 +141,7 @@ func _build_hud() -> void:
 	tell.offset_left = 80
 	tell.offset_right = -80
 	root.add_child(tell)
-	var note := _label("COMBAT PREVIEW · temporary spider body · Esc: pause",12)
+	var note := _label("GREYHAVEN / THE GARDEN\nEsc: pause",12)
 	note.position = Vector2(22,14)
 	note.size = Vector2(260,42)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -228,7 +160,7 @@ func _build_hud() -> void:
 	panel_title = _label("",28)
 	Art.heading(panel_title,28)
 	stack.add_child(panel_title)
-	stack.add_child(_label("Six attacks. Read the wind-up and strike during recovery. The approved stone-crown model is pending export; this preview uses the existing spider rig.",16))
+	stack.add_child(_label("Beyond the house, something guards the research annex. Read its six attacks and strike during recovery.",16))
 	stack.add_child(_label("WASD move · Shift sprint · C crouch · Space jump\n2 knife · Click attack · 3 candy · F flashlight\nYour tutorial save is kept separately.",15))
 	begin_button = _button("Begin encounter",_start_or_resume)
 	stack.add_child(begin_button)
@@ -268,7 +200,7 @@ func _start_or_resume() -> void:
 		dialogue.say("arrival")
 		dialogue.say("greeting")
 		introduction_remaining = 9.0
-		tell.text = "The greenhouse is occupied. Keep your distance."
+		tell.text = "The garden gate is blocked. Keep your distance."
 
 func _retry() -> void:
 	get_tree().paused = false
@@ -280,6 +212,7 @@ func _retry() -> void:
 	player.restore_checkpoint()
 	player.battery_charge = 60.0
 	player.inventory.reset()
+	if not _entry_loadout.is_empty(): player.restore_survival_state(_entry_loadout)
 	player.select_quick_slot(1)
 	_inventory_changed()
 	player.active = true
@@ -293,6 +226,7 @@ func _retry() -> void:
 
 func _process(delta: float) -> void:
 	if get_tree().paused: return
+	boss.mouth_amount = dialogue.mouth_amount()
 	if introduction_remaining > 0.0:
 		introduction_remaining -= delta
 		if introduction_remaining <= 0.0:

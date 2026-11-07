@@ -122,7 +122,9 @@ func _build() -> void:
 	_navigation.add_theme_constant_override("separation", 4)
 	add_child(_navigation)
 	restart_button = _nav_button("Start game", _request_new_game)
-	resume_button = _nav_button("Continue", func(): resume_requested.emit())
+	resume_button = _nav_button("Continue", func():
+		if _mode == "complete": boss_test_requested.emit()
+		else: resume_requested.emit())
 	options_button = _nav_button("Options", func(): show_page("options"))
 	extras_button = _nav_button("Extras", func(): show_page("extras"))
 	quit_button = _nav_button("Quit", func(): quit_requested.emit())
@@ -288,7 +290,7 @@ func _build_extras() -> void:
 		var text: String = content[label]
 		tabs.add_child(_small_button(label, func(): body.text = text; body.scroll_to_line(0)))
 	body.text = content.Controls
-	page.add_child(_small_button("Boss combat preview", func(): boss_test_requested.emit()))
+	page.add_child(_small_button("The garden / Smiling Spider", func(): boss_test_requested.emit()))
 	page.add_child(_small_button("Back", back))
 
 func _build_new_game_confirmation() -> void:
@@ -395,16 +397,16 @@ func present(mode: String, can_continue: bool, loaded: bool = true, has_progress
 	_has_progress = has_progress
 	heading.text = "BLACKWEB"
 	menu_state.text = "PAUSED  /  THE HOUSE" if mode == "pause" else ("CHAPTER COMPLETE  /  GREYHAVEN AWAITS" if mode == "complete" else "CHAPTER 01  /  THE HOUSE")
-	resume_button.text = "Resume" if mode == "pause" else "Continue"
-	resume_button.disabled = not loaded or (mode != "pause" and not can_continue) or mode == "complete"
+	resume_button.text = "Enter the garden" if mode == "complete" else ("Resume" if mode == "pause" else "Continue")
+	resume_button.disabled = not loaded or (mode not in ["pause","complete"] and not can_continue)
 	restart_button.text = "New game" if has_progress else "Start game"
 	restart_button.disabled = not loaded
-	_navigation.move_child(resume_button if mode == "pause" else restart_button, 0)
+	_navigation.move_child(resume_button if mode in ["pause","complete"] else restart_button, 0)
 	_status.text = "Progress saves automatically." if can_continue or mode == "pause" else "No saved game to continue."
-	if mode == "complete": _status.text = "The house is behind you. Start again to explore what you missed."
+	if mode == "complete": _status.text = "House checkpoint saved. The garden encounter is ready."
 	if not loaded: _status.text = "The house could not be loaded."
 	_detail_title.text = "A moment to breathe." if mode == "pause" else ("You found the way out." if mode == "complete" else "You know this house.")
-	_detail_copy.text = "The house will wait.\nTake stock before you return." if mode == "pause" else ("Mica's trail leads into Greyhaven.\nThis tutorial ends at the front door." if mode == "complete" else "The rooms feel different tonight.\nA phone rings somewhere inside.")
+	_detail_copy.text = "The house will wait.\nTake stock before you return." if mode == "pause" else ("The research annex is beyond the garden.\nSomething is waiting at its gate." if mode == "complete" else "The rooms feel different tonight.\nA phone rings somewhere inside.")
 	show_page("main")
 	show()
 	_focus_main.call_deferred()
@@ -447,7 +449,7 @@ func _request_new_game() -> void:
 
 func _focus_main() -> void:
 	if not visible or current_page != "main": return
-	if not resume_button.disabled and (_mode == "pause" or _can_continue): resume_button.grab_focus()
+	if not resume_button.disabled and (_mode in ["pause","complete"] or _can_continue): resume_button.grab_focus()
 	elif not restart_button.disabled: restart_button.grab_focus()
 	else: options_button.grab_focus()
 

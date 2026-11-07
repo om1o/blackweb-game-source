@@ -38,6 +38,9 @@ var _pulse_life := 0.0
 var _launched := false
 var _attack_impacted := false
 var _flash_slow := 0.0
+var mouth_amount := 0.0
+var _skeleton: Skeleton3D
+var _jaw := -1
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
@@ -52,18 +55,20 @@ func _ready() -> void:
 	health = max_health
 	var shape := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
-	capsule.radius = 0.88
-	capsule.height = 1.8
+	capsule.radius = 1.02
+	capsule.height = 2.1
 	shape.shape = capsule
-	shape.position.y = 0.9
+	shape.position.y = 1.05
 	add_child(shape)
-	visual = load("res://scenes/spider_visual.tscn").instantiate()
-	visual.name = "TemporarySpiderRig"
-	visual.scale = Vector3.ONE * 2.7
+	visual = load("res://assets/generated/smiling_spider/smiling_spider.glb").instantiate()
+	visual.name = "SmilingSpiderModel"
 	add_child(visual)
-	animation = visual.get_node("AnimationPlayer")
+	_prepare_model_surfaces()
+	animation = visual.find_child("*AnimationPlayer*",true,false)
 	animation.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 	animation_count = Motion.install(visual, animation, attacks)
+	_skeleton = visual.find_child("*Skeleton3D*",true,false)
+	if _skeleton: _jaw = _skeleton.find_bone("Jaw")
 	_cast = ShapeCast3D.new()
 	_cast.shape = SphereShape3D.new()
 	_cast.collision_mask = 1 | 2
@@ -87,6 +92,34 @@ func _ready() -> void:
 	_bolt.top_level = true
 	_bolt.visible = false
 	add_child(_bolt)
+
+func _prepare_model_surfaces() -> void:
+	# Shared small detail normal, no per-frame geometry generation. Large colour
+	# variation and hard details are already stored in the actual skinned GLB.
+	var noise := FastNoiseLite.new()
+	noise.seed = 1204
+	noise.frequency = .16
+	var pores := NoiseTexture2D.new()
+	pores.width = 256
+	pores.height = 256
+	pores.seamless = true
+	pores.as_normal_map = true
+	pores.bump_strength = .35
+	pores.noise = noise
+	for node in visual.find_children("*","MeshInstance3D",true,false):
+		var mesh := node as MeshInstance3D
+		mesh.custom_aabb = AABB(Vector3(-4,-1,-4),Vector3(8,6,8))
+		for surface in mesh.mesh.get_surface_count():
+			var source := mesh.mesh.surface_get_material(surface) as StandardMaterial3D
+			if not source: continue
+			var material := source.duplicate() as StandardMaterial3D
+			if not "eyes" in material.resource_name.to_lower():
+				material.normal_enabled = true
+				material.normal_texture = pores
+				material.normal_scale = .24
+				material.uv1_triplanar = true
+				material.uv1_scale = Vector3.ONE * 3.0
+			mesh.set_surface_override_material(surface,material)
 
 func _prepare_effects() -> void:
 	_effects = Effects.for_source(self)
@@ -148,7 +181,7 @@ func is_alive() -> bool:
 	return state != State.DEAD and health > 0.0
 
 func get_hurt_spheres() -> Array:
-	return [{"center": global_position + Vector3.UP * 0.88, "radius": 1.0}, {"center": to_global(Vector3(0, 1.1, 0.75)), "radius": 0.85}]
+	return [{"center": to_global(Vector3(0,1.1,-.35)), "radius": 1.0}, {"center": to_global(Vector3(0,1.5,1.1)), "radius": 1.12}]
 
 func receive_hit(amount: float, point: Vector3, normal: Vector3) -> void:
 	if state in [State.DEAD, State.DORMANT]: return
@@ -163,8 +196,7 @@ func take_damage(amount: float) -> void:
 		_clear_attack()
 		state = State.DEAD
 		velocity = Vector3.ZERO
-		animation.play("idle")
-		visual.rotation.z = 0.9
+		animation.play("death",.12)
 		defeated.emit()
 	elif phase == 1 and health <= max_health * 0.5:
 		phase = 2
@@ -205,7 +237,10 @@ func start_attack(id: String) -> bool:
 	return true
 
 func _physics_process(delta: float) -> void:
-	if state in [State.DEAD, State.DORMANT]: return
+	if state in [State.DEAD, State.DORMANT]:
+		if animation: animation.advance(delta)
+		if state == State.DORMANT: _speech_pose()
+		return
 	if not is_instance_valid(target) or target.is_recovering():
 		stop()
 		return
@@ -224,6 +259,7 @@ func _physics_process(delta: float) -> void:
 			velocity += direction * (0.95 if _flash_slow > 0.0 else 1.2)
 			rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), minf(1.0, delta * 3.0))
 		_play_base("walk" if velocity.length_squared() > 1.5 else "idle")
+		_speech_pose()
 		if _cooldown <= 0.0:
 			var order := ["fang_rush", "reaping_sweep", "double_bite", "silk_spit"] if phase == 1 else ["ground_slam", "marked_leap", "silk_spit", "double_bite", "reaping_sweep", "fang_rush"]
 			var id: String = order[_sequence % order.size()]
@@ -256,8 +292,13 @@ func _physics_process(delta: float) -> void:
 
 func _play_base(clip: String) -> void:
 	if animation.current_animation != clip: animation.play(clip, 0.2)
-	animation.speed_scale = 0.30 if clip == "walk" else 1.0
+	animation.speed_scale = 1.0
 	animation.advance(get_physics_process_delta_time())
+
+func _speech_pose() -> void:
+	if _jaw >= 0 and mouth_amount > .01:
+		var pose := _skeleton.get_bone_pose_rotation(_jaw)
+		_skeleton.set_bone_pose_rotation(_jaw,pose*Quaternion(Vector3.RIGHT,-mouth_amount*.26))
 
 func _active_attack(_delta: float, fraction: float) -> void:
 	var damage := float(attack.damage)

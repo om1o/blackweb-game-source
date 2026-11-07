@@ -1,0 +1,9 @@
+# Smiling Spider / local authored model
+
+`smiling_spider.glb` is an actual skinned mesh, not an image plane or a provider viewer file. It contains nine material surfaces, a 31-bone arachnid skeleton and nine animation clips. Four intact limestone portrait sculptures form the crown. Their faces adapt the existing Microsoft Rocketbox character mesh under its MIT license, retained at `../../luke/LICENSE.md`. All other geometry and all creature motion are authored by `Tools/Assets/build_smiling_spider.py`.
+
+The editable Blender master `smiling_spider_final.blend` and studio render are kept at `D:/GameProjects/Blackweb-BossWorkshop/SmilingSpider-v2/` to keep the active project within its 5 GB storage budget. Run `build_smiling_spider.py`, `refine_smiling_spider.py`, then `finish_smiling_spider.py` with Blender 4.5 to recreate the final GLB. `rebake_spider_motion.py` updates only the animation on an existing final master. The portrait input is the project's `rocketbox_luke_v2/luke_v2.glb`.
+
+The Meshy draft was not used as geometry: its connection returned no downloadable formats. The approved concept informed this independently authored local interpretation. These files do not assert scan-level or AAA production quality. Silhouette, stone face detailing, materials, deformation and attack readability should continue through art review.
+
+The clip names are `idle`, `walk`, `death`, `fang_rush`, `reaping_sweep`, `double_bite`, `silk_spit`, `ground_slam`, and `marked_leap`. Attack length and damage live in `Godot/data/smiling_spider_attacks.json`. Root movement uses game collision, while Blender provides joint motion and foot placement. The runtime adds a shared 256-pixel procedural pore normal; the Blender render uses the editable procedural master materials. The imagegen albedo and exact prompt are retained in `Tools/Assets/References/SmilingSpiderChitin.*`; a JPEG copy is embedded in the GLB.

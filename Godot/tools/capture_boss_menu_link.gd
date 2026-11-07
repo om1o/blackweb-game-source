@@ -12,7 +12,7 @@ func _run() -> void:
 	root.get_texture().get_image().save_png("D:/CodexTemp/Blackweb-BossPass/extras-boss-link.png")
 	var button: Button
 	for node in menu.find_children("*","Button",true,false):
-		if node.text == "Boss combat preview": button = node
+		if node.text == "The garden / Smiling Spider": button = node
 	if button == null or not button.is_visible_in_tree() or button.get_global_rect().end.y > root.get_visible_rect().end.y:
 		push_error("Boss preview entry is missing or clipped")
 		quit(1)

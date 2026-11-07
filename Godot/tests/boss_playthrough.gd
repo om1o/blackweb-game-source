@@ -7,6 +7,8 @@ func _run() -> void:
 	root.add_child(scene)
 	for i in 20: await process_frame
 	scene._retry()
+	scene.player.set_process_unhandled_input(false)
+	scene.player._pitch = -0.10
 	scene.player.health = 10000.0
 	scene.dialogue.reset()
 	scene.boss.set_physics_process(false)

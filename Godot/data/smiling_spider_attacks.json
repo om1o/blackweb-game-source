@@ -1,7 +1,7 @@
 {
   "max_health": 120,
   "phase_two_ratio": 0.5,
-  "model_status": "Temporary recovered spider rig. Approved Meshy crown model export is unavailable.",
+  "model_status": "Locally authored Blender mesh, four stone sculptures, arachnid rig and six keyed attacks. Source: Tools/Assets/build_smiling_spider.py.",
   "attacks": [
     {"id":"fang_rush","name":"Fang rush","tell":1.1,"active":0.65,"recover":1.55,"damage":14,"range":6.5,"hint":"Move sideways when it lowers its head.","motion":"Lower head and tuck front legs; charge straight; fangs snap; legs brace."},
     {"id":"reaping_sweep","name":"Reaping sweep","tell":1.25,"active":0.65,"recover":1.7,"damage":12,"range":3.4,"hint":"Crouch under the raised leg or back away.","motion":"Raise right foreleg high; sweep across the front; plant the foot again."},
