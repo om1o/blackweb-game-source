@@ -4,24 +4,24 @@
 		"idle": {
 			"duration_seconds": 2.5,
 			"retargeted": true,
-			"sampled_maximum_y": 1.75073194503784,
-			"sampled_minimum_y": -0.000180900096893311,
+			"sampled_maximum_y": 1.75129735469818,
+			"sampled_minimum_y": -0.000180799514055252,
 			"source": "Idle_Loop",
 			"tracks": 160
 		},
 		"run": {
 			"duration_seconds": 0.933333,
 			"retargeted": true,
-			"sampled_maximum_y": 1.7363293170929,
-			"sampled_minimum_y": 0.0034470297396183,
+			"sampled_maximum_y": 1.73273599147797,
+			"sampled_minimum_y": 0.00344140967354178,
 			"source": "Jog_Fwd_Loop",
 			"tracks": 160
 		},
 		"walk": {
 			"duration_seconds": 1.333333,
 			"retargeted": true,
-			"sampled_maximum_y": 1.78454375267029,
-			"sampled_minimum_y": -0.000232905149459839,
+			"sampled_maximum_y": 1.78338372707367,
+			"sampled_minimum_y": -0.000232681632041931,
 			"source": "Walk_Loop",
 			"tracks": 160
 		}
@@ -29,8 +29,8 @@
 	"failures": [],
 	"forward": "-Z",
 	"height_m": 1.75,
-	"model_offset_y": 0.0353310853242874,
-	"model_scale": 0.972157299518585,
+	"model_offset_y": 0.0352752469480038,
+	"model_scale": 0.970623672008514,
 	"source": "res://assets/third_party/rocketbox_luke_v2/luke_v2.glb",
 	"visible_meshes": 1
 }

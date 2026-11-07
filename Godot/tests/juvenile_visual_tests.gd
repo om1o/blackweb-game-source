@@ -46,8 +46,8 @@ func _run() -> void:
 	if literock_available:
 		_check(juvenile._visual_clips.has("run") and not juvenile._visual_clips.has("death"),
 			"Licensed GLB exposes bite, idle, walk and run without inventing a death clip")
-		_check(is_equal_approx(juvenile._visual_root.scale.x, 0.30),
-			"Juvenile stays under one metre across at its imported metre scale")
+		_check(is_equal_approx(juvenile._visual_root.scale.x, 0.30 * juvenile.visual_size),
+			"Juvenile uses the enlarged readable metre scale without scaling its actor root")
 		var skeleton := juvenile._visual_root.find_child("*Skeleton3D*", true, false) as Skeleton3D
 		_check(is_instance_valid(skeleton) and skeleton.get_bone_count() >= 40,
 			"Juvenile has a skinned multi-bone rig")

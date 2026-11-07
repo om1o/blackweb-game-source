@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "ready_3d_movie",
+  "status": "ready_generated_movie",
   "duration_seconds": 42,
   "delivery": {
     "width": 1280,
@@ -10,38 +10,28 @@
     "skippable": true
   },
   "continuity": {
-    "protagonist": "Luke, Greyhaven maintenance worker returning on foot after his late shift",
+    "protagonist": "Luke, a 21-year-old mixed Black and white Greyhaven maintenance worker, returning on foot after his late shift",
     "destination": "Luke walks home looking for Mica",
-    "town": "Webs cover multiple streets, storefronts, abandoned cars and streetlights; this is visibly a town-wide event",
+    "town": "Webs cover storefronts, neighboring houses, parked cars and streetlights across the town",
     "mystery": "The cause and the company's experiments remain undisclosed during the intro",
     "handoff": "Luke enters looking for Mica; the house phone rings only after player control resumes",
     "clue": "The plant and code note are outside the locked vault"
   },
   "shots": [
     {
-      "end": 6,
       "start": 0,
-      "action": "Luke walks home after his shift"
-    },
-    {
       "end": 14,
-      "start": 6,
-      "action": "Town-wide web reveal; a rigged spider approaches and lunges, Luke raises his knee and arms and sidesteps"
+      "action": "Luke walks after his shift, sees the town covered in silk, and notices a spider approaching"
     },
     {
-      "end": 21,
       "start": 14,
-      "action": "Close reaction and spoken question"
+      "end": 28,
+      "action": "A large spider lunges; Luke bends and sidesteps, regains balance, and takes the route home"
     },
     {
-      "end": 31,
-      "start": 21,
-      "action": "Luke walks around blocked road"
-    },
-    {
+      "start": 28,
       "end": 42,
-      "start": 31,
-      "action": "Calls for Mica, approaches opening front door, fade into house"
+      "action": "Luke reaches the web-covered house, calls for Mica, pushes the wooden door and crosses the threshold"
     }
   ],
   "captions": [
@@ -49,7 +39,7 @@
       "start": 0.6,
       "end": 4.5,
       "speaker": "",
-      "text": "LUKE / GREYHAVEN MAINTENANCE / END OF THE LATE SHIFT"
+      "text": "LUKE, 21 / GREYHAVEN MAINTENANCE / END OF THE LATE SHIFT"
     },
     {
       "start": 7,
@@ -76,12 +66,31 @@
       "text": "Mica? I'm home. Are you in there?"
     }
   ],
-  "medium": "Full-motion video rendered from the editable Godot 3D town scene, skinned character animation, authored reactions and voice-envelope jaw motion",
+  "medium": "Full-motion HeyGen Video 1 footage guided by the original Blackweb town/home artwork, Meshy Luke design and actual in-game spider reference; existing voiced soundtrack and live captions",
   "video_path": "res://assets/generated/cinematics/greyhaven_motion.ogv",
   "render_provenance": {
-    "fps": 30,
+    "pipeline": "Tools/Cinematics/ComposeIntroVideo.py",
+    "edit_ledger": "Tools/Cinematics/SourceVideo/provenance.json",
+    "provider": "HeyGen Video 1",
+    "clip_ids": [
+      "59a85263c6634d419c4b595758f7d59a",
+      "d20f4704a1f44ba2a6629d554b0031aa",
+      "258df119609949719a29ffb1d4a4fa80"
+    ],
     "frames": 1260,
-    "scene_sha256": "9e51691a81f7310c8f05cf4cd81cec8620f46de5f6d280fd2bfb3e5705846157",
-    "voice_envelope_sha256": "64c8a42435aa50ee1cdaaec9e6dcf6a7d089fe1e14f8684959011cc6ad8dfedd"
+    "fps": 30,
+    "video_sha256": "418a2e79628dea5c3fd3bc97ac3f34f12b3b2bdff4a04d83ec4eb63247ad560d",
+    "audio_mix_sha256": "1c863a816fb5eecfdf54b5bf73487c08e65c1202b30a5bd7d1286e1059e2e121",
+    "source_clip_sha256": [
+      "3085df10c0b5567c93d56e7cc5f678e135388053a5974e4c7ac1964d69c5f3bd",
+      "072bd1a76d0869862f82d1bae26bf77a3c268fa54adfe11ab046fab2da936459",
+      "78ddd38af760ff053b1537ea0ff54edd6b6dcc914d46168b7ba24005c5c159c4"
+    ],
+    "natural_speed": true,
+    "source_trim_seconds": [
+      0.375,
+      14.375
+    ],
+    "review_status": "Encoded frame/decode checks and native video/audio/skip/stall checks passed"
   }
 }

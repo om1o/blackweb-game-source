@@ -1,0 +1,9 @@
+Built-in imagegen edit, 2026-11-07. No CLI or fallback model.
+Edit target: Microsoft Rocketbox Male_Adult_12 head albedo (MIT), reduced to 1K.
+Design reference: Meshy image task 01a1b530-dbba-700d-a300-29be4806e112.
+Final runtime texture: Godot/assets/third_party/rocketbox_luke_v2/luke_v2_m007_head_color.jpg
+Original generation: Tools/Assets/References/luke21_head_albedo.png
+The same edited texture is embedded in luke_v2.glb.
+
+Prompt:
+Use case: precise-object-edit. Asset type: 1024x1024 square human head UV base-color/albedo texture for a rigged 3D game character. Image 1 is the EDIT TARGET, a flattened UV head texture atlas. Image 2 is a DESIGN REFERENCE ONLY for Luke, a fictional handsome 21-year-old mixed Black and white young man. Edit Image 1 ONLY, preserving exactly its UV layout, every island outline, black empty areas, ear locations, eye socket locations, lip location/shape boundaries, scalp borders, neck area, lower-left inside-mouth island and lower-left eyeball island. Do NOT output a portrait, do NOT change camera/projection, do NOT rearrange anything. Keep warm brown skin consistent with the input but make the FACE naturally handsome and clearly age21: remove beard/stubble and severe dark nasolabial folds, smooth the heavy chin crease and deep dark mouth corners, soften stern brow shading, clean fresh skin with fine pores and subtle freckles like reference. Gently warm the lip color without makeup. Preserve nose nostrils, eyelids and ear structures aligned to the original pixels. Eyeball island at bottom left: retain iris/pupil center and original dimensions, warm dark brown iris, soften the overly stark white sclera to natural ivory. Keep the full two-sided scalp hair texture layout. Flat even albedo illumination, no baked cast shadows or specular highlights, no text, no watermark. The result must remain a technically usable UV texture, with identical feature alignment and island borders to Image 1.

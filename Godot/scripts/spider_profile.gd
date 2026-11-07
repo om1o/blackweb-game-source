@@ -2,7 +2,7 @@ extends RefCounted
 ## The shipped JSON is the editable balance profile. Unit-test fixtures may
 ## override exports directly; the house explicitly applies this profile.
 const PATH := "res://data/common_flesh_spider.json"
-const COMMON := {"health": "max_health", "armor": "armor", "awareness_radius_m": "awareness_radius"}
+const COMMON := {"health": "max_health", "armor": "armor", "awareness_radius_m": "awareness_radius", "visual_size_multiplier": "visual_size"}
 const ADULT := {
 	"stalk_speed_m_s": "stalk_speed", "attack_trigger_distance_m": "windup_distance",
 	"anticipation_s": "anticipation_seconds", "windup_s": "windup_seconds", "lunge_s": "lunge_seconds",
@@ -11,7 +11,8 @@ const ADULT := {
 	"bite_windup_s": "bite_windup_seconds", "bite_duration_s": "bite_seconds",
 	"hit_stagger_s": "stagger_seconds", "stagger_resistance_s": "stagger_resistance_seconds",
 	"death_duration_s": "death_seconds", "hearing_radius_m": "hearing_radius",
-	"sight_angle_degrees": "sight_angle_degrees", "last_known_memory_s": "memory_seconds"
+	"sight_angle_degrees": "sight_angle_degrees", "last_known_memory_s": "memory_seconds",
+	"movement_radius_m": "body_radius", "movement_height_m": "body_height"
 }
 const JUVENILE := {
 	"walk_speed_m_s": "walk_speed", "bite_windup_s": "bite_windup_seconds",

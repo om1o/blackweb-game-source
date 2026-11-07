@@ -1,6 +1,6 @@
 class_name BlackwebTutorialIntro
 extends Node
-## Animated 3D town opening, with a camera-arrival fallback for missing media.
+## Reviewed town film, with an editable 3D authoring view and camera fallback.
 ## begin() owns the temporary pause/camera and restores them before finished.
 signal finished
 
@@ -141,7 +141,7 @@ func _try_start_video() -> bool:
 	if not FileAccess.file_exists(FILM_MANIFEST): return false
 	var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string(FILM_MANIFEST))
 	# An unreviewed render must not silently replace the tested opening.
-	if not manifest is Dictionary or manifest.get("status", "") != "ready_3d_movie": return false
+	if not manifest is Dictionary or manifest.get("status", "") not in ["ready_3d_movie", "ready_generated_movie"]: return false
 	var path := str(manifest.get("video_path", ""))
 	if not ResourceLoader.exists(path): return false
 	var stream := load(path) as VideoStream

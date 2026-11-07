@@ -4,6 +4,7 @@ const LENGTH := 42.0
 const BRICK := "res://assets/recovered/Arachnophobia/Content/VHExterior/Textures/T_Brick_D_01.png"
 const BRICK_NORMAL := "res://assets/recovered/Arachnophobia/Content/VHExterior/Textures/T_Brick_N_01.png"
 const SILK := "res://assets/generated/web_master/web_masters.glb"
+const DOOR_MOTION := "res://assets/generated/cinematics/pinoc_door_samples.json"
 var camera: Camera3D
 var actor: Node3D
 var skeleton: Skeleton3D
@@ -23,6 +24,9 @@ var _mat_roof: StandardMaterial3D
 var _silk_master: Node
 var _strand_material: ShaderMaterial
 var _voice_envelope: Array = []
+var _door_motion: RefCounted
+var _bone_turns: Dictionary = {}
+var _street_lights: Array[OmniLight3D] = []
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -85,6 +89,16 @@ func _ready() -> void:
 		for side in [-1,1]:
 			web_cards.append({"center":Vector3(side*5.85,2,-8-row*13),"u":Vector3(0,0,6),"v":Vector3(0,3.4,0),"normal":Vector3(-side,0,0)})
 		web_cards.append({"center":Vector3(0,3.5,-9-row*13),"u":Vector3(9,0,0),"v":Vector3(0,3.4,0),"normal":Vector3.BACK})
+	# Town landmarks give the opening a readable route rather than repeated homes.
+	_storefront(Vector3(-8.2,.08,-8.0), "GREYHAVEN / HARDWARE")
+	_storefront(Vector3(8.2,.08,-34.0), "MILL STREET / STORES")
+	_parked_car(Vector3(3.05,.08,-24.0), Color(.075,.15,.22), false)
+	_parked_car(Vector3(-3.05,.08,-12.5), Color(.19,.13,.10), true)
+	_parked_car(Vector3(-3.0,.08,-36.0), Color(.08,.12,.11), false)
+	_add_web("WebFurnitureCocoon",Vector3(-3.05,.55,-12.5),Vector3(1.45,1.2,2.5),0)
+	for at in [Vector3(-4.0,.11,-16.4),Vector3(4.5,.11,-30.0),Vector3(-4.8,.11,-7.0)]:
+		var newspaper := box(self,"DiscardedNewspaper",at,Vector3(.45,.006,.34),material(Color(.34,.32,.25),1))
+		newspaper.rotation.y = at.z*.13
 	var silk_mesh := MeshInstance3D.new()
 	var silk_arrays := ArrayMesh.new()
 	var surfaces = preload("res://scripts/environment_surfaces.gd")
@@ -109,10 +123,11 @@ func _ready() -> void:
 	_head = skeleton.find_bone("Bip01 Head")
 	_jaw = skeleton.find_bone("Bip01 MJaw")
 	_jaw_rest = skeleton.get_bone_pose_rotation(_jaw)
+	_bind_door_motion()
 	var spider_path := "res://assets/third_party/literock/Giant_Spider_Lite_1K.glb"
 	spider = load(spider_path if ResourceLoader.exists(spider_path) else "res://scenes/spider_visual.tscn").instantiate()
 	spider.name = "StreetSpider"
-	spider.scale = Vector3.ONE * .38
+	spider.scale = Vector3.ONE * .58
 	add_child(spider)
 	camera = Camera3D.new()
 	camera.fov = 52
@@ -194,6 +209,86 @@ func _lamp(at: Vector3) -> void:
 	light.light_energy = 1.8
 	light.omni_range = 9
 	add_child(light)
+	_street_lights.append(light)
+
+func _storefront(at: Vector3, sign_text: String) -> void:
+	var front := Node3D.new()
+	front.name = "GreyhavenShopfront"
+	front.position = at
+	front.rotation.y = -PI*.5 if at.x > 0 else PI*.5
+	add_child(front)
+	front.add_to_group("town_shopfronts")
+	box(front,"PaintedSignBoard",Vector3(0,2.5,3.18),Vector3(6.9,.48,.12),material(Color(.095,.14,.13),.9))
+	for x in [-2.1,2.1]:
+		box(front,"DisplayWindowFrame",Vector3(x,1.35,3.16),Vector3(2.3,1.65,.11),_mat_trim)
+		box(front,"DarkDisplayGlass",Vector3(x,1.35,3.23),Vector3(2.1,1.45,.04),_mat_glass)
+		for y in [.85,1.3,1.75]:
+			box(front,"InteriorShelf",Vector3(x,y,3.24),Vector3(1.95,.06,.045),material(Color(.12,.11,.085),.9))
+	var sign := Label3D.new()
+	sign.text = sign_text
+	sign.font_size = 56
+	sign.pixel_size = .003
+	sign.modulate = Color(.65,.65,.54)
+	sign.outline_size = 0
+	sign.no_depth_test = false
+	sign.position = Vector3(0,2.5,3.25)
+	front.add_child(sign)
+	var awning := box(front,"CanvasAwning",Vector3(0,2.16,3.55),Vector3(6.4,.08,.9),material(Color(.16,.19,.17),1))
+	awning.rotation.x = .18
+
+func _parked_car(at: Vector3, paint: Color, abandoned: bool) -> void:
+	var car := Node3D.new()
+	car.name = "AbandonedSedan" if abandoned else "ParkedSedan"
+	car.position = at
+	car.rotation.y = .10 if abandoned else PI
+	add_child(car)
+	car.add_to_group("town_parked_cars")
+	var body := material(paint,.32)
+	var rubber := material(Color(.021,.022,.021),.94)
+	var metal := material(Color(.21,.23,.22),.3)
+	box(car,"Chassis",Vector3(0,.53,0),Vector3(1.65,.52,4.25),body)
+	box(car,"Bonnet",Vector3(0,.84,-1.32),Vector3(1.59,.16,1.35),body)
+	box(car,"Boot",Vector3(0,.82,1.62),Vector3(1.58,.14,.86),body)
+	box(car,"Cabin",Vector3(0,1.05,.14),Vector3(1.42,.7,1.88),_mat_glass)
+	box(car,"Roof",Vector3(0,1.42,.14),Vector3(1.44,.1,1.86),body)
+	for side in [-1,1]:
+		for z in [-1.34,1.35]:
+			var wheel := MeshInstance3D.new()
+			wheel.name = "Tyre"
+			var cylinder := CylinderMesh.new()
+			cylinder.top_radius = .31
+			cylinder.bottom_radius = .31
+			cylinder.height = .19
+			cylinder.radial_segments = 16
+			wheel.mesh = cylinder
+			wheel.material_override = rubber
+			wheel.rotation.z = PI*.5
+			wheel.position = Vector3(side*.81,.31,z)
+			car.add_child(wheel)
+		for z in [-.8,1.08]: box(car,"WindowPillar",Vector3(side*.73,1.07,z),Vector3(.045,.68,.065),body)
+		box(car,"DoorTrim",Vector3(side*.832,.76,.16),Vector3(.035,.035,1.88),metal)
+		box(car,"Headlight",Vector3(side*.53,.63,-2.14),Vector3(.36,.15,.025),material(Color(.29,.31,.29),.25))
+		box(car,"TailLamp",Vector3(side*.53,.65,2.14),Vector3(.36,.13,.025),material(Color(.19,.015,.012),.4))
+	for z in [-2.12,2.12]: box(car,"Bumper",Vector3(0,.45,z),Vector3(1.67,.12,.12),metal)
+
+func _bind_door_motion() -> void:
+	if not FileAccess.file_exists(DOOR_MOTION): return
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(DOOR_MOTION))
+	_door_motion = preload("res://scripts/authored_motion.gd").new()
+	_door_motion.bind(skeleton)
+	_door_motion.clips = data.clips
+	_door_motion.alignment.clear()
+	var children := {"Pelvis":"Spine","Spine":"Spine1","Spine1":"Spine2","Spine2":"Neck","Neck":"Head"}
+	for side in ["L ","R "]:
+		for pair in [["Clavicle","UpperArm"],["UpperArm","Forearm"],["Forearm","Hand"],["Hand","Finger2"],["Thigh","Calf"],["Calf","Foot"],["Foot","Toe0"]]: children[side+pair[0]] = side+pair[1]
+	for key in data.rest_directions:
+		var short: String = key.trim_prefix("Bip01 ")
+		if not _door_motion.indices.has(key) or not children.has(short): continue
+		var child := "Bip01 " + str(children[short])
+		if not _door_motion.indices.has(child): continue
+		var direction: Vector3 = _door_motion.axes.inverse() * (_door_motion.rest[_door_motion.indices[child]].origin-_door_motion.rest[_door_motion.indices[key]].origin).normalized()
+		var v: Array = data.rest_directions[key]
+		_door_motion.alignment[key] = Basis(Quaternion(direction,Vector3(v[0],v[1],v[2]).normalized()))
 
 func _add_web(kind: String, at: Vector3, size: Vector3, yaw: float) -> void:
 	var source := _silk_master.find_child(kind,true,false) as Node3D
@@ -211,10 +306,80 @@ func _add_web(kind: String, at: Vector3, size: Vector3, yaw: float) -> void:
 
 func _turn_bone(index: int, axis_world: Vector3, amount: float) -> void:
 	if index < 0: return
-	var bone := skeleton.get_bone_global_pose(index)
 	var axis := skeleton.global_basis.inverse() * axis_world
-	bone.basis = Basis(axis.normalized(),amount) * bone.basis
-	skeleton.set_bone_global_pose_override(index,bone,1.0,true)
+	_bone_turns[index] = Basis(axis.normalized(),amount) * _bone_turns.get(index,Basis.IDENTITY)
+
+func _apply_bone_turns() -> void:
+	# Snapshot each local pose before turning a parent. Rebuilding the full chain
+	# keeps the elbows, wrists and jaw attached at their authored bone lengths.
+	var local_poses: Array[Transform3D] = []
+	for index in skeleton.get_bone_count():
+		var global_pose := skeleton.get_bone_global_pose(index)
+		var parent := skeleton.get_bone_parent(index)
+		local_poses.append(skeleton.get_bone_global_pose(parent).affine_inverse()*global_pose if parent>=0 else global_pose)
+	var solved: Array[Transform3D] = []
+	for index in skeleton.get_bone_count():
+		var parent := skeleton.get_bone_parent(index)
+		var global_pose: Transform3D = solved[parent]*local_poses[index] if parent>=0 else local_poses[index]
+		if _bone_turns.has(index): global_pose.basis = _bone_turns[index]*global_pose.basis
+		solved.append(global_pose)
+		skeleton.set_bone_global_pose_override(index,global_pose,1.0,true)
+
+func _door_travel(time: float) -> float:
+	if _door_motion == null: return smoothstep(35,38.3,time)
+	var clip: Dictionary = _door_motion.clips.Open_Door_Push
+	var frame := clampf((time-35.0)*30.0,0,float(clip.samples.size()-1))
+	var a: Dictionary = clip.samples[int(frame)]
+	var b: Dictionary = clip.samples[mini(int(frame)+1,clip.samples.size()-1)]
+	var z := lerpf(float(a.hip[2]),float(b.hip[2]),fmod(frame,1.0))
+	var start := float(clip.samples[0].hip[2])
+	var finish := float(clip.samples[-1].hip[2])
+	return clampf((z-start)/(finish-start),0,1)
+
+func _plant_pushing_hand(time: float) -> void:
+	var weight := smoothstep(38.25,38.65,time)*(1.0-smoothstep(39.8,40.2,time))
+	if weight <= .001 or door == null: return
+	var upper_id := skeleton.find_bone("Bip01 L UpperArm")
+	var lower_id := skeleton.find_bone("Bip01 L Forearm")
+	var hand_id := skeleton.find_bone("Bip01 L Hand")
+	if upper_id<0 or lower_id<0 or hand_id<0: return
+	var upper := skeleton.get_bone_global_pose(upper_id)
+	var lower := skeleton.get_bone_global_pose(lower_id)
+	var hand := skeleton.get_bone_global_pose(hand_id)
+	var a := upper.origin.distance_to(lower.origin)
+	var b := lower.origin.distance_to(hand.origin)
+	var target := skeleton.to_local(door.to_global(Vector3(.43,1.42,.10)))
+	var desired_hand := hand.origin.lerp(target,weight)
+	var direction := (desired_hand-upper.origin).normalized()
+	var reach := clampf(desired_hand.distance_to(upper.origin),.08,a+b-.003)
+	var along := (a*a-b*b+reach*reach)/(2.0*reach)
+	var height := sqrt(maxf(0.0,a*a-along*along))
+	# Keep the authored outward elbow bend while the palm follows the leaf.
+	var guide := lower.origin-upper.origin
+	var bend := guide-direction*guide.dot(direction)
+	if bend.length_squared()<.000001: bend = skeleton.global_basis.inverse()*Vector3.DOWN
+	var elbow := upper.origin+direction*along+bend.normalized()*height
+	var wrist := upper.origin+direction*reach
+	var upper_rotation := Quaternion((lower.origin-upper.origin).normalized(),(elbow-upper.origin).normalized())
+	var lower_rotation := Quaternion((hand.origin-lower.origin).normalized(),(wrist-elbow).normalized())
+	var turns := {
+		upper_id:Transform3D(Basis(upper_rotation)*upper.basis,upper.origin),
+		lower_id:Transform3D(Basis(lower_rotation)*lower.basis,elbow),
+		hand_id:Transform3D(hand.basis,wrist),
+	}
+	# Existing global overrides must also carry the fingers with the solved wrist.
+	var local_poses: Array[Transform3D] = []
+	for index in skeleton.get_bone_count():
+		var parent := skeleton.get_bone_parent(index)
+		var pose := skeleton.get_bone_global_pose(index)
+		local_poses.append(skeleton.get_bone_global_pose(parent).affine_inverse()*pose if parent>=0 else pose)
+	var solved: Array[Transform3D] = []
+	for index in skeleton.get_bone_count():
+		var parent := skeleton.get_bone_parent(index)
+		var pose: Transform3D = solved[parent]*local_poses[index] if parent>=0 else local_poses[index]
+		if turns.has(index): pose = turns[index]
+		solved.append(pose)
+		skeleton.set_bone_global_pose_override(index,pose,1.0,true)
 
 func _travel_progress(time: float, start: float, end: float) -> float:
 	var duration := end-start
@@ -229,11 +394,12 @@ func pose(time: float) -> void:
 	elapsed = clampf(time,0,LENGTH)
 	var t := elapsed
 	skeleton.clear_bones_global_pose_override()
+	_bone_turns.clear()
 	# Deterministic skeletal crossfade, including offline rendering and seeking.
 	# Seeking a single clip discarded AnimationPlayer's ordinary crossfade.
 	var weight := 1.0-smoothstep(8.5,9.0,t)
 	weight = maxf(weight, smoothstep(21,21.5,t)*(1.0-smoothstep(30.5,31,t)))
-	weight = maxf(weight, smoothstep(35,35.5,t)*(1.0-smoothstep(40.5,41,t)))
+	weight = maxf(weight, smoothstep(40,40.3,t)*(1.0-smoothstep(41.2,41.6,t)))
 	animation.play("idle")
 	animation.seek(fmod(t,animation.get_animation("idle").length),true)
 	var idle_pose: Array[Transform3D] = []
@@ -248,12 +414,17 @@ func pose(time: float) -> void:
 		actor.position.z += .45*sin(PI*clampf((t-12)/2,0,1))
 		actor.rotation.y = .3*sin((t-9)*.45)
 	if t >= 21:
-		actor.position = Vector3(-2.3,.08,-5.95).lerp(Vector3(3.5,.08,-17.3),_travel_progress(t,21,31))
-		actor.rotation.y = lerp_angle(.3*sin(12*.45),-.47,smoothstep(21,21.5,t))
+		actor.position = Vector3(-2.3,.08,-5.95).lerp(Vector3(3.55,.08,-21.22),_travel_progress(t,21,31))
+		actor.rotation.y = lerp_angle(.3*sin(12*.45),-.366,smoothstep(21,21.5,t))
 	if t >= 31:
-		actor.position = Vector3(3.5,.08,-17.3).lerp(Vector3(6.4,.08,-21),smoothstep(35,41,t))
-		actor.rotation.y = lerp_angle(-.47,-.665,smoothstep(31,32,t))
-	var reaction := sin(smoothstep(12.5,14.8,t)*PI)*.95
+		actor.position = Vector3(3.55,.08,-21.22).lerp(Vector3(5.30,.08,-21.22),_door_travel(t))
+		actor.position.x += .52*smoothstep(38.55,39.9,t)
+		actor.position = actor.position.lerp(Vector3(6.85,.20,-21.05),smoothstep(40.1,41.6,t))
+		actor.rotation.y = lerp_angle(-.366,-PI*.5,smoothstep(31,32,t))
+		if _door_motion != null:
+			var blend := smoothstep(35,35.25,t)*(1.0-smoothstep(40.05,40.45,t))
+			_door_motion.apply_clip("Open_Door_Push",clampf(t-35.0,0,5.233334),blend,false,true)
+	var reaction := sin(smoothstep(12.0,14.3,t)*PI)*.95
 	var dodge := smoothstep(12.5,13.25,t)*(1.0-smoothstep(14.2,15.1,t))
 	actor.position.x -= dodge*.65
 	var alert := smoothstep(8.5,9.5,t)*(1.0-smoothstep(20.5,21.5,t))
@@ -273,6 +444,10 @@ func pose(time: float) -> void:
 	if _voice_envelope.size()>1:
 		var mouth := lerpf(float(_voice_envelope[frame]),float(_voice_envelope[frame+1]),fmod(t*25,1))
 		_turn_bone(_jaw,actor.global_basis.x,mouth*.16)
+	_apply_bone_turns()
+	# Positive local yaw pushes this hinge into the house, away from Luke.
+	if door != null: door.rotation.y = 1.15*smoothstep(38.5,39.9,t)
+	_plant_pushing_hand(t)
 	var approach := Vector3(2,.10,-8.5).lerp(Vector3(-1.65,.10,-6.9),smoothstep(10,12.5,t))
 	var leap := smoothstep(12.5,13.12,t)
 	var retract := smoothstep(13.15,14.5,t)
@@ -291,8 +466,8 @@ func pose(time: float) -> void:
 		spider_anim.play(spider_clip)
 		var clip_time := (t-12.5)*1.2 if t >= 12.5 and t < 13.5 else t
 		spider_anim.seek(fmod(clip_time, maxf(.1,spider_anim.get_animation(spider_clip).length)),true)
-	if door != null: door.rotation.y = -1.1*smoothstep(36,39,t)
 	for i in _silks.size(): _silks[i].rotation.z = sin(t*.65+i)*.008
+	for i in _street_lights.size(): _street_lights[i].light_energy = 1.8*(.82+.18*sin(t*2.3+i)*sin(t*.7+i))
 	var target := actor.position + Vector3(0,1.25,0)
 	if t < 6:
 		camera.position = actor.position + Vector3(-2.5,1.65,-4)

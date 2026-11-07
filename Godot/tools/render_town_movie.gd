@@ -13,7 +13,9 @@ func _process(_delta: float) -> bool:
 	town.pose(float(frame)/30.0)
 	frame += 1
 	if frame > 1260:
-		var report := {"frames":1260,"fps":30,"scene_sha256":source_hash,"voice_envelope_sha256":FileAccess.get_sha256("res://data/town_voice_envelope.json")}
+		var report := {"frames":1260,"fps":30,"scene_sha256":source_hash,"voice_envelope_sha256":FileAccess.get_sha256("res://data/town_voice_envelope.json"),
+			"character_scene_sha256":FileAccess.get_sha256("res://scenes/luke.tscn"),
+			"door_motion_sha256":FileAccess.get_sha256("res://assets/generated/cinematics/pinoc_door_samples.json")}
 		# Godot consumes engine flags before exposing script arguments.
 		var scratch := OS.get_environment("BLACKWEB_CINEMATIC_SCRATCH")
 		if scratch.is_empty(): scratch = "D:/CodexTemp/Blackweb-TownIntro"

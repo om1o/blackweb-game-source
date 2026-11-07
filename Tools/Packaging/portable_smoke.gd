@@ -43,9 +43,21 @@ func _run() -> void:
 	_check("Critical scenes, scripts and layout match source hashes", wrong_hash.is_empty(), wrong_hash)
 	var ui_theme := load("res://scripts/horror_theme.gd")
 	var film_manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/town_intro.json"))
-	_check("Animated town cinematic is ready in the package", film_manifest is Dictionary and film_manifest.get("status", "") == "ready_3d_movie")
+	_check("Generated town cinematic is ready in the package", film_manifest is Dictionary and film_manifest.get("status", "") == "ready_generated_movie")
 	var movie: Resource = load(str(film_manifest.get("video_path",""))) if film_manifest is Dictionary else null
-	_check("Full-motion 3D town movie loads from package", movie is VideoStreamTheora)
+	_check("Full-motion town movie loads from package", movie is VideoStreamTheora)
+	var film_hash_matches := false
+	var film_timeline_valid := false
+	if film_manifest is Dictionary:
+		var provenance: Variant = film_manifest.get("render_provenance", {})
+		var expected_video_hash := str(provenance.get("video_sha256", "")) if provenance is Dictionary else ""
+		film_hash_matches = expected_video_hash.length() == 64 and FileAccess.get_sha256(str(film_manifest.get("video_path", ""))).to_lower() == expected_video_hash.to_lower()
+		var film_duration := float(film_manifest.get("duration_seconds", 0.0))
+		film_timeline_valid = is_equal_approx(film_duration, 42.0)
+		for cue in film_manifest.get("captions", []):
+			film_timeline_valid = film_timeline_valid and cue is Dictionary and float(cue.get("start", -1.0)) >= 0.0 and float(cue.get("end", 0.0)) > float(cue.get("start", 0.0)) and float(cue.get("end", INF)) <= film_duration
+	_check("Reviewed intro movie matches the delivery manifest hash", film_hash_matches)
+	_check("Intro keeps its complete 42-second voice and caption timeline", film_timeline_valid)
 	var town_audio: Resource = load("res://assets/generated/cinematics/town_audio.ogg")
 	_check("Town cinematic has its complete voiced soundtrack", town_audio is AudioStreamOggVorbis and town_audio.get_length() >= 41.9)
 	_check("Bundled Barlow interface fonts load from the portable PCK", ui_theme.body_font().data.size() > 10000 and ui_theme.heading_font().data.size() > 10000)
@@ -80,9 +92,33 @@ func _run() -> void:
 	for juvenile in juvenile_spiders:
 		if bool(juvenile.get("_visual_is_literock")): literock_visuals += 1
 	_check("Packaged tutorial activates the licensed 1K juvenile spider visual", juvenile_spiders.size() >= 3 and literock_visuals >= 3, {"juveniles": juvenile_spiders.size(), "literock_visuals": literock_visuals})
+	var enlarged_juveniles := not juvenile_spiders.is_empty()
+	for juvenile in juvenile_spiders:
+		enlarged_juveniles = enlarged_juveniles and is_equal_approx(float(juvenile.get("visual_size")), 1.6) and is_equal_approx(juvenile.get("_visual_rest_scale").x, 0.48) and juvenile.scale.is_equal_approx(Vector3.ONE)
+	_check("Every packaged juvenile uses the larger visual on an unscaled physics actor", enlarged_juveniles)
 	var player: Node = game.get("player")
 	var spider: Node = game.get("spider")
 	_check("Player controller exists", player != null)
+	var identity: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/protagonist.json"))
+	_check("The packaged protagonist is the requested 21-year-old Luke", identity is Dictionary and identity.get("name", "") == "Luke" and int(identity.get("age", 0)) == 21)
+	var luke_source_matches := false
+	var luke_scene_matches := false
+	if identity is Dictionary:
+		var source_hash := str(identity.get("runtime_model_sha256", ""))
+		var scene_hash := str(identity.get("runtime_scene_sha256", ""))
+		luke_source_matches = source_hash.length() == 64 and FileAccess.get_sha256(str(identity.get("runtime_model_path", ""))).to_lower() == source_hash.to_lower()
+		luke_scene_matches = scene_hash.length() == 64 and FileAccess.get_sha256(str(identity.get("scene", ""))).to_lower() == scene_hash.to_lower()
+	_check("Luke's packaged model matches his reviewed identity manifest", luke_source_matches)
+	_check("The baked runtime Luke scene matches his reviewed identity manifest", luke_scene_matches)
+	var adult_body: CollisionShape3D
+	for child in spider.get_children():
+		if child is CollisionShape3D: adult_body = child
+	var adult_navigation: RefCounted = spider.get("_navigation")
+	_check("Enlarged adult movement and navigation use the same capsule", adult_body != null and adult_body.shape is CapsuleShape3D
+		and is_equal_approx(float(spider.get("visual_size")), 1.3)
+		and is_equal_approx(adult_body.shape.radius, 0.37)
+		and is_equal_approx(adult_body.shape.radius, adult_navigation.get("_shape").radius)
+		and is_equal_approx(adult_body.shape.height, adult_navigation.get("_shape").height))
 	var motions: Dictionary = player.get("_pinoc_motion").clips
 	_check("Fourteen CC0 authored motion clips are packaged", motions.size()==14 and motions.has("Sword_Attack") and motions.has("Crouch_Fwd_Loop") and motions.has("Jump_Loop"))
 	_check("Licensed fluid splash and splatter textures load", load("res://assets/third_party/opengameart_blood/splash_0.png") is Texture2D and load("res://assets/third_party/opengameart_blood/blood_splatter.png") is Texture2D)

@@ -1,0 +1,20 @@
+{
+  "id": "luke",
+  "name": "Luke",
+  "age": 21,
+  "heritage": "Mixed Black and white",
+  "identity_source": "Fictional character identity explicitly chosen by the creator; not inferred from any source model or real person's appearance.",
+  "appearance": {
+    "hair": "Short dark brown textured curls, tapered at the sides",
+    "eyes": "Brown",
+    "skin": "Warm brown",
+    "build": "Lean young adult",
+    "clothes": "Worn olive grey long-sleeved top, charcoal trousers, brown shoes"
+  },
+  "scene": "res://scenes/luke.tscn",
+  "design_reference": "Meshy image task 01a1b530-dbba-700d-a300-29be4806e112",
+  "implementation": "Customised MIT Rocketbox body and head, original skinning and rest skeleton retained. Runtime model approximates the generated reference within the existing Godot performance budget.",
+  "runtime_model_path": "res://assets/third_party/rocketbox_luke_v2/luke_v2.glb",
+  "runtime_model_sha256": "f1d7307af9b99fa118484d257c41607ebcc3187586c671e29b9a1847cfedaa26",
+  "runtime_scene_sha256": "e98425e34b8164af649969e04bf62ae8ddcc1537cb2677dfca5c1f3331800627"
+}

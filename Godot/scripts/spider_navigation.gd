@@ -7,10 +7,17 @@ var points: PackedVector3Array = []
 var _shape := CapsuleShape3D.new()
 var _edges: Dictionary = {}
 var _cache_remaining := 0.0
+var _body_center_height := 0.34
 
 func _init() -> void:
 	_shape.radius = 0.32
 	_shape.height = 0.64
+
+func configure_body(radius: float, height: float) -> void:
+	_shape.radius = maxf(0.05, radius)
+	_shape.height = maxf(height, _shape.radius * 2.0)
+	_body_center_height = _shape.height * 0.5 + 0.02
+	_edges.clear()
 
 func advance(delta: float) -> void:
 	_cache_remaining -= delta
@@ -67,7 +74,7 @@ func _clear(body: CharacterBody3D, from: Vector3, to: Vector3) -> bool:
 	var space := body.get_world_3d().direct_space_state
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = _shape
-	query.transform = Transform3D(Basis.IDENTITY, from + Vector3.UP * 0.34)
+	query.transform = Transform3D(Basis.IDENTITY, from + Vector3.UP * _body_center_height)
 	query.motion = to - from
 	query.collision_mask = 1
 	query.exclude = [body.get_rid()]

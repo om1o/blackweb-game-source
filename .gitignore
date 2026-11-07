@@ -67,5 +67,7 @@ Playable/
 !Godot/assets/third_party/poly_haven/brown_leather/*.import
 *.tmp
 *.log
+__pycache__/
+*.pyc
 /Tools/Recovery/NoFmod/bin/
 /Tools/Recovery/NoFmod/obj/

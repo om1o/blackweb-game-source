@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "status": "reviewed_and_encoded",
+  "meshy_reference_task": "01a1b530-dbba-700d-a300-29be4806e112",
+  "meshy_reference_credits": 9,
+  "pinoc_door_motion": "17881667-eebd-4eb0-8035-6b0a34c0dfc4",
+  "pinoc_credits": 0,
+  "clips": [
+    {
+      "id": "59a85263c6634d419c4b595758f7d59a",
+      "sequence_start": 0,
+      "sequence_end": 14,
+      "request": {
+        "model": "heygen-video-1",
+        "duration": 14,
+        "resolution": "1080p",
+        "aspectRatio": "16:9",
+        "promptEnhancement": "quality",
+        "referenceImages": [
+          {
+            "type": "asset_id",
+            "asset_id": "8b296d575a214ce88b05e96849ef5b6e"
+          },
+          {
+            "type": "asset_id",
+            "asset_id": "80c78a095cf445219b543059552315ed"
+          }
+        ],
+        "prompt": "Create the opening 14 seconds of Blackweb, a realistic survival horror game cinematic. Reference1 defines Luke's face, hair and clothing: one 21-year-old mixed Black and white man with short dark curls, medium light brown skin, olive-grey crewneck sweatshirt, charcoal work trousers and scuffed brown boots. Reference2 defines only the wet brick town, tangled spider silk and cold streetlamps. Luke is WALKING HOME on foot; omit reference2's foreground car dashboard and hands. Grounded photoreal motion, coherent anatomy. Shot1 seconds0-6: waist-up tracking view moving backward as Luke walks naturally along the pavement after his late maintenance shift; arms swing, clothing shifts, he slows and looks beyond camera, alert. Shot2 hard cut at6: shoulder-height view from behind Luke as he stops at a junction; camera gently travels past his shoulder to reveal multiple brick storefronts, houses, parked abandoned cars and streetlights engulfed in enormous dense silver cobweb sheets, wet reflections, moving thin rain and drifting mist. Luke looks left and right. Finish with an unmistakable large normal brown spider crawling into the clear foreground on eight jointed legs, roughly knee-high leg span relative to Luke; no attack yet. Preserve Luke's identity and clothes. No speech, mouth flapping, captions, logos, lettering or watermarks. Ambient footsteps, subtle rain and silk rustle only; existing dialogue will be added separately. Continuously moving footage with real walking, parallax, wind and spider locomotion, never a still image pan or slideshow."
+      },
+      "path": "Tools/Cinematics/SourceVideo/greyhaven-shot-1.mp4",
+      "sha256": "3085df10c0b5567c93d56e7cc5f678e135388053a5974e4c7ac1964d69c5f3bd",
+      "source_in": 0.375,
+      "source_out": 14.375,
+      "speed": 1.0,
+      "audio_owner": false
+    },
+    {
+      "id": "d20f4704a1f44ba2a6629d554b0031aa",
+      "sequence_start": 14,
+      "sequence_end": 28,
+      "request": {
+        "model": "heygen-video-1",
+        "duration": 14,
+        "resolution": "1080p",
+        "aspectRatio": "16:9",
+        "promptEnhancement": "quality",
+        "referenceImages": [
+          {
+            "type": "asset_id",
+            "asset_id": "8b296d575a214ce88b05e96849ef5b6e"
+          },
+          {
+            "type": "asset_id",
+            "asset_id": "80c78a095cf445219b543059552315ed"
+          },
+          {
+            "type": "asset_id",
+            "asset_id": "18b0beb0a887473b82c2dd69dd0a7c57"
+          }
+        ],
+        "prompt": "Middle14 seconds of a Blackweb survival-horror cinematic. Reference1 fixes Luke's identity and wardrobe: one original21-year-old mixed Black and white man, medium-light brown skin, short tight dark curls, youthful clean shaven face, olive-grey sweatshirt, charcoal trousers and brown work boots. Reference2 sets photoreal wet brick street at night, abandoned cars, streetlights and dense silver spider webs. Reference3 is the actual GAME SPIDER: preserve this same low broad brown-black body, two main body sections, small fangs, eight long jointed legs, natural arthropod proportions; render it as realistic chitin rather than metal. Use reference3 for creature silhouette only, not its low-polygon background. Shot1 seconds0-4 side medium-wide frame, Luke and one giant spider both fully visible against pale wet pavement. The spider scuttles toward Luke and makes a single short lunge toward his lower leg. Luke visibly reacts: pulls back his leg, turns hips, bends knees, sweeps forearms defensively and steps sideways to evade, then plants both feet and regains balance. The spider lands and stops away from him. Clear cause-and-effect contact-free dodge, not simply standing next to it. Shot2 hard cut at4, shoulder-follow shot behind Luke as he breathes, glances back then walks quickly toward a narrow clear pavement route beside a fallen streetlamp and thick web barrier. His face remains turned away or in distant profile, natural body acting. At end he reaches the open route toward his brick home. Consistent identity, clothing, cold streetlight, wet ground. No supernatural effects, no people other than Luke, no blood injury. No speech, no mouth flapping, no text/captions/logos/watermarks; subtle footfalls, spider contact sounds, fabric movement and rain only. Continuous physically plausible moving video, eight articulated spider legs, two human arms and two legs; no sliding actor, frozen-frame animation or still-image pan."
+      },
+      "path": "Tools/Cinematics/SourceVideo/greyhaven-shot-2.mp4",
+      "sha256": "072bd1a76d0869862f82d1bae26bf77a3c268fa54adfe11ab046fab2da936459",
+      "source_in": 0.375,
+      "source_out": 14.375,
+      "speed": 1.0,
+      "audio_owner": false
+    },
+    {
+      "id": "258df119609949719a29ffb1d4a4fa80",
+      "sequence_start": 28,
+      "sequence_end": 42,
+      "request": {
+        "model": "heygen-video-1",
+        "duration": 14,
+        "resolution": "1080p",
+        "aspectRatio": "16:9",
+        "promptEnhancement": "quality",
+        "referenceImages": [
+          {
+            "type": "asset_id",
+            "asset_id": "8b296d575a214ce88b05e96849ef5b6e"
+          },
+          {
+            "type": "asset_id",
+            "asset_id": "211c61bbbf144ac08f7a8eb28d14d019"
+          }
+        ],
+        "prompt": "Final 14 seconds of a Blackweb survival horror game intro, photoreal cinematic moving video. Reference1 controls the same Luke: fictional 21-year-old man of mixed Black and white heritage, short tight dark curls, medium light brown skin, youthful clean shaven face, olive-grey crewneck sweatshirt, charcoal work trousers, scuffed brown boots. Reference2 controls his exact destination: modest single story brick home with pitched dark roof, small gabled porch and one dark wooden front door, a blue parked car left, mature garden, web-covered neighboring houses. It is the same wet night with cold streetlight and a warm porch bulb. One continuous steady shot, camera following a few feet behind Luke's shoulder, his face stays turned away so existing voiceover can be layered. Seconds0-4 Luke carefully walks around low silk onto the front path, natural alternating footsteps with planted feet and arm movement, revealing that the entire street behind is also cocooned in silver webs. Seconds4-8 he pauses at the porch to look toward the dark interior, tilts his head as if listening. Seconds8-12 he places his left hand on the already slightly open wooden door and physically pushes it inward, with clear hand contact, natural arm and shoulder motion, then steps across the threshold. Seconds12-14 camera stays outside looking into the dim entry as Luke moves inside and the door begins drifting back behind him. No extra people. Keep exactly one door which hinges from the same side throughout, consistent wardrobe, normal hands and anatomy, no teleporting or floating props. No speech or mouth animation, no captions, logos or text. Ambient natural footsteps, door hinge and soft rain only, no music. Real continuous motion and parallax, not a slideshow or animated photograph."
+      },
+      "path": "Tools/Cinematics/SourceVideo/greyhaven-shot-3.mp4",
+      "sha256": "78ddd38af760ff053b1537ea0ff54edd6b6dcc914d46168b7ba24005c5c159c4",
+      "source_in": 0.375,
+      "source_out": 14.375,
+      "speed": 1.0,
+      "audio_owner": false
+    }
+  ],
+  "sequence": {
+    "width": 1280,
+    "height": 720,
+    "fps": 30,
+    "seconds": 42
+  },
+  "audio": {
+    "source": "Tools/Cinematics/Audio/*.wav",
+    "mix_source": "Tools/Cinematics/SourceVideo/town_mix.wav",
+    "speech": "Existing Kokoro synthetic voices retained at original speed and timing; not human voice actors",
+    "mix_sha256": "1c863a816fb5eecfdf54b5bf73487c08e65c1202b30a5bd7d1286e1059e2e121"
+  },
+  "review": {
+    "visual": "Every second sampled; attack and threshold ending additionally inspected at 4fps; no frozen or black intervals detected in original clips",
+    "audio": "Existing verified voice takes reused; full output decode and native Dialogue-bus peak test, not a claimed human listening review",
+    "limits": "Generated footage can differ in detail from the low-cost runtime model; native performance validation is separate",
+    "native": "18 film checks and 19 fallback lifecycle checks passed; natural end 41.979s, audible unclipped Dialogue peak0.6333, Enter skip and stalled decoder restoration verified"
+  }
+}

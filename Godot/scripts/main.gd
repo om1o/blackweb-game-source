@@ -67,7 +67,9 @@ var _tutorial_evidence: Array[Node3D] = []
 var _sighting_spider: Node3D
 var _early_sighting_time := 0.0
 var _early_spider_spawned := false
-const EARLY_SPIDER_START := Vector3(-4.0, 0.44, 1.0)
+# In front of the arrival shoulder camera, between the two lower HUD clusters.
+# The body clears the room partition, and the original grace period still applies.
+const EARLY_SPIDER_START := Vector3(-1.52, 0.44, 0.50)
 const EARLY_SPIDER_END := Vector3(-2.7, 0.44, 1.0)
 var campaign = CampaignScript.new()
 var field_overlay: BlackwebFieldOverlay

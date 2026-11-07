@@ -6,6 +6,7 @@ extends CharacterBody3D
 ## The CC0 model remains a source-checkout fallback.
 const Progression = preload("res://scripts/progression.gd")
 const CombatEffects = preload("res://scripts/combat_effects.gd")
+const Presentation = preload("res://scripts/spider_presentation.gd")
 const LITEROCK_VISUAL_PATH := "res://assets/third_party/literock/Giant_Spider_Lite_1K.glb"
 const FALLBACK_VISUAL_PATH := "res://assets/third_party/poly_pizza/quaternius_spider/quaternius_spider.glb"
 
@@ -31,6 +32,7 @@ enum CombatState { DORMANT, WAITING, PURSUING, WINDUP, RECOVERY, STAGGERED, DEAD
 @export var bite_recovery_seconds := 0.50
 @export var hit_stagger_seconds := 0.22
 @export var corpse_hold_seconds := 1.50
+@export_range(1.0, 2.0) var visual_size := 1.60
 
 var health := 12.0
 var active := false
@@ -55,6 +57,9 @@ var _spawn_transform := Transform3D.IDENTITY
 var _combat_effects: CombatEffects
 var _hurt_skeleton: Skeleton3D
 var _hurt_bones: Dictionary = {}
+var _contact_distance := 0.0
+var _contact_cooldown := 0.0
+var _contact_index := 0
 
 func _ready() -> void:
 	_spawn_transform = global_transform
@@ -64,10 +69,10 @@ func _ready() -> void:
 	floor_snap_length = 0.12
 	var collision := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
-	capsule.radius = 0.13
-	capsule.height = 0.27
+	capsule.radius = 0.13 * visual_size
+	capsule.height = 0.27 * visual_size
 	collision.shape = capsule
-	collision.position.y = 0.135
+	collision.position.y = 0.135 * visual_size
 	add_child(collision)
 	_create_visual()
 	_hurt_skeleton = find_child("*Skeleton3D*", true, false) as Skeleton3D
@@ -77,8 +82,9 @@ func _ready() -> void:
 	call_deferred("_prepare_combat_effects")
 	_bite_audio = AudioStreamPlayer3D.new()
 	_bite_audio.name = "JuvenileBiteCue"
-	_bite_audio.volume_db = -22.0
-	_bite_audio.max_distance = 6.0
+	_bite_audio.volume_db = -17.0
+	_bite_audio.unit_size = 2.3
+	_bite_audio.max_distance = 8.0
 	_bite_audio.stream = _make_bite_cue()
 	add_child(_bite_audio)
 	deactivate()
@@ -97,15 +103,16 @@ func _create_visual() -> void:
 			if animated != null:
 				animated.name = "JuvenileAnimatedSpider"
 				_visual_is_literock = path == LITEROCK_VISUAL_PATH
-				# Literock is metres; at 0.30 scale its 2.2 m leg span reads as
-				# a large house juvenile. The old CC0 fallback uses FBX units.
-				animated.scale = Vector3.ONE * (0.30 if _visual_is_literock else 0.055)
-				animated.position.y = 0.015 if _visual_is_literock else 0.11
+				# A 1.06 m juvenile leg span is readable against the dressed floor.
+				# Scale only the visual; physics keeps explicit metre dimensions.
+				animated.scale = Vector3.ONE * (0.30 if _visual_is_literock else 0.055) * visual_size
+				animated.position.y = (0.015 if _visual_is_literock else 0.11) * visual_size
 				# This rig's rest head/fangs point +Z; locomotion and committed
 				# attacks use actor-forward -Z. Keep the correction on this visual
 				# only, before capturing the pose restored by hit/death/reset code.
 				if _visual_is_literock: animated.rotation.y = PI
 				add_child(animated)
+				Presentation.prepare(animated)
 				_visual_root = animated
 				_visual_rest_scale = animated.scale
 				_visual_rest_position = animated.position
@@ -135,7 +142,8 @@ func _create_visual() -> void:
 	body_instance.name = "MiniBody"
 	body_instance.mesh = body
 	body_instance.material_override = material
-	body_instance.position.y = 0.16
+	body_instance.scale = Vector3.ONE * visual_size
+	body_instance.position.y = 0.16 * visual_size
 	add_child(body_instance)
 	_body_visual = body_instance
 	var leg := BoxMesh.new()
@@ -152,6 +160,7 @@ func _create_visual() -> void:
 	legs.name = "EightLegs"
 	legs.multimesh = multi
 	legs.material_override = material
+	legs.scale = Vector3.ONE * visual_size
 	add_child(legs)
 	_visual_root = body_instance
 	_visual_rest_scale = body_instance.scale
@@ -192,6 +201,8 @@ func activate(player: Node3D = null) -> void:
 	light_slow_remaining = 0.0
 	light_speed_factor = 1.0
 	_attack_cooldown = 0.0
+	_contact_distance = 0.0
+	_contact_cooldown = 0.0
 	_bite_windup_remaining = 0.0
 	_stagger_remaining = 0.0
 	_death_remaining = 0.0
@@ -200,7 +211,9 @@ func activate(player: Node3D = null) -> void:
 	collision_mask = 3
 	show()
 	_restore_visual_pose()
-	if is_instance_valid(_bite_audio): _bite_audio.stop()
+	if is_instance_valid(_bite_audio):
+		_bite_audio.pitch_scale = 0.86
+		_bite_audio.play() # One spatial dry contact identifies the arrival direction.
 	if is_instance_valid(_visual_animation): _visual_animation.stop()
 	_set_combat_state(CombatState.WAITING)
 	health_changed.emit(health, max_health)
@@ -301,7 +314,7 @@ func _physics_process(delta: float) -> void:
 	var actual_speed := Vector2(get_real_velocity().x, get_real_velocity().z).length()
 	_play_visual("walk" if actual_speed > 0.08 else "idle")
 	if actual_speed > 0.08 and is_instance_valid(_visual_animation):
-		_visual_animation.speed_scale = clampf(actual_speed / maxf(0.1, walk_speed), 0.35, 1.25)
+		_visual_animation.speed_scale = clampf(actual_speed / maxf(0.1, walk_speed * visual_size), 0.35, 1.25)
 	if _attack_cooldown <= 0.0 and _can_bite_target(bite_reach + .18):
 		_bite_direction = toward.normalized() if toward.length_squared() > 0.001 else -global_basis.z
 		rotation.y = atan2(-_bite_direction.x, -_bite_direction.z)
@@ -310,13 +323,32 @@ func _physics_process(delta: float) -> void:
 		# Explicitly restart once per attack, even if a previous clip was paused.
 		if is_instance_valid(_visual_animation): _visual_animation.stop()
 		_play_visual("attack")
+		if is_instance_valid(_bite_audio):
+			_bite_audio.pitch_scale = 0.80
+			_bite_audio.play()
 
 func _move_grounded(desired: Vector3, delta: float) -> void:
+	var before := global_position
 	var acceleration := 8.0 if desired.length_squared() < 0.001 else 5.0
 	velocity.x = move_toward(velocity.x, desired.x, acceleration * delta)
 	velocity.z = move_toward(velocity.z, desired.z, acceleration * delta)
 	velocity.y = -0.5 if is_on_floor() else velocity.y - 18.0 * delta
 	move_and_slide()
+	_contact_cooldown = maxf(0.0, _contact_cooldown - delta)
+	var moved := Vector2(global_position.x - before.x, global_position.z - before.z).length()
+	# Motion-driven contacts stop at closed doors and on corpses; one existing
+	# mono voice per juvenile is enough to locate it without an audio pile-up.
+	if not active or not is_on_floor() or moved / maxf(delta, 0.001) < 0.12:
+		_contact_distance = 0.0
+		return
+	_contact_distance += minf(moved, 0.20)
+	if _contact_distance >= 0.32 and _contact_cooldown <= 0.0 and _bite_windup_remaining <= 0.0:
+		_contact_distance = fmod(_contact_distance, 0.32)
+		_contact_cooldown = 0.16
+		_contact_index += 1
+		if is_instance_valid(_bite_audio):
+			_bite_audio.pitch_scale = 0.94 if _contact_index % 2 == 0 else 1.06
+			_bite_audio.play()
 
 func _inside_committed_bite() -> bool:
 	if not is_instance_valid(target): return false
@@ -401,8 +433,8 @@ func _prepare_combat_effects() -> void:
 
 func get_hurt_spheres() -> Array[Dictionary]:
 	if not is_alive(): return []
-	var head := to_global(Vector3(0.0, 0.16, -0.11))
-	var abdomen := to_global(Vector3(0.0, 0.163, 0.118))
+	var head := to_global(Vector3(0.0, 0.16, -0.11) * visual_size)
+	var abdomen := to_global(Vector3(0.0, 0.163, 0.118) * visual_size)
 	if _visual_is_literock and is_instance_valid(_hurt_skeleton):
 		var head_bone: int = _hurt_bones.get("head", -1)
 		var rear_a: int = _hurt_bones.get("abdomen_01", -1)
@@ -411,7 +443,7 @@ func get_hurt_spheres() -> Array[Dictionary]:
 		if rear_a >= 0 and rear_b >= 0:
 			abdomen = _hurt_skeleton.to_global((_hurt_skeleton.get_bone_global_pose(rear_a).origin + _hurt_skeleton.get_bone_global_pose(rear_b).origin) * 0.5)
 	var actor_scale := global_basis.get_scale().abs()
-	var factor := actor_scale[actor_scale.max_axis_index()]
+	var factor := actor_scale[actor_scale.max_axis_index()] * visual_size
 	return [{"center": head, "radius": 0.095 * factor}, {"center": abdomen, "radius": 0.12 * factor}]
 
 func _make_bite_cue() -> AudioStreamWAV:

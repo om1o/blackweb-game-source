@@ -1,38 +1,135 @@
 {
-  "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Avatars/Adults/Male_Adult_02",
-  "license": "MIT",
-  "character": "Male_Adult_02",
-  "changes": "High-detail mesh; 1K textures; original rig and skin weights; baked metre-scale armature transforms; neutral clothing tint; extra opacity hair cards omitted in runtime scene in favor of the textured scalp; CC0 authored motions retargeted in Godot.",
-  "files": [
-    {
-      "name": "m003_body_color.tga",
-      "bytes": 12582956,
-      "sha256": "52EF8BAD71600DE972EABEAB2845019CF8CE6E274F11B9C7FBD315566C51E232"
-    },
-    {
-      "name": "m003_body_normal.tga",
-      "bytes": 12582956,
-      "sha256": "531408D53EB369C8B546AF69DAC123AC8FB88E3238ABB8E4CD7DD923580275EB"
-    },
-    {
-      "name": "m003_head_color.tga",
-      "bytes": 12582956,
-      "sha256": "F7D7D06BC9E3BEE73BB037A0C55CA2915593FA5EF7B08DA3F6A59409ED5CFC8F"
-    },
-    {
-      "name": "m003_head_normal.tga",
-      "bytes": 12582956,
-      "sha256": "92C0DC60B1DF8EEC91A7528A5BDE296CCC8F278C8C92945620C6D87435D67764"
-    },
-    {
-      "name": "m003_opacity_color.tga",
-      "bytes": 16777260,
-      "sha256": "2C0751E05D78587D3898CE60BBEA8B3F23E78150B7E497B7E97FE8C66E91EE1E"
-    },
-    {
-      "name": "Male_Adult_02.fbx",
-      "bytes": 539920,
-      "sha256": "1C65E292E9057A23F7F70969F6971C631C1316FCAAF93E575A4557201C835018"
-    }
-  ]
+  "character": "Luke, fictional age21 mixed Black and white man",
+  "license": "Rocketbox components MIT; MakeHuman afro01 CC0; modifications authored for Blackweb",
+  "body_source": {
+    "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Avatars/Adults/Male_Adult_02",
+    "license": "MIT",
+    "character": "Male_Adult_02",
+    "changes": "High-detail mesh; 1K textures; original rig and skin weights; baked metre-scale armature transforms; neutral clothing tint; extra opacity hair cards omitted in runtime scene in favor of the textured scalp; CC0 authored motions retargeted in Godot.",
+    "files": [
+      {
+        "name": "m003_body_color.tga",
+        "bytes": 12582956,
+        "sha256": "52EF8BAD71600DE972EABEAB2845019CF8CE6E274F11B9C7FBD315566C51E232"
+      },
+      {
+        "name": "m003_body_normal.tga",
+        "bytes": 12582956,
+        "sha256": "531408D53EB369C8B546AF69DAC123AC8FB88E3238ABB8E4CD7DD923580275EB"
+      },
+      {
+        "name": "m003_head_color.tga",
+        "bytes": 12582956,
+        "sha256": "F7D7D06BC9E3BEE73BB037A0C55CA2915593FA5EF7B08DA3F6A59409ED5CFC8F"
+      },
+      {
+        "name": "m003_head_normal.tga",
+        "bytes": 12582956,
+        "sha256": "92C0DC60B1DF8EEC91A7528A5BDE296CCC8F278C8C92945620C6D87435D67764"
+      },
+      {
+        "name": "m003_opacity_color.tga",
+        "bytes": 16777260,
+        "sha256": "2C0751E05D78587D3898CE60BBEA8B3F23E78150B7E497B7E97FE8C66E91EE1E"
+      },
+      {
+        "name": "Male_Adult_02.fbx",
+        "bytes": 539920,
+        "sha256": "1C65E292E9057A23F7F70969F6971C631C1316FCAAF93E575A4557201C835018"
+      }
+    ]
+  },
+  "head_source": {
+    "url": "https://github.com/microsoft/Microsoft-Rocketbox/tree/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Avatars/Adults/Male_Adult_12",
+    "license": "MIT",
+    "files": [
+      {
+        "name": "m007_body_color.tga",
+        "bytes": 12582956,
+        "sha256": "9e5951e67e90ade61f33c51c9673aa1b974358dac12dc0a9abdd4b281cda6b61"
+      },
+      {
+        "name": "m007_head_color.tga",
+        "bytes": 12582956,
+        "sha256": "164007a5ca94b3f84b04ab77a3a7bc49f65f12af4153781dcbf429589750f7c1"
+      },
+      {
+        "name": "m007_head_normal.tga",
+        "bytes": 12582956,
+        "sha256": "11fa11d7ae8476674b89486045cf05b49a5607d0899dc30672c2e9634d8569a4"
+      },
+      {
+        "name": "Male_Adult_12.fbx",
+        "bytes": 487776,
+        "sha256": "b44fa6011b934abd69954fd6c5025c1e2011e05c7892acb6bbc2e9cf70a84014"
+      }
+    ]
+  },
+  "hair_source": {
+    "url": "https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html",
+    "archive": "https://files2.makehumancommunity.org/asset_packs/makehuman_system_assets/makehuman_system_assets_cc0.zip",
+    "asset": "afro01",
+    "license": "CC0",
+    "authors": [
+      "Data Collection AB",
+      "Joel Palmius",
+      "Jonas Hauquier"
+    ],
+    "files": [
+      {
+        "archive_path": "hair/afro01/afro01.thumb",
+        "sha256": "d371c511ce6b4c66ada60c5986d022a2f0113400088da20b532fc950fdf2845e"
+      },
+      {
+        "archive_path": "hair/afro01/afro01.mhclo",
+        "sha256": "9977bd4507e2dd1408504b7a39a6f585ffa2d3ba3aa40ad4bdc2844884bbebb5"
+      },
+      {
+        "archive_path": "hair/afro01/afro01.mhmat",
+        "sha256": "6da1c6778df2450b135009274ed0145dc2dffbc5d8e287fc1d4c69ba539b483c"
+      },
+      {
+        "archive_path": "hair/afro01/afro01.obj",
+        "sha256": "8344fffef15120a05a89219f31184ca2958537223fa885c885137ad1e97edcb8"
+      },
+      {
+        "archive_path": "hair/afro01/afro_diffuse.png",
+        "sha256": "dc0db7dd8a13802f02303ca7e49844b219e09db134471b7061538a8af8f7c7fb"
+      }
+    ]
+  },
+  "reference": {
+    "provider": "Meshy",
+    "task_id": "01a1b530-dbba-700d-a300-29be4806e112",
+    "use": "Visual design reference, not a downloaded Meshy mesh"
+  },
+  "changes": [
+    "Matched original80bone rest rig exactly",
+    "Retained Male_Adult_02 body and hand weights",
+    "Replaced head with Male_Adult_12 and local cheek jaw chin brow sculpt",
+    "Fitted and shortened afro01 cards to head; 1K texture and alpha scissor",
+    "Separated clothing and hand skin surfaces",
+    "1K normal/albedo maps; coordinated material factors",
+    "Retargeted existing CC0 authored clips in Godot",
+    "Rounded fitted hair crown; youthful imagegen face albedo; reduced face normal intensity; matched hand skin"
+  ],
+  "build": {
+    "model": "D:\\CodexTemp\\Blackweb-Luke21\\candidate\\luke_v2.glb",
+    "vertices": 5515,
+    "triangles": 8746,
+    "hair_vertices": 2196,
+    "hair_triangles": 2192,
+    "bones": 80,
+    "max_source_rest_difference_m": 2.669762502188819e-07,
+    "sha256": "f1d7307af9b99fa118484d257c41607ebcc3187586c671e29b9a1847cfedaa26"
+  },
+  "refined_head_albedo": {
+    "provider": "OpenAI built-in imagegen",
+    "edit_target": "MIT Rocketbox m007_head_color",
+    "generated_source_sha256": "1a9e349d131ffb7b2243ff10ea9609de0585f3e78f8728e8e387ecc3bc9d8988",
+    "prompt_file": "Docs/Luke21ImagePrompt.txt",
+    "runtime_file": "luke_v2_m007_head_color.jpg",
+    "changes": "UV-preserving youthful skin, clean shaven, softened baked folds, natural warm lips, subtle freckles and brown iris/ivory sclera; reduced 1K JPEG for runtime",
+    "original_file": "Tools/Assets/References/luke21_head_albedo.png"
+  }
 }

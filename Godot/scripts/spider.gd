@@ -12,6 +12,7 @@ const Progression = preload("res://scripts/progression.gd")
 const ContactAudio = preload("res://scripts/spider_audio.gd")
 const Navigation = preload("res://scripts/spider_navigation.gd")
 const CombatEffects = preload("res://scripts/combat_effects.gd")
+const Presentation = preload("res://scripts/spider_presentation.gd")
 
 @export var target: Node3D
 @export var progression: Progression
@@ -46,6 +47,9 @@ const CombatEffects = preload("res://scripts/combat_effects.gd")
 @export var stagger_seconds := 0.32
 @export var stagger_resistance_seconds := 1.5
 @export var death_seconds := 1.1
+@export_range(1.0, 1.5) var visual_size := 1.30
+@export var body_radius := 0.37
+@export var body_height := 0.82
 
 @export_group("Perception and routing")
 @export var sight_angle_degrees := 240.0
@@ -139,6 +143,8 @@ func _ready() -> void:
 		# Advance base clips before authored additive poses, once per physics tick.
 		animation_player.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 	if is_instance_valid(visual_root):
+		visual_root.scale *= visual_size
+		Presentation.prepare(visual_root)
 		_visual_rest_position = visual_root.position
 		_visual_rest_scale = visual_root.scale
 		_visual_rest_rotation = visual_root.rotation
@@ -159,6 +165,7 @@ func _ready() -> void:
 				if bone_name.begins_with("LegSegmentA_") or bone_name.begins_with("LegSegmentB_"):
 					_attack_bones[bone_name] = bone
 	_navigation.points = navigation_points
+	_navigation.configure_body(body_radius, body_height)
 	_attack_tell_light = OmniLight3D.new()
 	_attack_tell_light.name = "AttackTellGlow"
 	_attack_tell_light.position = Vector3(0.0, 0.45, -0.25)
@@ -183,10 +190,10 @@ func _ensure_collision_shape() -> void:
 		if child is CollisionShape3D: return
 	var collider := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
-	capsule.radius = 0.32
-	capsule.height = 0.64
+	capsule.radius = body_radius
+	capsule.height = maxf(body_height, body_radius * 2.0)
 	collider.shape = capsule
-	collider.position.y = 0.32
+	collider.position.y = capsule.height * 0.5
 	add_child(collider)
 
 
@@ -518,10 +525,10 @@ func get_hurt_spheres() -> Array[Dictionary]:
 	if not is_alive(): return []
 	var result: Array[Dictionary] = []
 	var body_scale := global_basis.get_scale().abs().max_axis_index()
-	var scale_factor := global_basis.get_scale().abs()[body_scale]
+	var scale_factor := global_basis.get_scale().abs()[body_scale] * visual_size
 	for data in [{"bone": "Root", "center": Vector3(0.0, 0.40, -0.175), "radius": 0.22},
 		{"bone": "Back", "center": Vector3(0.0, 0.434, 0.175), "radius": 0.25}]:
-		var center: Vector3 = to_global(data.center)
+		var center: Vector3 = to_global(data.center * visual_size)
 		var bone: int = _hurt_bones.get(data.bone, -1)
 		if is_instance_valid(_attack_skeleton) and bone >= 0:
 			center = _attack_skeleton.to_global(_attack_skeleton.get_bone_global_pose(bone).origin)
@@ -646,7 +653,7 @@ func _update_animation(delta: float = 0.0) -> void:
 	if clip.is_empty() or not animation_player.has_animation(clip):
 		animation_player.pause()
 		return
-	var reference := run_reference_speed if running else walk_reference_speed
+	var reference := (run_reference_speed if running else walk_reference_speed) * visual_size
 	animation_player.speed_scale = 1.0 if speed < 0.05 else clampf(speed / maxf(0.01, reference), 0.35, 1.65)
 	if animation_player.current_animation != clip or not animation_player.is_playing():
 		animation_player.play(clip, 0.15)

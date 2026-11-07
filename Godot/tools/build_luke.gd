@@ -146,6 +146,20 @@ func _replacement_material(source: Material) -> StandardMaterial3D:
 	var material := source.duplicate(true) as StandardMaterial3D
 	if material == null: material = StandardMaterial3D.new()
 	var part := source.resource_name.to_lower()
+	if part.begins_with("luke21_"):
+		# Luke's custom variant carries separate clothing, skin and opaque curls.
+		# Keep its coordinated factors; a second global tint would colour hands.
+		material.metallic = 0.0
+		material.metallic_specular = .25
+		if "curls" in part:
+			material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+			material.alpha_scissor_threshold = .35
+			material.cull_mode = BaseMaterial3D.CULL_DISABLED
+			material.metallic_specular = 0.0
+			material.roughness = 1.0
+		_check(material.albedo_texture != null or "curls" in part,
+			"Luke21 authored surface loaded: " + part)
+		return material
 	material.metallic = 0.0
 	material.metallic_specular = .25
 	material.roughness = .84 if "body" in part else .72
