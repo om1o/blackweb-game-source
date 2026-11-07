@@ -10,9 +10,9 @@ The five-room house teaches light, inventory, movement and ordinary spider comba
 
 The nearby orphanage remains a missing-person mystery: abandoned rooms, an evacuation list, a broken intercom and company transport records. Those clues establish what Luke needs to investigate without showing injured children or turning them into the creature. The boss originates from the company's **adult prisoner experiments**, consistent with the established premise. Luke and the player do not learn the entire conspiracy here.
 
-## Creature proposal: The Graft
+## Creature proposal: The Smiling Spider
 
-A broad, asymmetrical spider formed around a failed adult-subject graft. Six load-bearing limbs and two grasping forelimbs create an immediately readable silhouette. A damaged restraint harness, numbered tags and an implanted tracking device connect it to the company. Heavy chitin, opaque membranes and dark residue provide the material contrast. Sound uses leg impacts, strained breathing and distorted adult vocal fragments, with moments of silence before movement.
+The creator named this boss **The Smiling Spider** and requested a fully arachnid silhouette. The current [v2 concept](Design/smiling-spider-v2.png) supersedes the humanoid body in the earlier Subject 12 study: a low cephalothorax, narrow pedicel, huge oval abdomen and eight jointed spider legs. The human resemblance is confined to the fixed, unsettling grin integrated into the spider's face. Short pedipalps and chelicerae frame it. There are no human arms or hands. Bloody chitin, red-black secretions and blood-soaked silk extend across the greenhouse glass, supports and floor. Sound uses leg impacts, strained breathing and distorted adult vocal fragments, with moments of silence before movement. The [v2 prompt](Design/SmilingSpiderV2Prompt.txt) preserves the built-in imagegen edit instructions and reference. Both images are concept studies; neither is a finished 3D asset.
 
 Its signature behaviour is retrieval: it wraps living prey and returns toward the greenhouse intake. Early clues show silk trails running into the drainage channel. This gives its later capture of Luke a cause and destination.
 
