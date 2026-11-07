@@ -32,7 +32,7 @@ func _run() -> void:
 	Input.parse_input_event(event)
 	Input.flush_buffered_events()
 	await process_frame
-	for sample in [[0.125, "knife-slash-windup.png"], [0.24, "knife-slash-contact.png"], [0.355, "knife-slash-followthrough.png"], [0.60, "knife-slash-recovery.png"]]:
+	for sample in [[0.125, "knife-slash-windup.png"], [0.28, "knife-slash-contact.png"], [0.47, "knife-slash-followthrough.png"], [0.83, "knife-slash-recovery.png"]]:
 		while player._action_time < sample[0] and player._action_kind == &"knife": await process_frame
 		await _capture(sample[1])
 	Engine.time_scale = 1.0

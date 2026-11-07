@@ -52,7 +52,7 @@ var _hand_mount: BoneAttachment3D
 var _luke_skeleton: Skeleton3D
 var _armor_visuals: Node3D
 var _locomotion_pose: BlackwebLocomotionPose = LocomotionPose.new()
-var _pinoc_motion = preload("res://scripts/pinoc_motion.gd").new()
+var _pinoc_motion = preload("res://scripts/authored_motion.gd").new()
 var _right_upper_bone := -1
 var _right_forearm_bone := -1
 var _right_hand_bone := -1
@@ -111,8 +111,8 @@ const JUMP_COST := 9.0
 const JUMP_SPEED := 5.0
 const BATTERY_DRAIN_PER_SECOND := 0.22
 const KNIFE_DAMAGE := 4.0
-const KNIFE_HIT_TIME := 0.24
-const KNIFE_ACTION_DURATION := 0.68
+const KNIFE_HIT_TIME := 0.28
+const KNIFE_ACTION_DURATION := 0.95
 const KNIFE_REACH := 1.55
 const CANDY_HEAL_TIME := 0.78
 const CANDY_ACTION_DURATION := 1.16
@@ -742,14 +742,14 @@ func _physics_process(delta: float) -> void:
 		_pinoc_motion.clear_overrides()
 		_animation.advance(delta)
 	_locomotion_pose.clear()
-	if not _pinoc_motion.locomotion(delta,_crouching,not is_on_floor(),velocity.y,Vector2(velocity.x,velocity.z).length()):
+	if not _pinoc_motion.locomotion(delta,_crouching,not is_on_floor(),velocity.y,Vector2(velocity.x,velocity.z).length(),_animation.current_animation_position if _animation else -1.0):
 		_locomotion_pose.apply(delta, _crouching, not is_on_floor(), velocity.y, -camera.global_basis.z)
 	_tick_item_action(delta)
 	if _light_on or selected_quick_item() == &"knife" or _action_kind != &"": visual.rotation.y = lerp_angle(visual.rotation.y, _yaw, minf(1.0, delta * 8.0))
 	_update_left_supply_arm()
 	_update_right_arm_pose(delta)
 	if _action_kind == &"knife":
-		_pinoc_motion.attack(_action_time/_item_action_duration())
+		_pinoc_motion.attack(_action_time/_item_action_duration(),Vector2(velocity.x,velocity.z).length()>.15)
 		_update_right_hand_grip()
 	elif _hurt_time>0.0:
 		_pinoc_motion.reaction(.65-_hurt_time)
@@ -1002,7 +1002,7 @@ func use_item(id: StringName) -> bool:
 			return true
 		&"knife":
 			if _knife_cooldown > 0.0: return false
-			_knife_cooldown = 0.75
+			_knife_cooldown = 1.0
 			_action_kind = &"knife"
 			_action_time = 0.0
 			_action_effect_done = false
@@ -1245,6 +1245,9 @@ func _update_right_arm_pose(delta: float) -> void:
 	_arm_pose_weight = move_toward(_arm_pose_weight, wanted, delta * 4.5)
 	_luke_skeleton.set_bone_global_pose_override(_right_upper_bone, Transform3D.IDENTITY, 0.0, false)
 	_luke_skeleton.set_bone_global_pose_override(_right_forearm_bone, Transform3D.IDENTITY, 0.0, false)
+	# The downloaded clip owns the complete arm during a cut. Applying the old
+	# procedural arm/wrist path first pulled the same bones in two directions.
+	if _action_kind == &"knife": return
 	if _arm_pose_weight <= 0.001:
 		_update_right_hand_grip()
 		return

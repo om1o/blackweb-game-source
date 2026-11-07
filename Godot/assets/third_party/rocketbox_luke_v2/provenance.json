@@ -1,0 +1,38 @@
+{
+  "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Avatars/Adults/Male_Adult_02",
+  "license": "MIT",
+  "character": "Male_Adult_02",
+  "changes": "High-detail mesh; 1K textures; original rig and skin weights; baked metre-scale armature transforms; neutral clothing tint; extra opacity hair cards omitted in runtime scene in favor of the textured scalp; CC0 authored motions retargeted in Godot.",
+  "files": [
+    {
+      "name": "m003_body_color.tga",
+      "bytes": 12582956,
+      "sha256": "52EF8BAD71600DE972EABEAB2845019CF8CE6E274F11B9C7FBD315566C51E232"
+    },
+    {
+      "name": "m003_body_normal.tga",
+      "bytes": 12582956,
+      "sha256": "531408D53EB369C8B546AF69DAC123AC8FB88E3238ABB8E4CD7DD923580275EB"
+    },
+    {
+      "name": "m003_head_color.tga",
+      "bytes": 12582956,
+      "sha256": "F7D7D06BC9E3BEE73BB037A0C55CA2915593FA5EF7B08DA3F6A59409ED5CFC8F"
+    },
+    {
+      "name": "m003_head_normal.tga",
+      "bytes": 12582956,
+      "sha256": "92C0DC60B1DF8EEC91A7528A5BDE296CCC8F278C8C92945620C6D87435D67764"
+    },
+    {
+      "name": "m003_opacity_color.tga",
+      "bytes": 16777260,
+      "sha256": "2C0751E05D78587D3898CE60BBEA8B3F23E78150B7E497B7E97FE8C66E91EE1E"
+    },
+    {
+      "name": "Male_Adult_02.fbx",
+      "bytes": 539920,
+      "sha256": "1C65E292E9057A23F7F70969F6971C631C1316FCAAF93E575A4557201C835018"
+    }
+  ]
+}

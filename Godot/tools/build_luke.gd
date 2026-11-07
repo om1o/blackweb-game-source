@@ -12,12 +12,16 @@ const CLIPS := {
 const HEIGHT := 1.75
 var failures: Array[String] = []
 var report: Dictionary = {"source": MODEL, "height_m": HEIGHT, "clips": {}}
+var replacement := false
 
 func _initialize() -> void:
+	replacement = "--replacement" in OS.get_cmdline_user_args()
 	call_deferred("_build")
 
 func _build() -> void:
-	var packed := load(MODEL) as PackedScene
+	var source_path := "res://assets/third_party/rocketbox_luke_v2/luke_v2.glb" if replacement else MODEL
+	report.source = source_path
+	var packed := load(source_path) as PackedScene
 	if not _check(packed != null, "Character FBX is imported"):
 		_finish()
 		return
@@ -39,9 +43,19 @@ func _build() -> void:
 	for mesh in meshes:
 		mesh.mesh = mesh.mesh.duplicate(true)
 		mesh.skin = mesh.skin.duplicate(true)
+		if replacement:
+			# The source already has textured scalp geometry. Its extra hair cards
+			# expose hard strips in Compatibility; retain the clean short-hair scalp.
+			var clean := ArrayMesh.new()
+			for surface in mesh.mesh.get_surface_count():
+				var material := mesh.mesh.surface_get_material(surface)
+				if "opacity" in material.resource_name.to_lower(): continue
+				clean.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,mesh.mesh.surface_get_arrays(surface))
+				clean.surface_set_material(clean.get_surface_count()-1,material)
+			mesh.mesh=clean
 		for surface in mesh.mesh.get_surface_count():
 			var old_material: Material = mesh.mesh.surface_get_material(surface)
-			mesh.mesh.surface_set_material(surface, _material(old_material.resource_name))
+			mesh.mesh.surface_set_material(surface, _replacement_material(old_material) if replacement else _material(old_material.resource_name))
 		# Raw source vertices are Z-up; skinning makes them Y-up. Cover moving poses.
 		mesh.custom_aabb = AABB(Vector3(-1.0, -0.2, -1.0), Vector3(2.0, 2.5, 2.0))
 		mesh.extra_cull_margin = 0.15
@@ -86,7 +100,7 @@ func _build() -> void:
 	report["model_offset_y"] = model.position.y
 	report["forward"] = "-Z"
 	report["failures"] = failures
-	var file := FileAccess.open(ASSETS + "validation.json", FileAccess.WRITE)
+	var file := FileAccess.open("res://assets/third_party/rocketbox_luke_v2/validation.json" if replacement else ASSETS + "validation.json", FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify(report, "\t") + "\n")
 	luke.free()
@@ -128,6 +142,21 @@ func _material(source_name: String) -> StandardMaterial3D:
 	_check(material.albedo_texture != null, "Texture loaded for " + part)
 	return material
 
+func _replacement_material(source: Material) -> StandardMaterial3D:
+	var material := source.duplicate(true) as StandardMaterial3D
+	if material == null: material = StandardMaterial3D.new()
+	var part := source.resource_name.to_lower()
+	material.metallic = 0.0
+	material.metallic_specular = .25
+	material.roughness = .84 if "body" in part else .72
+	if "body" in part: material.albedo_color = Color(.63,.68,.64)
+	if "opacity" in part:
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		material.alpha_scissor_threshold = .2
+		material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_check(material.albedo_texture != null,"Replacement texture loaded: "+part)
+	return material
+
 func _rest_animation(luke: Node3D, skeleton: Skeleton3D) -> Animation:
 	var animation := Animation.new()
 	animation.length = 0.0
@@ -142,6 +171,7 @@ func _rest_animation(luke: Node3D, skeleton: Skeleton3D) -> Animation:
 	return animation
 
 func _import_clip(name: String, luke: Node3D, skeleton: Skeleton3D) -> Animation:
+	if replacement: return _retarget_authored(name,luke,skeleton)
 	var packed := load(CLIPS[name]) as PackedScene
 	if not _check(packed != null, "Imported clip exists: " + name):
 		return null
@@ -170,6 +200,12 @@ func _import_clip(name: String, luke: Node3D, skeleton: Skeleton3D) -> Animation
 			removed_helpers += 1
 			continue
 		var bone_name := String(path.get_subname(0))
+		if replacement and bone_name=="Bip01" and skeleton.find_bone(bone_name)<0:
+			# glTF keeps this FBX armature root as a node, not a deforming bone.
+			# Its static transform is retained; CharacterBody owns displacement.
+			clip.remove_track(track)
+			removed_helpers+=1
+			continue
 		if not _check(skeleton.find_bone(bone_name) >= 0, name + " matches bone " + bone_name):
 			continue
 		clip.track_set_path(track, NodePath(str(luke.get_path_to(skeleton)) + ":" + bone_name))
@@ -182,6 +218,37 @@ func _import_clip(name: String, luke: Node3D, skeleton: Skeleton3D) -> Animation
 	report["clips"][name] = {"duration_seconds": clip.length, "tracks": clip.get_track_count(), "removed_helper_tracks": removed_helpers}
 	source.free()
 	return clip
+
+func _retarget_authored(name: String,luke: Node3D,skeleton: Skeleton3D) -> Animation:
+	# Blender/glTF preserves the bind pose but changes bone local axes. Never
+	# copy the original FBX's local keys onto these differently oriented bones.
+	var motion = load("res://scripts/authored_motion.gd").new()
+	motion.bind(skeleton)
+	var id: String = {"idle":"Idle_Loop","walk":"Walk_Loop","run":"Jog_Fwd_Loop"}[name]
+	var animation := Animation.new()
+	animation.resource_name=name
+	animation.length=float(motion.clips[id].duration)
+	animation.loop_mode=Animation.LOOP_LINEAR
+	for bone in skeleton.get_bone_count():
+		var path := NodePath(str(luke.get_path_to(skeleton))+":"+skeleton.get_bone_name(bone))
+		for type in [Animation.TYPE_POSITION_3D,Animation.TYPE_ROTATION_3D]:
+			var track := animation.add_track(type)
+			animation.track_set_path(track,path)
+	for i in range(ceili(animation.length*30.0)+1):
+		motion.clear_overrides()
+		skeleton.reset_bone_poses()
+		var time := minf(animation.length,float(i)/30.0)
+		motion.apply_clip(id,time,1.0,false,true)
+		for bone in skeleton.get_bone_count():
+			var parent := skeleton.get_bone_parent(bone)
+			var pose := skeleton.get_bone_global_pose(bone)
+			if parent>=0: pose=skeleton.get_bone_global_pose(parent).affine_inverse()*pose
+			animation.track_insert_key(bone*2,time,pose.origin)
+			animation.track_insert_key(bone*2+1,time,pose.basis.get_rotation_quaternion())
+	motion.clear_overrides()
+	skeleton.reset_bone_poses()
+	report["clips"][name]={"source":id,"duration_seconds":animation.length,"tracks":animation.get_track_count(),"retargeted":true}
+	return animation
 
 func _skinned_bounds(luke: Node3D, meshes: Array[MeshInstance3D]) -> AABB:
 	var minimum := Vector3(INF, INF, INF)

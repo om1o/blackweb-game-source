@@ -81,13 +81,13 @@ func _run() -> void:
 	var max_grip_drift := 0.0
 	var max_grip_rotation := 0.0
 	var hand_samples: Array[Vector3] = []
-	for frame in range(42):
+	for frame in range(65):
 		await physics_frame
 		if target.hits > 0 and first_damage_time < 0.0: first_damage_time = player._action_time
 		max_grip_drift = maxf(max_grip_drift, player._hand_knife.position.distance_to(grip.origin))
 		max_grip_rotation = maxf(max_grip_rotation, player._hand_knife.quaternion.angle_to(grip.basis.get_rotation_quaternion()))
 		hand_samples.append(player._hand_mount.global_position)
-	_check(first_damage_time >= player.KNIFE_HIT_TIME - 0.0001 and first_damage_time <= player.KNIFE_HIT_TIME + 0.035, "Damage lands at the 0.24 second cut crossing")
+	_check(first_damage_time >= player.KNIFE_HIT_TIME - 0.0001 and first_damage_time <= player.KNIFE_HIT_TIME + 0.035, "Damage lands at the 0.28 second authored cut crossing")
 	_check(target.hits == 1 and is_equal_approx(target.health, 8.0), "One click applies exactly one four-damage hit")
 	_check(max_grip_drift < 0.0001 and max_grip_rotation < 0.001, "Handle transform stays fixed in the animated right hand throughout the cut")
 	var high := -INF
@@ -112,7 +112,7 @@ func _run() -> void:
 		_mouse(false)
 		_mouse(true)
 		await process_frame
-	await _frames(50)
+	await _frames(65)
 	_check(target.hits == 2 and is_equal_approx(target.health, 4.0), "Extra clicks during one swing cannot restart its timer or stack hits")
 	_mouse(false)
 	var wall := StaticBody3D.new()
@@ -125,19 +125,19 @@ func _run() -> void:
 	stage.add_child(wall)
 	await _frames(3)
 	_mouse(true)
-	await _frames(50)
+	await _frames(65)
 	_check(target.hits == 2, "Solid wall between the player and spider blocks the cut")
 	_mouse(false)
 	wall.queue_free()
 	await _frames(3)
 	target.position.z = -1.8
 	_mouse(true)
-	await _frames(50)
+	await _frames(65)
 	_check(target.hits == 2, "Spider beyond the physical short-knife reach is not hit")
 	_mouse(false)
 	target.position.z = 0.95
 	_mouse(true)
-	await _frames(50)
+	await _frames(65)
 	_check(target.hits == 2, "A spider behind the player is outside the forward slash")
 	_mouse(false)
 	target.position.z = -0.95
@@ -146,7 +146,7 @@ func _run() -> void:
 	stage.add_child(other)
 	other.add_to_group("mini_spider")
 	_mouse(true)
-	await _frames(50)
+	await _frames(65)
 	_check(target.hits == 3 and other.hits == 0, "A swing damages only the nearest valid target once")
 	_mouse(false)
 	player.select_quick_slot(0)

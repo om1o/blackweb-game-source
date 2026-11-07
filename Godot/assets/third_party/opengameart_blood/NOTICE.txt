@@ -1,0 +1,14 @@
+Artist-made fluid splash frames: Overcrafted, Bloodsplatter and Bloodsplash Animation.
+https://opengameart.org/content/bloodsplatter-and-bloodsplash-animation
+Downloaded from https://opengameart.org/sites/default/files/bloodsplat.zip
+Files splash_0.png through splash_5.png are the original splattersplash frames, renamed only.
+
+Four-variant surface texture: miscBloodDecalParticles - blood_splatter_01_base.png.
+https://opengameart.org/content/miscblooddecalparticles-bloodsplatter01basepng
+Downloaded from https://opengameart.org/sites/default/files/oga-textures/77840/blood_splatter_01_base.png
+File blood_splatter.png is the original texture, renamed only.
+
+Both source pages designate their assets CC0 1.0 Universal:
+https://creativecommons.org/publicdomain/zero/1.0/
+Acquired 7 November 2026. Runtime tint, frame timing, pooled emitters and floor placement are Blackweb code.
+These assets are unrelated to the Vefects pack evaluated but not included in this project.

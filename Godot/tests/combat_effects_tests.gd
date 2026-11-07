@@ -50,17 +50,17 @@ func _run() -> void:
 	var pool = adult._combat_effects
 	_check(pool == juvenile._combat_effects and world.get_node("BlackwebCombatEffects") == pool,
 		"Adult and juvenile reuse one shared world effect pool")
-	_check(pool._slots.size() == 4 and pool._marks.size() == 8 and pool.get_child_count() == 16 and not pool.is_physics_processing(),
-		"Idle pool has four emitters, four audio voices and eight reusable marks without per-frame script work")
+	_check(pool._slots.size() == 4 and pool._marks.size() == 8 and pool.get_child_count() == 20 and not pool.is_physics_processing(),
+		"Idle pool has four emitters, four audio voices, four splash cards and eight reusable marks without per-frame script work")
 	var particle_budget := 0
 	var natural := true
 	for slot in pool._slots:
 		var particles: CPUParticles3D = slot.particles
 		particle_budget += particles.amount
 		var material: StandardMaterial3D = particles.mesh.material
-		natural = natural and particles.one_shot and particles.lifetime <= 0.48 and not particles.local_coords
+		natural = natural and particles.one_shot and particles.lifetime <= 0.64 and not particles.local_coords
 		natural = natural and not material.emission_enabled and particles.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_check(particle_budget == 64 and natural, "Effects cap at sixty-four short world-space particles without emission or shadows")
+	_check(particle_budget == 96 and natural, "Effects cap at ninety-six short world-space particles without emission or shadows")
 	adult._set_state(Spider.State.WINDUP)
 	adult._update_attack_tell()
 	_check(not adult._attack_tell_light.visible and is_zero_approx(adult._attack_tell_light.light_energy),
@@ -109,9 +109,9 @@ func _run() -> void:
 	_check(pool.emitted_count == count_before and is_equal_approx(adult.health, 96.0),
 		"Absorbed or invalid damage produces no false impact feedback")
 	for index in 100: pool.burst(adult, contact, Vector3.UP)
-	_check(pool.active_count() == 4 and pool.get_child_count() == 16,
+	_check(pool.active_count() == 4 and pool.get_child_count() == 20,
 		"A burst storm reuses four slots without spawning unbounded particles or audio nodes")
-	pool._physics_process(0.6)
+	pool._physics_process(36.0)
 	_check(pool.active_count() == 0 and not pool.is_physics_processing(),
 		"All slots retire after their short lifetime and the pool stops processing")
 	pool.burst(adult, contact, Vector3.UP)

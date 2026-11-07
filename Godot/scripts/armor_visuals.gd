@@ -18,7 +18,7 @@ var _pants_boot_cut: ArrayMesh
 
 func setup(luke_model: Node3D) -> bool:
 	if _ready_for_state: return true
-	_skeleton = luke_model.get_node_or_null("Model/Skeleton3D") as Skeleton3D
+	_skeleton = luke_model.find_child("Skeleton3D", true, false) as Skeleton3D
 	if _skeleton == null or not ResourceLoader.exists(ARMOR_SCENE_PATH): return false
 	for child in _skeleton.get_children():
 		if child is MeshInstance3D and child.skin != null:

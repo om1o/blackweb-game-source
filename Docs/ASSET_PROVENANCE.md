@@ -1,5 +1,13 @@
 # Asset provenance
 
+## Authored animation and character repair — 7 November 2026
+
+- **Quaternius Universal Animation Library, free Standard edition**: 14 sampled motions, including Sword_Attack, crouch, jump, walk, jog and hit reaction. Authors: Quaternius and Gonzalo Furnier; CC0. [Official store](https://quaternius.itch.io/universal-animation-library). The runtime samples preserve source hashes and are retargeted to Luke's anatomical rest directions. The old generated PINOC slash is no longer the player's runtime motion. Original notice: `Godot/licenses/Quaternius-Animation-License.txt`.
+- **Microsoft Rocketbox Male_Adult_02**: replacement human mesh, original skinning, reduced 1K textures, normalized metre-scale rig, neutral clothing tint, and textured short-hair scalp with the broken overlay cards removed. [Pinned official source](https://github.com/microsoft/Microsoft-Rocketbox/tree/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Avatars/Adults/Male_Adult_02). MIT license and acquisition hashes accompany `Godot/assets/third_party/rocketbox_luke_v2/`.
+- **Overcrafted fluid splash** and **miscBloodDecalParticles atlas**: CC0 texture sources from [OpenGameArt splash](https://opengameart.org/content/bloodsplatter-and-bloodsplash-animation) and [OpenGameArt splatter](https://opengameart.org/content/miscblooddecalparticles-bloodsplatter01basepng). Six original frames and one original atlas, renamed only, are in `Godot/assets/third_party/opengameart_blood/`. Runtime tint, size and lifetime are engine settings.
+- **PINOC and Meshy were consulted through their plugins** for motion-library and existing-model inventory references. No new paid generations or purchases were made for this repair. Meshy's listed existing models contained no usable humanoid; the free authored character was selected instead. The Vefects Godot blood pack was evaluated but not redistributed or included.
+
+
 The user stated **"i have permition contiune"** on 2026-11-03 in response to the explicit question about the game's creator permission/asset licenses. Recovery proceeds on that user-confirmed permission. The exact license documents, grant wording, attribution terms, and redistribution conditions were not supplied; they are not represented here as independently verified.
 
 `ASSET_INVENTORY.csv` records all 509 project packages from the supplied manifest. The source game remains unchanged. IoStore-to-legacy conversion succeeded; use the interchange export reports to identify which assets have actually been converted into editable import formats.

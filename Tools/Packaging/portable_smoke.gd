@@ -83,7 +83,9 @@ func _run() -> void:
 	var player: Node = game.get("player")
 	var spider: Node = game.get("spider")
 	_check("Player controller exists", player != null)
-	_check("All five PINOC motion clips are packaged", player.get("_pinoc_motion").clips.size()==5)
+	var motions: Dictionary = player.get("_pinoc_motion").clips
+	_check("Fourteen CC0 authored motion clips are packaged", motions.size()==14 and motions.has("Sword_Attack") and motions.has("Crouch_Fwd_Loop") and motions.has("Jump_Loop"))
+	_check("Licensed fluid splash and splatter textures load", load("res://assets/third_party/opengameart_blood/splash_0.png") is Texture2D and load("res://assets/third_party/opengameart_blood/blood_splatter.png") is Texture2D)
 	_check("Three story voice assets are packaged", game.get_node("StoryVoice")._data.size()==3)
 	var armor = player.get("_armor_visuals")
 	_check("All four credited garment meshes bind in the isolated package", armor != null and armor.visual_state().size() == 4 and not armor.visual_state().values().has(true))
@@ -118,7 +120,7 @@ func _run() -> void:
 		var texture := orb_material.get_shader_parameter(channel) as Texture2D
 		pbr_maps_ok = pbr_maps_ok and texture != null and texture.get_width() == 2048
 	_check("Five cobweb PBR channels load at the 2048-pixel runtime limit", pbr_maps_ok)
-	_check("Luke skeleton is preserved", _has_skeleton(player, 81))
+	_check("Replacement Luke's 80-bone skeleton is packaged", _has_skeleton(player, 80))
 	_check("Spider skeleton is preserved", _has_skeleton(spider, 142))
 	_check("Interactive exit door exists", game.get("_exit_door") != null)
 	var adapter: RefCounted = game.get("_material_adapter")
